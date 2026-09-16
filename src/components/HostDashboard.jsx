@@ -1,13 +1,9 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
 import { soundFx } from '../utils/sound';
-import { StopwatchChallenge } from './games/StopwatchChallenge';
-import { BlockStacker } from './games/BlockStacker';
-import { SurvivalOxQuiz } from './games/SurvivalOxQuiz';
-import { RapidTapSprint } from './games/RapidTapSprint';
-import { MindSyncBalance } from './games/MindSyncBalance';
-import { MafiaRefereeModule } from './mafia/MafiaRefereeModule';
-import { Users, Trophy, Play, Zap, RefreshCw, Settings, Award, Shield, Sparkles, Monitor } from 'lucide-react';
+import { GAMES_METADATA } from '../utils/constants';
+import { GameRenderer } from './games/GameRenderer';
+import { Zap, RefreshCw, Play } from 'lucide-react';
 
 export const HostDashboard = () => {
   const {
@@ -17,74 +13,20 @@ export const HostDashboard = () => {
     activeTeams,
     populateBots,
     clearBots,
-    startGame,
-    awardPoints
+    startGame
   } = useGame();
 
-  // If a game is active
+  // Render current active game if in playing state
   if (room.status === 'playing') {
-    switch (room.activeGame) {
-      case 'stopwatch': return <StopwatchChallenge />;
-      case 'blockstack': return <BlockStacker />;
-      case 'oxquiz': return <SurvivalOxQuiz />;
-      case 'sprint': return <RapidTapSprint />;
-      case 'mindsync': return <MindSyncBalance />;
-      case 'mafia': return <MafiaRefereeModule />;
-      default: break;
-    }
+    return <GameRenderer activeGame={room.activeGame} />;
   }
 
-  // Calculate team scores
+  // Calculate team scores for lobby view
   const teamRankings = activeTeams.map(t => {
     const teamMembers = participants.filter(p => p.teamId === t.id);
     const totalScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
     return { ...t, memberCount: teamMembers.length, totalScore };
   }).sort((a, b) => b.totalScore - a.totalScore);
-
-  const GAMES_LIST = [
-    {
-      id: 'stopwatch',
-      title: '⏱️ 0.000초 정밀 스톱워치 타겟 챌린지',
-      desc: '10.000초에 0.001초 단위로 가장 가깝게 멈추는 타임어택 (5초 후 숫자가 숨겨집니다)',
-      icon: '⏱️',
-      tag: '초정밀 순위'
-    },
-    {
-      id: 'blockstack',
-      title: '🧱 초정밀 리듬 블록 탑 쌓기 (Precision Stacker)',
-      desc: '움직이는 블록을 완벽한 타이밍에 떨어뜨려 100인 중 가장 높은 탑을 건설!',
-      icon: '🧱',
-      tag: '아케이드 리듬'
-    },
-    {
-      id: 'oxquiz',
-      title: '🧠 100인 서바이벌 OX 퀴즈',
-      desc: '실시간 O/X 비율 그래프, 서바이벌 탈락 및 생존자 축하 연출',
-      icon: '🧠',
-      tag: '서바이벌 라이브'
-    },
-    {
-      id: 'sprint',
-      title: '⚡ 100인 실시간 탭 대격돌 100m 파워 스프린트',
-      desc: '10초 동안 미친 듯이 연타하여 빔프로젝터 대형 트랙에서 펼쳐지는 레이싱 배틀',
-      icon: '⚡',
-      tag: '10초 피지컬'
-    },
-    {
-      id: 'mindsync',
-      title: '⚖️ 심리 밸런스 & 황금비율 타겟 게임 (2/3 Average)',
-      desc: '1~100 수치 선택! 전체 평균의 2/3에 가장 가까운 명사수를 가리는 심리전',
-      icon: '⚖️',
-      tag: '뇌섹 심리'
-    },
-    {
-      id: 'mafia',
-      title: '🕵️ 보너스: 마피아 AI 심판 & 사회자 진행 보조',
-      desc: '직업 자동 배분, 무드 BGM, 낮/밤 사회자 가이드 스크립트',
-      icon: '🕵️',
-      tag: '사회자 보조 모드'
-    }
-  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -148,7 +90,7 @@ export const HostDashboard = () => {
 
       {/* Team Score Leaderboard Banner (if Team Mode) */}
       {room.mode === 'team' && (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${activeTeams.length}, 1fr)`, gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(180px, 1fr))`, gap: '14px' }}>
           {teamRankings.map((team, idx) => (
             <div
               key={team.id}
@@ -182,7 +124,7 @@ export const HostDashboard = () => {
       </h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-        {GAMES_LIST.map((g) => (
+        {GAMES_METADATA.map((g) => (
           <div
             key={g.id}
             className="glass-panel glass-card"

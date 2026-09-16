@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { soundFx } from '../utils/sound';
-import { StopwatchChallenge } from './games/StopwatchChallenge';
-import { BlockStacker } from './games/BlockStacker';
-import { SurvivalOxQuiz } from './games/SurvivalOxQuiz';
-import { RapidTapSprint } from './games/RapidTapSprint';
-import { MindSyncBalance } from './games/MindSyncBalance';
-import { Smartphone, User, Shield, Trophy, CheckCircle, Zap } from 'lucide-react';
+import { GameRenderer } from './games/GameRenderer';
+import { Smartphone, User } from 'lucide-react';
 
 export const ParticipantMobileView = () => {
   const {
@@ -39,16 +35,9 @@ export const ParticipantMobileView = () => {
     teamColor: activeTeams.find(t => t.id === selectedTeam)?.color || '#00f3ff'
   };
 
-  // Render current game if host started playing
+  // Render current active game if in playing state
   if (room.status === 'playing') {
-    switch (room.activeGame) {
-      case 'stopwatch': return <StopwatchChallenge />;
-      case 'blockstack': return <BlockStacker />;
-      case 'oxquiz': return <SurvivalOxQuiz />;
-      case 'sprint': return <RapidTapSprint />;
-      case 'mindsync': return <MindSyncBalance />;
-      default: break;
-    }
+    return <GameRenderer activeGame={room.activeGame} />;
   }
 
   return (

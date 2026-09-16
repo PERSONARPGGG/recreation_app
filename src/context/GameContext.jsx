@@ -1,23 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { THEMES, applyTheme } from '../utils/theme';
+import { TEAM_PRESETS, BOT_NICKNAMES } from '../utils/constants';
 import confetti from 'canvas-confetti';
 
 const GameContext = createContext();
-
-const TEAM_PRESETS = [
-  { id: 'team-1', name: '레드 타이거 (1팀)', color: '#ff3b30', bgClass: 'team-red' },
-  { id: 'team-2', name: '블루 파이어 (2팀)', color: '#007aff', bgClass: 'team-blue' },
-  { id: 'team-3', name: '그린 스톰 (3팀)', color: '#34c759', bgClass: 'team-green' },
-  { id: 'team-4', name: '옐로우 썬 (4팀)', color: '#ffcc00', bgClass: 'team-yellow' },
-  { id: 'team-5', name: '퍼플 갤럭시 (5팀)', color: '#af52de', bgClass: 'team-purple' },
-  { id: 'team-6', name: '오렌지 스파크 (6팀)', color: '#ff9500', bgClass: 'team-orange' },
-];
-
-const BOT_NICKNAMES = [
-  '흥겨운사자', '빛나는토끼', '불꽃독수리', '무적의드래곤', '빛의매', '춤추는고양이',
-  '바람의늑대', '열정의곰', '슈퍼판다', '질주하는표범', '초음속펭귄', '번개다람쥐',
-  '승리의호랑이', '골든치타', '행운의코알라', '스피드돌고래', '최강의샤크', '환상의유니콘'
-];
 
 export const GameProvider = ({ children }) => {
   const [theme, setTheme] = useState(THEMES.MALE);
