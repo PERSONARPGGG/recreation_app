@@ -4,13 +4,20 @@ import { ShieldAlert, UserMinus, Gift, PlusSquare, Shuffle, Target, Megaphone, T
 import { soundFx } from '../utils/sound';
 
 export const HostControls = () => {
-  const { room, broadcastHostEvent } = useGame();
+  const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleAction = (actionType) => {
     soundFx.playTick();
-    if (broadcastHostEvent) {
-      broadcastHostEvent(actionType);
+    switch (actionType) {
+      case 'FREEZE': toggleFreeze(); break;
+      case 'EVENT': triggerEvent('깜짝 보너스 이벤트 시작!'); break;
+      case 'SPOTLIGHT': triggerSpotlight(); break;
+      case 'SHUFFLE': shuffleTeams(); break;
+      case 'ANNOUNCE': setGlobalAnnouncement('잠시 후 새로운 게임이 시작됩니다!'); break;
+      case 'TIMER': addGlobalTime(); break;
+      // KICK, SCORE, BGM, REPORT are placeholders/unimplemented but won't crash now.
+      default: break;
     }
   };
 

@@ -7,10 +7,14 @@ export const RapidTapSprint = () => {
   const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame } = useGame();
 
   const GAME_DURATION = 10; // 10 seconds race
+  
+  const myPlayer = participants.find(p => p.id === myPlayerId);
+  const hasSubmitted = !!myPlayer?.lastInput?.tapCount;
+
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [isRacing, setIsRacing] = useState(false);
-  const [tapCount, setTapCount] = useState(0);
-  const [raceFinished, setRaceFinished] = useState(false);
+  const [tapCount, setTapCount] = useState(hasSubmitted ? myPlayer.lastInput.tapCount : 0);
+  const [raceFinished, setRaceFinished] = useState(hasSubmitted);
 
   const timerRef = useRef(null);
 
@@ -37,7 +41,7 @@ export const RapidTapSprint = () => {
   };
 
   useEffect(() => {
-    if (room.gameState === 'playing' && !isRacing && !raceFinished) {
+    if (room.gameState === 'playing' && !isRacing && !raceFinished && !hasSubmitted) {
       startRace();
     } else if (room.gameState === 'ready') {
       setIsRacing(false);
@@ -46,7 +50,7 @@ export const RapidTapSprint = () => {
       setTimeLeft(GAME_DURATION);
       clearInterval(timerRef.current);
     }
-  }, [room.gameState]);
+  }, [room.gameState, hasSubmitted]);
 
   const handleHostStart = () => {
     startRound();

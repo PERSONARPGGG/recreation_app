@@ -61,6 +61,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+input, button, select, textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 body {
   background: var(--bg-gradient);
   color: var(--text-main);
@@ -249,11 +254,17 @@ body {
     gap: 16px !important;
   }
 
+  /* Force flex wrap on flex containers that might overflow */
+  div[style*="display: flex"] {
+    flex-wrap: wrap !important;
+  }
+
   /* Make buttons larger on mobile */
   .btn-primary, .btn-secondary {
     padding: 18px 24px !important;
     font-size: 1.2rem !important;
     width: 100%;
+    margin-bottom: 8px;
   }
 
   .font-heading {

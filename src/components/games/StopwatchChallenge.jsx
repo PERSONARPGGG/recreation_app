@@ -9,9 +9,13 @@ export const StopwatchChallenge = () => {
   const TARGET_TIME = 10.000; // 10.000s
   const HIDE_TIME = 5.000;    // Hide display after 5s
 
+  const myPlayer = participants.find(p => p.id === myPlayerId);
+  const hasSubmitted = !!myPlayer?.lastInput?.stopTime;
+
   const [isRunning, setIsRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [stoppedTime, setStoppedTime] = useState(null);
+  // Initialize stoppedTime from lastInput to prevent retry on refresh
+  const [stoppedTime, setStoppedTime] = useState(hasSubmitted ? myPlayer.lastInput.stopTime : null);
   const startTimeRef = useRef(null);
   const animFrameRef = useRef(null);
 
@@ -35,7 +39,7 @@ export const StopwatchChallenge = () => {
 
   // Sync game start with Host's broadcasted state
   useEffect(() => {
-    if (room.gameState === 'playing' && !isRunning && stoppedTime === null) {
+    if (room.gameState === 'playing' && !isRunning && stoppedTime === null && !hasSubmitted) {
       handleStart();
     } else if (room.gameState === 'ready') {
       setIsRunning(false);
@@ -43,7 +47,7 @@ export const StopwatchChallenge = () => {
       setElapsed(0);
       cancelAnimationFrame(animFrameRef.current);
     }
-  }, [room.gameState]);
+  }, [room.gameState, hasSubmitted]);
 
   const handleHostStart = () => {
     startRound();

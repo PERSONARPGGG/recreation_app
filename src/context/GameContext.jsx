@@ -83,7 +83,7 @@ export const GameProvider = ({ children }) => {
             }
           })
           .on('broadcast', { event: 'PLAYER_SUBMIT' }, ({ payload }) => {
-            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
+            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
           })
           .on('broadcast', { event: 'HOST_EVENT' }, ({ payload }) => {
             handleHostEvent(payload.action);
@@ -117,7 +117,7 @@ export const GameProvider = ({ children }) => {
               bc.postMessage({ type: 'SYNC_STATE', payload: { room: roomRef.current, participants: participantsRef.current } });
             }
           } else if (type === 'PLAYER_SUBMIT') {
-            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
+            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
           } else if (type === 'HOST_EVENT') {
             handleHostEvent(payload.action);
           }
@@ -377,7 +377,8 @@ export const GameProvider = ({ children }) => {
         }
         return p;
       });
-      broadcast('SYNC_STATE', { room, participants: updated });
+      // Participant broadcasts input to everyone (including host)
+      broadcast('PLAYER_SUBMIT', { id: playerId, lastInput: gameData });
       return updated;
     });
   };
