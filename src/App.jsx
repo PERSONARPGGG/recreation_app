@@ -3,7 +3,7 @@ import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/Header';
 import { Landing } from './components/Landing';
 import { HostDashboard } from './components/HostDashboard';
-import { ParticipantDashboard } from './components/ParticipantDashboard';
+import { ParticipantMobileView } from './components/ParticipantMobileView';
 import { ParticipantOverlay } from './components/ParticipantOverlay';
 
 const MainAppContent = () => {
@@ -18,7 +18,7 @@ const MainAppContent = () => {
     <div className="app-container">
       <Header />
       <main className="main-content">
-        {userRole === 'host' ? <HostDashboard /> : <ParticipantDashboard />}
+        {userRole === 'host' ? <HostDashboard /> : <ParticipantMobileView />}
       </main>
       <ParticipantOverlay />
       <footer style={{
