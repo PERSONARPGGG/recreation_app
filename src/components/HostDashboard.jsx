@@ -120,10 +120,10 @@ export const HostDashboard = () => {
 
       {/* Game Selector Arcade Grid */}
       <h2 className="font-heading" style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '10px' }}>
-        🎮 5대 이벤트 메인 게임 & 마피아 심판 모드
+        🎮 메인 레크레이션 게임 모드
       </h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
         {GAMES_METADATA.map((g) => (
           <div
             key={g.id}
@@ -133,6 +133,7 @@ export const HostDashboard = () => {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
+              height: '100%',
               cursor: 'pointer',
               transition: 'all 0.25s ease'
             }}
@@ -177,3 +178,4 @@ export const HostDashboard = () => {
     </div>
   );
 };
+

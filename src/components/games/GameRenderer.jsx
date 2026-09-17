@@ -5,6 +5,12 @@ import { SurvivalOxQuiz } from './SurvivalOxQuiz';
 import { RapidTapSprint } from './RapidTapSprint';
 import { MindSyncBalance } from './MindSyncBalance';
 import { MafiaRefereeModule } from '../mafia/MafiaRefereeModule';
+import { BombPass } from './BombPass';
+import { InitialWordQuiz } from './InitialWordQuiz';
+import { LuckyRoulette } from './LuckyRoulette';
+import { RockPaperScissors } from './RockPaperScissors';
+import { TugOfWar } from './TugOfWar';
+import { NunchiGame } from './NunchiGame';
 
 export const GameRenderer = ({ activeGame }) => {
   switch (activeGame) {
@@ -18,6 +24,18 @@ export const GameRenderer = ({ activeGame }) => {
       return <RapidTapSprint />;
     case 'mindsync':
       return <MindSyncBalance />;
+    case 'bombpass':
+      return <BombPass />;
+    case 'initialword':
+      return <InitialWordQuiz />;
+    case 'luckyroulette':
+      return <LuckyRoulette />;
+    case 'rockpaperscissors':
+      return <RockPaperScissors />;
+    case 'tugofwar':
+      return <TugOfWar />;
+    case 'nunchi':
+      return <NunchiGame />;
     case 'mafia':
       return <MafiaRefereeModule />;
     default:

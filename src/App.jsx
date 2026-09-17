@@ -3,9 +3,14 @@ import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/Header';
 import { HostDashboard } from './components/HostDashboard';
 import { ParticipantMobileView } from './components/ParticipantMobileView';
+import { Landing } from './components/Landing';
 
 const MainAppContent = () => {
   const { userRole } = useGame();
+
+  if (!userRole) {
+    return <Landing />;
+  }
 
   return (
     <div className="app-container">

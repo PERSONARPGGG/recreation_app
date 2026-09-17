@@ -7,20 +7,20 @@ const GameContext = createContext();
 
 export const GameProvider = ({ children }) => {
   const [theme, setTheme] = useState(THEMES.MALE);
-  const [userRole, setUserRole] = useState('host'); // 'host' or 'participant'
+  const [userRole, setUserRole] = useState(null); // null, 'host', or 'participant'
   const [room, setRoom] = useState({
-    code: 'REC-100',
+    code: '',
     title: '🎉 100인 대격돌 명랑 레크레이션',
-    mode: 'team', // 'solo' or 'team'
+    mode: 'team',
     teamCount: 4,
-    status: 'lobby', // 'lobby', 'playing', 'result'
+    status: 'lobby',
     activeGame: null,
   });
 
   const [participants, setParticipants] = useState([]);
-  const [myPlayerId, setMyPlayerId] = useState('player-me');
-  const [myPlayerName, setMyPlayerName] = useState('레크 마스터');
-  const [myTeamId, setMyTeamId] = useState('team-1');
+  const [myPlayerId, setMyPlayerId] = useState('');
+  const [myPlayerName, setMyPlayerName] = useState('');
+  const [myTeamId, setMyTeamId] = useState('');
 
   // Broadcast channel for multi-tab sync
   const [channel, setChannel] = useState(null);
@@ -138,6 +138,17 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  // Host creates a room
+  const createRoom = () => {
+    const newCode = 'REC-' + Math.floor(1000 + Math.random() * 9000); // e.g. REC-7739
+    setRoom(prev => ({ ...prev, code: newCode, status: 'lobby' }));
+    setUserRole('host');
+    setMyPlayerId('host-me');
+    setMyPlayerName('사회자');
+    soundFx.playSuccess();
+    broadcast('SYNC_STATE', { room: { ...room, code: newCode }, participants });
+  };
+
   // Update Game State
   const startGame = (gameId) => {
     const nextRoom = { ...room, activeGame: gameId, status: 'playing' };
@@ -243,6 +254,7 @@ export const GameProvider = ({ children }) => {
         myTeamId,
         populateBots,
         clearBots,
+        createRoom,
         joinAsPlayer,
         startGame,
         returnToLobby,

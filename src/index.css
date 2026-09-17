@@ -238,3 +238,48 @@ body {
     padding: 12px;
   }
 }
+
+/* Landing Page Animations */
+.projector-animation {
+  position: relative;
+  animation: float 2s ease-in-out infinite;
+}
+
+.projector-beam {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(0, 243, 255, 0.5), transparent);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  animation: beam-flicker 0.1s infinite;
+}
+
+@keyframes beam-flicker {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.9; }
+}
+
+.envelope-animation {
+  animation: envelope-open 1.5s forwards;
+}
+
+@keyframes envelope-open {
+  0% { transform: scale(1) translateY(0); opacity: 1; }
+  50% { transform: scale(1.2) translateY(-20px); opacity: 1; }
+  100% { transform: scale(2) translateY(50px); opacity: 0; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -62,6 +62,24 @@ export const Header = () => {
             <span>{participants.length}명 참여 중</span>
           </div>
 
+          {/* Room Code Badge (Host Only) */}
+          {userRole === 'host' && room.code && (
+            <div style={{
+              background: 'var(--button-gradient)',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '1rem',
+              fontWeight: 900,
+              color: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              boxShadow: '0 0 15px var(--primary-glow)',
+              letterSpacing: '1px'
+            }}>
+              방 접속 코드: {room.code}
+            </div>
+          )}
+
           {/* Theme Switcher 3-Buttons */}
           <div style={{
             background: 'rgba(0, 0, 0, 0.25)',
@@ -110,57 +128,6 @@ export const Header = () => {
           >
             {muted ? <VolumeX size={18} color="var(--danger-color)" /> : <Volume2 size={18} color="var(--primary-color)" />}
           </button>
-
-          {/* Screen Perspective Toggle (Host vs Player) */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.06)',
-            borderRadius: '12px',
-            padding: '3px',
-            display: 'flex',
-            border: '1px solid var(--card-border)'
-          }}>
-            <button
-              onClick={() => setUserRole('host')}
-              style={{
-                background: userRole === 'host' ? 'var(--primary-color)' : 'transparent',
-                color: userRole === 'host' ? '#000' : 'var(--text-main)',
-                border: 'none',
-                borderRadius: '9px',
-                padding: '6px 12px',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <Monitor size={15} />
-              <span>사회자 빔프로젝터</span>
-            </button>
-
-            <button
-              onClick={() => setUserRole('participant')}
-              style={{
-                background: userRole === 'participant' ? 'var(--primary-color)' : 'transparent',
-                color: userRole === 'participant' ? '#000' : 'var(--text-main)',
-                border: 'none',
-                borderRadius: '9px',
-                padding: '6px 12px',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <Smartphone size={15} />
-              <span>참가자 스마트폰</span>
-            </button>
-          </div>
 
         </div>
 
