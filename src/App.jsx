@@ -1,23 +1,26 @@
 import React from 'react';
 import { GameProvider, useGame } from './context/GameContext';
 import { Header } from './components/Header';
-import { HostDashboard } from './components/HostDashboard';
-import { ParticipantMobileView } from './components/ParticipantMobileView';
 import { Landing } from './components/Landing';
+import { HostDashboard } from './components/HostDashboard';
+import { ParticipantDashboard } from './components/ParticipantDashboard';
+import { ParticipantOverlay } from './components/ParticipantOverlay';
 
 const MainAppContent = () => {
-  const { userRole } = useGame();
+  const { userRole, room } = useGame();
 
-  if (!userRole) {
+  // If user hasn't joined yet, show Landing screen
+  if (!userRole || room.status === 'setup') {
     return <Landing />;
   }
 
   return (
     <div className="app-container">
       <Header />
-      <main style={{ flex: 1 }}>
-        {userRole === 'host' ? <HostDashboard /> : <ParticipantMobileView />}
+      <main className="main-content">
+        {userRole === 'host' ? <HostDashboard /> : <ParticipantDashboard />}
       </main>
+      <ParticipantOverlay />
       <footer style={{
         marginTop: '40px',
         paddingTop: '20px',

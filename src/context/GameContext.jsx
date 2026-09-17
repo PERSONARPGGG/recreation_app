@@ -15,6 +15,10 @@ export const GameProvider = ({ children }) => {
     teamCount: 4,
     status: 'lobby',
     activeGame: null,
+    isFrozen: false,
+    activeEvent: null,
+    announcement: null,
+    spotlightPlayer: null,
   });
 
   const [participants, setParticipants] = useState([]);
@@ -92,14 +96,9 @@ export const GameProvider = ({ children }) => {
   }, []); // Note: channel state changes shouldn't trigger this again
 
   const handleHostEvent = (actionType) => {
-    if (actionType === 'FREEZE') {
-      alert('🥶 호스트가 얼음(화면 잠금)을 발동했습니다!');
-    } else if (actionType === 'EVENT') {
-      alert('🎁 깜짝 이벤트 발동!');
-    } else if (actionType === 'BGM') {
-      alert('🎵 호스트가 BGM을 변경했습니다.');
+    if (actionType === 'ADD_TIME') {
+      window.dispatchEvent(new CustomEvent('ADD_TIME'));
     }
-    // Other events handled similarly
   };
 
   // Broadcast helper
@@ -230,9 +229,85 @@ export const GameProvider = ({ children }) => {
     broadcast('SYNC_STATE', { room: nextRoom, participants });
   };
 
-  // Broadcast special host event
-  const broadcastHostEvent = (actionType) => {
-    broadcast('HOST_EVENT', { action: actionType });
+  // Host Control Actions
+  const toggleFreeze = () => {
+    const nextRoom = { ...room, isFrozen: !room.isFrozen };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
+
+  const triggerEvent = (message) => {
+    const nextRoom = { ...room, activeEvent: message };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+    
+    // Auto-clear event after 10s
+    if (message) {
+      setTimeout(() => {
+        setRoom(prev => {
+          const cleared = { ...prev, activeEvent: null };
+          broadcast('SYNC_STATE', { room: cleared, participants });
+          return cleared;
+        });
+      }, 10000);
+    }
+  };
+
+  const setGlobalAnnouncement = (message) => {
+    const nextRoom = { ...room, announcement: message };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
+
+  const triggerSpotlight = () => {
+    if (participants.length === 0) return;
+    const randomPlayer = participants[Math.floor(Math.random() * participants.length)];
+    const nextRoom = { ...room, spotlightPlayer: randomPlayer };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+    
+    // Auto-clear after 7s
+    setTimeout(() => {
+      setRoom(prev => {
+        const cleared = { ...prev, spotlightPlayer: null };
+        broadcast('SYNC_STATE', { room: cleared, participants });
+        return cleared;
+      });
+    }, 7000);
+  };
+
+  const kickParticipant = (playerId) => {
+    setParticipants(prev => {
+      const updated = prev.filter(p => p.id !== playerId);
+      broadcast('SYNC_STATE', { room, participants: updated });
+      return updated;
+    });
+  };
+
+  const shuffleTeams = () => {
+    if (room.mode !== 'team') return;
+    setParticipants(prev => {
+      const updated = [...prev].map((p, i) => {
+        if (p.id === myPlayerId) return p; // Don't shuffle host
+        const teamObj = activeTeams[i % activeTeams.length];
+        return {
+          ...p,
+          teamId: teamObj.id,
+          teamName: teamObj.name,
+          teamColor: teamObj.color
+        };
+      });
+      // Randomize array order
+      updated.sort(() => Math.random() - 0.5);
+      broadcast('SYNC_STATE', { room, participants: updated });
+      return updated;
+    });
+  };
+
+  const addGlobalTime = () => {
+    // Broadcast as an event, but also trigger locally
+    window.dispatchEvent(new CustomEvent('ADD_TIME'));
+    broadcast('HOST_EVENT', { action: 'ADD_TIME' });
   };
 
   // Record player input
@@ -332,7 +407,13 @@ export const GameProvider = ({ children }) => {
         submitPlayerInput,
         awardPoints,
         simulateBotGameInputs,
-        broadcastHostEvent
+        toggleFreeze,
+        triggerEvent,
+        setGlobalAnnouncement,
+        triggerSpotlight,
+        kickParticipant,
+        shuffleTeams,
+        addGlobalTime
       }}
     >
       {children}
