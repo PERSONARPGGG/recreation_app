@@ -185,6 +185,18 @@ export const Landing = () => {
         </button>
 
       </div>
+
+      <footer style={{
+        marginTop: '60px',
+        textAlign: 'center',
+        fontSize: '0.82rem',
+        color: 'var(--text-sub)'
+      }}>
+        <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
+        <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
+          버전: v1.2.0 (대규모 호스트 권한 제어 & 모바일 UI 최적화 패치)
+        </div>
+      </footer>
     </div>
   );
 };
