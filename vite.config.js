@@ -5,6 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/recreation_app/',
   plugins: [react()],
+  build: {
+    outDir: 'docs',
+  },
   server: {
     port: 3000,
     host: true
