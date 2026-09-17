@@ -10,7 +10,7 @@ const MainAppContent = () => {
   const { userRole, room } = useGame();
 
   // If user hasn't joined yet, show Landing screen
-  if (!userRole || room.status === 'setup') {
+  if (!userRole) {
     return <Landing />;
   }
 
