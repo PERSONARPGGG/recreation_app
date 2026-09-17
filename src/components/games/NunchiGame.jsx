@@ -48,7 +48,6 @@ export const NunchiGame = () => {
           }
         }
       }
-    }
   }, [participants, userRole, gameState, currentNumber, eliminated, room]);
 
   const startGame = () => {

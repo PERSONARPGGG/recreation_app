@@ -14,8 +14,8 @@ const WORD_LIST = [
   { initial: 'ㅅㅁㅌㅍ', answer: '스마트폰' },
 ];
 
+export const InitialWordQuiz = () => {
   const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, setRoom, broadcast } = useGame();
-  
   const gameState = room.quizState || 'ready';
   const currentWord = room.quizCurrentWord || null;
   const winners = room.quizWinners || [];
