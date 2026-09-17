@@ -4,12 +4,17 @@ import { Eye, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const NunchiGame = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, setRoom, broadcast } = useGame();
   
-  const [gameState, setGameState] = useState('ready'); // ready, playing, finished
-  const [currentNumber, setCurrentNumber] = useState(0);
-  const [eliminated, setEliminated] = useState([]);
-  const [history, setHistory] = useState([]);
+  const gameState = room.nunchiState || 'ready';
+  const currentNumber = room.nunchiNumber || 0;
+  const eliminated = room.nunchiEliminated || [];
+
+  const updateGameState = (updates) => {
+    const nextRoom = { ...room, ...updates };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
 
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
@@ -28,29 +33,30 @@ export const NunchiGame = () => {
         const nums = allSubmissions.map(s => s.num);
         const duplicates = nums.filter((item, index) => nums.indexOf(item) !== index);
         
-        if (duplicates.length > 0) {
-          // Anyone who picked a duplicate is eliminated
-          const newlyEliminated = allSubmissions.filter(s => duplicates.includes(s.num));
-          setEliminated(prev => [...prev, ...newlyEliminated]);
-          soundFx.playError();
-        } else {
-          // Valid sequence
-          const latest = allSubmissions[allSubmissions.length - 1];
-          if (latest.num === currentNumber + 1) {
-            setCurrentNumber(latest.num);
-            setHistory(prev => [...prev, latest]);
-            soundFx.playSuccess();
+          if (duplicates.length > 0) {
+            // Anyone who picked a duplicate is eliminated
+            const newlyEliminated = allSubmissions.filter(s => duplicates.includes(s.num));
+            updateGameState({ nunchiEliminated: [...eliminated, ...newlyEliminated] });
+            soundFx.playError();
+          } else {
+            // Valid sequence
+            const latest = allSubmissions[allSubmissions.length - 1];
+            if (latest.num === currentNumber + 1) {
+              updateGameState({ nunchiNumber: latest.num });
+              soundFx.playSuccess();
+            }
           }
         }
       }
     }
-  }, [participants, userRole, gameState, currentNumber, eliminated]);
+  }, [participants, userRole, gameState, currentNumber, eliminated, room]);
 
   const startGame = () => {
-    setCurrentNumber(0);
-    setEliminated([]);
-    setHistory([]);
-    setGameState('playing');
+    updateGameState({
+      nunchiState: 'playing',
+      nunchiNumber: 0,
+      nunchiEliminated: []
+    });
     soundFx.playTick();
   };
 

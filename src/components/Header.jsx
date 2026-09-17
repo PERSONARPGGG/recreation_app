@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../context/GameContext';
 import { THEMES, THEME_DETAILS } from '../utils/theme';
 import { soundFx } from '../utils/sound';
@@ -88,28 +89,31 @@ export const Header = () => {
                 </div>
               </div>
 
-              {/* QR Code Enlarge Modal */}
-              <div 
-                id="qr-modal"
-                onClick={(e) => {
-                  if (e.target.id === 'qr-modal') e.target.style.display = 'none';
-                }}
-                style={{
-                  display: 'none', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                  background: 'rgba(0,0,0,0.85)', zIndex: 100000,
-                  alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
-                }}>
-                <div style={{ background: '#fff', padding: '40px', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={300} />
-                  <h2 style={{ color: '#000', marginTop: '20px', fontSize: '3rem', fontWeight: 900, letterSpacing: '4px' }}>{room.code}</h2>
-                  <p style={{ color: '#666', fontSize: '1.2rem', fontWeight: 800 }}>카메라로 스캔하여 입장하세요!</p>
-                  <button 
-                    onClick={() => document.getElementById('qr-modal').style.display = 'none'}
-                    className="btn-primary" style={{ marginTop: '20px', padding: '10px 30px' }}>
-                    닫기
-                  </button>
-                </div>
-              </div>
+              {/* QR Code Enlarge Modal via Portal */}
+              {document.body && createPortal(
+                <div 
+                  id="qr-modal"
+                  onClick={(e) => {
+                    if (e.target.id === 'qr-modal') e.target.style.display = 'none';
+                  }}
+                  style={{
+                    display: 'none', position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    background: 'rgba(0,0,0,0.95)', zIndex: 999999,
+                    alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
+                  }}>
+                  <div style={{ background: '#fff', padding: '60px', borderRadius: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 0 50px rgba(0,243,255,0.3)' }}>
+                    <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={Math.min(window.innerWidth * 0.8, window.innerHeight * 0.6, 600)} />
+                    <h2 style={{ color: '#000', marginTop: '30px', fontSize: '4rem', fontWeight: 900, letterSpacing: '5px' }}>{room.code}</h2>
+                    <p style={{ color: '#444', fontSize: '1.5rem', fontWeight: 800 }}>카메라로 스캔하여 즉시 접속하세요!</p>
+                    <button 
+                      onClick={() => document.getElementById('qr-modal').style.display = 'none'}
+                      className="btn-primary" style={{ marginTop: '30px', padding: '15px 50px', fontSize: '1.5rem' }}>
+                      닫기
+                    </button>
+                  </div>
+                </div>,
+                document.body
+              )}
             </>
           )}
 

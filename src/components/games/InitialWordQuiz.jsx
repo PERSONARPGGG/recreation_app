@@ -14,13 +14,19 @@ const WORD_LIST = [
   { initial: 'ㅅㅁㅌㅍ', answer: '스마트폰' },
 ];
 
-export const InitialWordQuiz = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, setRoom, broadcast } = useGame();
   
-  const [gameState, setGameState] = useState('ready'); // ready, playing, finished
-  const [currentWord, setCurrentWord] = useState(null);
-  const [winners, setWinners] = useState([]);
+  const gameState = room.quizState || 'ready';
+  const currentWord = room.quizCurrentWord || null;
+  const winners = room.quizWinners || [];
+  
   const [myInput, setMyInput] = useState('');
+
+  const updateGameState = (updates) => {
+    const nextRoom = { ...room, ...updates };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
 
   // Host checks answers
   useEffect(() => {
@@ -32,12 +38,11 @@ export const InitialWordQuiz = () => {
       
       const allWinners = [...activeSubmissions, ...botSubmissions];
       
-      if (allWinners.length >= 3) {
-        // Top 3 found
-        const top3 = allWinners.slice(0, 3);
-        setWinners(top3);
-        setGameState('finished');
-        soundFx.playSuccess();
+        if (allWinners.length >= 3) {
+          // Top 3 found
+          const top3 = allWinners.slice(0, 3);
+          updateGameState({ quizWinners: top3, quizState: 'finished' });
+          soundFx.playSuccess();
         
         // Award points
         top3.forEach((w, idx) => {
@@ -51,9 +56,7 @@ export const InitialWordQuiz = () => {
 
   const startGame = () => {
     const randomWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
-    setCurrentWord(randomWord);
-    setWinners([]);
-    setGameState('playing');
+    updateGameState({ quizCurrentWord: randomWord, quizWinners: [], quizState: 'playing' });
     soundFx.playTick();
   };
 

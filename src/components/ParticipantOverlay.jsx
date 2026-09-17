@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { soundFx } from '../utils/sound';
 
 export const ParticipantOverlay = () => {
-  const { room, userRole } = useGame();
+  const { room, userRole, toggleFreeze } = useGame();
   const [showEvent, setShowEvent] = useState(false);
 
   // Trigger confetti when spotlight changes
@@ -28,9 +28,6 @@ export const ParticipantOverlay = () => {
       setTimeout(() => setShowEvent(false), 8000);
     }
   }, [room.activeEvent]);
-
-  // Don't show these overlays to the host (host has the dashboard to control them)
-  if (userRole === 'host') return null;
 
   return (
     <>
@@ -64,7 +61,16 @@ export const ParticipantOverlay = () => {
           <h1 className="font-heading" style={{ fontSize: '3rem', marginBottom: '10px', textShadow: '0 0 20px rgba(0,243,255,0.8)' }}>
             얼음!
           </h1>
-          <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>진행자에게 주목해 주세요!</p>
+          <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: '20px' }}>진행자에게 주목해 주세요!</p>
+          
+          {userRole === 'host' && (
+            <button 
+              onClick={toggleFreeze}
+              style={{ padding: '10px 30px', fontSize: '1.2rem', background: '#00f3ff', color: '#000', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              얼음 해제 (화면 터치로도 가능)
+            </button>
+          )}
         </div>
       )}
 

@@ -16,6 +16,7 @@ export const GameProvider = ({ children }) => {
     teamCount: 4,
     status: 'lobby',
     activeGame: null,
+    gameState: 'ready', // 'ready', 'playing', 'finished'
     isFrozen: false,
     activeEvent: null,
     announcement: null,
@@ -256,7 +257,7 @@ export const GameProvider = ({ children }) => {
 
   // Update Game State
   const startGame = (gameId) => {
-    const nextRoom = { ...room, activeGame: gameId, status: 'playing' };
+    const nextRoom = { ...room, activeGame: gameId, status: 'playing', gameState: 'ready' };
     setRoom(nextRoom);
     // Reset inputs
     const resetParticipants = participants.map(p => ({ ...p, lastInput: null }));
@@ -264,8 +265,24 @@ export const GameProvider = ({ children }) => {
     broadcast('SYNC_STATE', { room: nextRoom, participants: resetParticipants });
   };
 
+  const startRound = () => {
+    if (userRole !== 'host') return;
+    const nextRoom = { ...room, gameState: 'playing' };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+    broadcast('HOST_EVENT', { action: 'START_ROUND' });
+  };
+
+  const endRound = () => {
+    if (userRole !== 'host') return;
+    const nextRoom = { ...room, gameState: 'finished' };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+    broadcast('HOST_EVENT', { action: 'END_ROUND' });
+  };
+
   const returnToLobby = () => {
-    const nextRoom = { ...room, activeGame: null, status: 'lobby' };
+    const nextRoom = { ...room, activeGame: null, status: 'lobby', gameState: 'ready' };
     setRoom(nextRoom);
     broadcast('SYNC_STATE', { room: nextRoom, participants });
   };
@@ -445,6 +462,8 @@ export const GameProvider = ({ children }) => {
         requestSync,
         joinAsPlayer,
         startGame,
+        startRound,
+        endRound,
         returnToLobby,
         submitPlayerInput,
         awardPoints,

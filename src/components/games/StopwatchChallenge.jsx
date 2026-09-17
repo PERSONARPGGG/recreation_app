@@ -4,7 +4,7 @@ import { soundFx } from '../../utils/sound';
 import { Timer, Award, Play, RotateCcw, EyeOff, Trophy, Zap, AlertCircle } from 'lucide-react';
 
 export const StopwatchChallenge = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, startRound, startGame } = useGame();
 
   const TARGET_TIME = 10.000; // 10.000s
   const HIDE_TIME = 5.000;    // Hide display after 5s
@@ -31,6 +31,26 @@ export const StopwatchChallenge = () => {
     };
 
     animFrameRef.current = requestAnimationFrame(updateTimer);
+  };
+
+  // Sync game start with Host's broadcasted state
+  useEffect(() => {
+    if (room.gameState === 'playing' && !isRunning && stoppedTime === null) {
+      handleStart();
+    } else if (room.gameState === 'ready') {
+      setIsRunning(false);
+      setStoppedTime(null);
+      setElapsed(0);
+      cancelAnimationFrame(animFrameRef.current);
+    }
+  }, [room.gameState]);
+
+  const handleHostStart = () => {
+    startRound();
+  };
+
+  const handleHostReset = () => {
+    startGame('stopwatch');
   };
 
   const handleStop = () => {
@@ -153,22 +173,38 @@ export const StopwatchChallenge = () => {
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '14px' }}>
-            {!isRunning && stoppedTime === null && (
-              <button onClick={handleStart} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px' }}>
-                <Play size={24} /> 스톱워치 시작!
-              </button>
-            )}
-
-            {isRunning && (
-              <button onClick={handleStop} className="btn-primary" style={{ fontSize: '1.4rem', padding: '20px 50px', background: 'linear-gradient(135deg, #ff0055 0%, #ff5e00 100%)', boxShadow: '0 0 30px rgba(255, 0, 85, 0.6)' }}>
-                STOP (멈춤!)
-              </button>
-            )}
-
-            {!isRunning && stoppedTime !== null && (
-              <button onClick={handleStart} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
-                <RotateCcw size={20} /> 다시 도전
-              </button>
+            {userRole === 'host' ? (
+              <>
+                {room.gameState === 'ready' && (
+                  <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px' }}>
+                    <Play size={24} /> 참가자 전체 시작!
+                  </button>
+                )}
+                {room.gameState !== 'ready' && (
+                  <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
+                    <RotateCcw size={20} /> 게임 초기화 (다시 시작)
+                  </button>
+                )}
+              </>
+            ) : (
+              // Participant View
+              <>
+                {room.gameState === 'ready' && (
+                  <div style={{ padding: '20px', color: 'var(--text-sub)', fontSize: '1.2rem', fontWeight: 800 }}>
+                    ⏳ 진행자의 시작 신호를 기다리고 있습니다...
+                  </div>
+                )}
+                {room.gameState === 'playing' && isRunning && (
+                  <button onClick={handleStop} className="btn-primary" style={{ fontSize: '1.4rem', padding: '20px 50px', background: 'linear-gradient(135deg, #ff0055 0%, #ff5e00 100%)', boxShadow: '0 0 30px rgba(255, 0, 85, 0.6)' }}>
+                    STOP (멈춤!)
+                  </button>
+                )}
+                {room.gameState === 'playing' && !isRunning && stoppedTime !== null && (
+                  <div style={{ padding: '20px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800 }}>
+                    ✅ 기록 제출 완료! 다른 참가자들의 종료를 기다려주세요.
+                  </div>
+                )}
+              </>
             )}
           </div>
 

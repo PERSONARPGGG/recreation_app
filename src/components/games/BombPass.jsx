@@ -4,28 +4,32 @@ import { Flame, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const BombPass = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, setRoom, broadcast } = useGame();
   
-  const [gameState, setGameState] = useState('ready'); // ready, playing, exploded
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [bombHolder, setBombHolder] = useState(null);
+  const gameState = room.bombState || 'ready';
+  const timeLeft = room.bombTimeLeft || 0;
+  const bombHolder = room.bombHolder || null;
+
+  const updateGameState = (updates) => {
+    const nextRoom = { ...room, ...updates };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
 
   // Host simulation for bomb passing
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
       const interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            setGameState('exploded');
-            soundFx.playError();
-            return 0;
-          }
-          return prev - 1;
-        });
+        if (room.bombTimeLeft <= 1) {
+          updateGameState({ bombState: 'exploded', bombTimeLeft: 0 });
+          soundFx.playError();
+        } else {
+          updateGameState({ bombTimeLeft: room.bombTimeLeft - 1 });
+        }
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [userRole, gameState]);
+  }, [userRole, gameState, room.bombTimeLeft]);
 
   // Read player input to pass bomb
   useEffect(() => {
@@ -38,20 +42,20 @@ export const BombPass = () => {
         const others = participants.filter(p => p.id !== lastInputPlayer.id);
         if (others.length > 0) {
           const next = others[Math.floor(Math.random() * others.length)];
-          setBombHolder(next);
+          updateGameState({ bombHolder: next });
           soundFx.playTick();
         }
       }
     }
-  }, [participants, userRole, gameState]);
+  }, [participants, userRole, gameState, room.bombHolder]);
 
   const startGame = () => {
     const explosionTime = Math.floor(Math.random() * 20) + 15; // 15 to 35 seconds
-    setTimeLeft(explosionTime);
-    setGameState('playing');
+    let initialHolder = null;
     if (participants.length > 0) {
-      setBombHolder(participants[Math.floor(Math.random() * participants.length)]);
+      initialHolder = participants[Math.floor(Math.random() * participants.length)];
     }
+    updateGameState({ bombState: 'playing', bombTimeLeft: explosionTime, bombHolder: initialHolder });
     soundFx.playSpookyNight();
   };
 

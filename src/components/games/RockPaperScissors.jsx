@@ -7,29 +7,27 @@ const CHOICES = ['가위', '바위', '보'];
 const EMOJIS = { '가위': '✌️', '바위': '✊', '보': '✋' };
 
 export const RockPaperScissors = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, setRoom, broadcast } = useGame();
   
-  const [gameState, setGameState] = useState('ready'); // ready, choosing, result
-  const [hostChoice, setHostChoice] = useState(null);
-  const [survivors, setSurvivors] = useState([]);
-  const [round, setRound] = useState(1);
+  // Use room state instead of local state for sync
+  const rpsState = room.rpsState || 'ready';
+  const round = room.rpsRound || 1;
+  const hostChoice = room.rpsHostChoice || null;
+  const survivors = room.rpsSurvivors || participants;
 
-  useEffect(() => {
-    if (gameState === 'ready' && round === 1) {
-      setSurvivors(participants);
-    }
-  }, [gameState, round, participants]);
+  const updateGameState = (updates) => {
+    const nextRoom = { ...room, ...updates };
+    setRoom(nextRoom);
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
 
   const startGame = () => {
-    setGameState('choosing');
-    setHostChoice(null);
+    updateGameState({ rpsState: 'choosing', rpsHostChoice: null, rpsRound: 1, rpsSurvivors: participants });
     soundFx.playTick();
   };
 
   const determineResult = () => {
     const aiChoice = CHOICES[Math.floor(Math.random() * 3)];
-    setHostChoice(aiChoice);
-    setGameState('result');
     soundFx.playSuccess();
     
     // Determine survivors
@@ -50,12 +48,11 @@ export const RockPaperScissors = () => {
       return false; // lose or tie means elimination
     });
     
-    setSurvivors(newSurvivors);
+    updateGameState({ rpsState: 'result', rpsHostChoice: aiChoice, rpsSurvivors: newSurvivors });
   };
 
   const nextRound = () => {
-    setRound(prev => prev + 1);
-    setGameState('choosing');
+    updateGameState({ rpsRound: round + 1, rpsState: 'choosing', rpsHostChoice: null });
   };
 
   const handleSelect = (choice) => {
@@ -71,9 +68,9 @@ export const RockPaperScissors = () => {
     return (
       <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>✊✌️✋ 가위바위보 생존게임</h2>
-        {!isSurvivor ? (
+        {!isSurvivor && rpsState !== 'ready' ? (
           <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 800 }}>💀 탈락하셨습니다</div>
-        ) : gameState === 'choosing' ? (
+        ) : rpsState === 'choosing' ? (
           <div>
             <h3 style={{ marginBottom: '20px' }}>선택하세요!</h3>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
@@ -90,7 +87,7 @@ export const RockPaperScissors = () => {
             </div>
             {hasChosen && <div style={{ marginTop: '20px', color: 'var(--success-color)' }}>선택 완료! 호스트의 결과를 기다리세요.</div>}
           </div>
-        ) : gameState === 'result' ? (
+        ) : rpsState === 'result' ? (
           <div>
             <h3 style={{ fontSize: '1.5rem' }}>호스트의 선택: {EMOJIS[hostChoice]}</h3>
             <p>결과를 메인 화면에서 확인하세요!</p>
@@ -112,7 +109,7 @@ export const RockPaperScissors = () => {
       </div>
       
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        {gameState === 'ready' && (
+        {rpsState === 'ready' && (
           <div style={{ textAlign: 'center' }}>
             <Hand size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
             <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}>
@@ -121,7 +118,7 @@ export const RockPaperScissors = () => {
           </div>
         )}
 
-        {gameState === 'choosing' && (
+        {rpsState === 'choosing' && (
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '2rem', marginBottom: '20px' }}>라운드 {round}</h3>
             <p style={{ fontSize: '1.2rem', color: 'var(--text-sub)' }}>참가자들이 가위바위보를 선택 중입니다...</p>
@@ -132,7 +129,7 @@ export const RockPaperScissors = () => {
           </div>
         )}
 
-        {gameState === 'result' && (
+        {rpsState === 'result' && (
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.5rem', color: 'var(--text-sub)' }}>호스트의 선택</h3>
             <div style={{ fontSize: '6rem', margin: '20px 0' }}>{EMOJIS[hostChoice]}</div>

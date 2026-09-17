@@ -4,7 +4,7 @@ import { soundFx } from '../../utils/sound';
 import { Flame, Play, RotateCcw, Zap, Trophy, Flag } from 'lucide-react';
 
 export const RapidTapSprint = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, activeTeams } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame } = useGame();
 
   const GAME_DURATION = 10; // 10 seconds race
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
@@ -34,6 +34,26 @@ export const RapidTapSprint = () => {
         soundFx.playSuccess();
       }
     }, 1000);
+  };
+
+  useEffect(() => {
+    if (room.gameState === 'playing' && !isRacing && !raceFinished) {
+      startRace();
+    } else if (room.gameState === 'ready') {
+      setIsRacing(false);
+      setRaceFinished(false);
+      setTapCount(0);
+      setTimeLeft(GAME_DURATION);
+      clearInterval(timerRef.current);
+    }
+  }, [room.gameState]);
+
+  const handleHostStart = () => {
+    startRound();
+  };
+
+  const handleHostReset = () => {
+    startGame('sprint');
   };
 
   const handleTap = () => {
@@ -109,32 +129,52 @@ export const RapidTapSprint = () => {
             내 탭 횟수: <strong style={{ fontSize: '2.5rem', color: '#ff007a' }}>{tapCount}</strong> 회
           </div>
 
-          {/* Huge Tap Button */}
-          {isRacing ? (
-            <button
-              onClick={handleTap}
-              className="btn-primary animate-pulse-glow"
-              style={{
-                width: '220px',
-                height: '220px',
-                borderRadius: '50%',
-                fontSize: '2rem',
-                fontWeight: 900,
-                background: 'linear-gradient(135deg, #ff0055 0%, #ff00e5 100%)',
-                boxShadow: '0 0 50px rgba(255, 0, 85, 0.8)',
-                cursor: 'pointer'
-              }}
-            >
-              🔥 TAP! (연타)
-            </button>
+          {/* Action Buttons & Tap Button */}
+          {userRole === 'host' ? (
+            <div style={{ display: 'flex', gap: '14px', marginTop: '20px' }}>
+              {room.gameState === 'ready' && (
+                <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px' }}>
+                  <Play size={24} /> 스프린트 레이스 시작!
+                </button>
+              )}
+              {room.gameState !== 'ready' && (
+                <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
+                  <RotateCcw size={20} /> 레이스 초기화
+                </button>
+              )}
+            </div>
           ) : (
-            <button
-              onClick={startRace}
-              className="btn-primary"
-              style={{ fontSize: '1.3rem', padding: '16px 40px' }}
-            >
-              <Play size={22} /> {raceFinished ? '스프린트 재경기' : '10초 스프린트 시작!'}
-            </button>
+            <>
+              {room.gameState === 'ready' && (
+                <div style={{ padding: '20px', color: 'var(--text-sub)', fontSize: '1.2rem', fontWeight: 800 }}>
+                  ⏳ 대기 중... 사회자의 시작 신호를 기다려주세요!
+                </div>
+              )}
+              {room.gameState === 'playing' && isRacing && (
+                <button
+                  onClick={handleTap}
+                  className="btn-primary animate-pulse-glow"
+                  style={{
+                    width: '220px',
+                    height: '220px',
+                    borderRadius: '50%',
+                    fontSize: '2rem',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #ff0055 0%, #ff00e5 100%)',
+                    boxShadow: '0 0 50px rgba(255, 0, 85, 0.8)',
+                    cursor: 'pointer',
+                    marginTop: '20px'
+                  }}
+                >
+                  🔥 TAP! (연타)
+                </button>
+              )}
+              {raceFinished && (
+                <div style={{ padding: '20px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800, marginTop: '20px' }}>
+                  🏁 레이스 종료! 당신의 기록: {tapCount}회
+                </div>
+              )}
+            </>
           )}
 
         </div>
