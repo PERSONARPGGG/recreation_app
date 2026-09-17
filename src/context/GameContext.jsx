@@ -26,6 +26,19 @@ export const GameProvider = ({ children }) => {
   const [myPlayerName, setMyPlayerName] = useState('');
   const [myTeamId, setMyTeamId] = useState('');
 
+  // Refs for realtime callbacks to access latest state without reconnecting
+  const roomRef = React.useRef(room);
+  const participantsRef = React.useRef(participants);
+  const userRoleRef = React.useRef(userRole);
+  const myPlayerIdRef = React.useRef(myPlayerId);
+
+  useEffect(() => {
+    roomRef.current = room;
+    participantsRef.current = participants;
+    userRoleRef.current = userRole;
+    myPlayerIdRef.current = myPlayerId;
+  }, [room, participants, userRole, myPlayerId]);
+
   // Sync channel (Supabase or BroadcastChannel fallback)
   const [channel, setChannel] = useState(null);
   const [isRealtime, setIsRealtime] = useState(false);
@@ -45,14 +58,27 @@ export const GameProvider = ({ children }) => {
 
         roomChannel
           .on('broadcast', { event: 'SYNC_STATE' }, ({ payload }) => {
-            setRoom(payload.room);
-            setParticipants(payload.participants);
+            // Only participants should adopt the host's state, host ignores SYNC_STATE
+            if (userRoleRef.current !== 'host') {
+              setRoom(payload.room);
+              setParticipants(payload.participants);
+            }
           })
           .on('broadcast', { event: 'PLAYER_JOIN' }, ({ payload }) => {
             setParticipants(prev => {
               if (prev.some(p => p.id === payload.id)) return prev;
-              return [...prev, payload];
+              const updated = [...prev, payload];
+              // Host replies with full state to sync the new player
+              if (userRoleRef.current === 'host') {
+                roomChannel.send({ type: 'broadcast', event: 'SYNC_STATE', payload: { room: roomRef.current, participants: updated } });
+              }
+              return updated;
             });
+          })
+          .on('broadcast', { event: 'REQUEST_SYNC' }, () => {
+            if (userRoleRef.current === 'host') {
+              roomChannel.send({ type: 'broadcast', event: 'SYNC_STATE', payload: { room: roomRef.current, participants: participantsRef.current } });
+            }
           })
           .on('broadcast', { event: 'PLAYER_SUBMIT' }, ({ payload }) => {
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
@@ -71,13 +97,23 @@ export const GameProvider = ({ children }) => {
         bc.onmessage = (event) => {
           const { type, payload } = event.data;
           if (type === 'SYNC_STATE') {
-            setRoom(payload.room);
-            setParticipants(payload.participants);
+            if (userRoleRef.current !== 'host') {
+              setRoom(payload.room);
+              setParticipants(payload.participants);
+            }
           } else if (type === 'PLAYER_JOIN') {
             setParticipants(prev => {
               if (prev.some(p => p.id === payload.id)) return prev;
-              return [...prev, payload];
+              const updated = [...prev, payload];
+              if (userRoleRef.current === 'host') {
+                bc.postMessage({ type: 'SYNC_STATE', payload: { room: roomRef.current, participants: updated } });
+              }
+              return updated;
             });
+          } else if (type === 'REQUEST_SYNC') {
+            if (userRoleRef.current === 'host') {
+              bc.postMessage({ type: 'SYNC_STATE', payload: { room: roomRef.current, participants: participantsRef.current } });
+            }
           } else if (type === 'PLAYER_SUBMIT') {
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
           } else if (type === 'HOST_EVENT') {
@@ -167,6 +203,10 @@ export const GameProvider = ({ children }) => {
     broadcast('SYNC_STATE', { room, participants: [] });
   };
 
+  const requestSync = () => {
+    broadcast('REQUEST_SYNC', {});
+  };
+
   // Join as real participant
   const joinAsPlayer = (name, selectedTeamId) => {
     const teamObj = activeTeams.find(t => t.id === selectedTeamId) || activeTeams[0];
@@ -188,7 +228,7 @@ export const GameProvider = ({ children }) => {
     setParticipants(prev => {
       const filtered = prev.filter(p => p.id !== newPlayer.id);
       const updated = [...filtered, newPlayer];
-      broadcast('SYNC_STATE', { room, participants: updated });
+      broadcast('PLAYER_JOIN', newPlayer);
       return updated;
     });
   };
@@ -401,6 +441,7 @@ export const GameProvider = ({ children }) => {
         clearBots,
         createRoom,
         confirmRoomSetup,
+        requestSync,
         joinAsPlayer,
         startGame,
         returnToLobby,

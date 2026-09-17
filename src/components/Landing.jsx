@@ -4,12 +4,20 @@ import { Monitor, Smartphone, MailOpen, User, Users } from 'lucide-react';
 import { soundFx } from '../utils/sound';
 
 export const Landing = () => {
-  const { createRoom, joinAsPlayer, activeTeams, setUserRole } = useGame();
+  const { createRoom, joinAsPlayer, activeTeams, setUserRole, requestSync } = useGame();
   
   const [view, setView] = useState('main'); // main, host_loading, guest_envelope, guest_form
   const [inputName, setInputName] = useState('');
   const [inputCode, setInputCode] = useState('');
+  // Set default team id if available, but it might change after sync
   const [selectedTeam, setSelectedTeam] = useState(activeTeams[0]?.id);
+
+  React.useEffect(() => {
+    // If activeTeams changes (e.g. after sync), update selectedTeam if it's invalid
+    if (activeTeams.length > 0 && !activeTeams.find(t => t.id === selectedTeam)) {
+      setSelectedTeam(activeTeams[0].id);
+    }
+  }, [activeTeams, selectedTeam]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -17,6 +25,7 @@ export const Landing = () => {
     if (codeParam) {
       setInputCode(codeParam.toUpperCase());
       setView('guest_form');
+      requestSync(); // Request sync if directly loaded via QR/link
     }
   }, []);
 
@@ -32,6 +41,7 @@ export const Landing = () => {
   const handleGuestClick = () => {
     setView('guest_envelope');
     soundFx.playTick();
+    requestSync(); // Request sync so activeTeams is updated before form shows
     setTimeout(() => {
       setView('guest_form');
     }, 1500); // envelope opening animation

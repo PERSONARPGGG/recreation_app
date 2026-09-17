@@ -65,24 +65,52 @@ export const Header = () => {
 
           {/* Room Code Badge (Host Only) */}
           {userRole === 'host' && room.code && room.status !== 'setup' && (
-            <div style={{
-              background: 'var(--button-gradient)',
-              padding: '6px 16px',
-              borderRadius: '20px',
-              color: '#000',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              boxShadow: '0 0 15px var(--primary-glow)',
-            }}>
-              <div style={{ background: '#fff', padding: '4px', borderRadius: '8px', display: 'flex' }}>
-                <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={40} />
+            <>
+              <div 
+                onClick={() => document.getElementById('qr-modal').style.display = 'flex'}
+                style={{
+                  background: 'var(--button-gradient)',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  color: '#000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  boxShadow: '0 0 15px var(--primary-glow)',
+                  cursor: 'pointer'
+                }}>
+                <div style={{ background: '#fff', padding: '4px', borderRadius: '8px', display: 'flex' }}>
+                  <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={40} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.5px' }}>크게 보기 🔍</span>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 900, letterSpacing: '2px' }}>{room.code}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.5px' }}>스캔하여 접속!</span>
-                <span style={{ fontSize: '1.2rem', fontWeight: 900, letterSpacing: '2px' }}>{room.code}</span>
+
+              {/* QR Code Enlarge Modal */}
+              <div 
+                id="qr-modal"
+                onClick={(e) => {
+                  if (e.target.id === 'qr-modal') e.target.style.display = 'none';
+                }}
+                style={{
+                  display: 'none', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                  background: 'rgba(0,0,0,0.85)', zIndex: 100000,
+                  alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
+                }}>
+                <div style={{ background: '#fff', padding: '40px', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={300} />
+                  <h2 style={{ color: '#000', marginTop: '20px', fontSize: '3rem', fontWeight: 900, letterSpacing: '4px' }}>{room.code}</h2>
+                  <p style={{ color: '#666', fontSize: '1.2rem', fontWeight: 800 }}>카메라로 스캔하여 입장하세요!</p>
+                  <button 
+                    onClick={() => document.getElementById('qr-modal').style.display = 'none'}
+                    className="btn-primary" style={{ marginTop: '20px', padding: '10px 30px' }}>
+                    닫기
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Theme Switcher 3-Buttons */}
