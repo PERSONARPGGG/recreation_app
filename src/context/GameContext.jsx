@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { THEMES, applyTheme } from '../utils/theme';
 import { TEAM_PRESETS, BOT_NICKNAMES } from '../utils/constants';
 import confetti from 'canvas-confetti';
+import { soundFx } from '../utils/sound';
 
 const GameContext = createContext();
 
