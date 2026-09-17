@@ -3,6 +3,7 @@ import { useGame } from '../context/GameContext';
 import { THEMES, THEME_DETAILS } from '../utils/theme';
 import { soundFx } from '../utils/sound';
 import { Volume2, VolumeX, Monitor, Smartphone, Users, Sparkles, Award } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export const Header = () => {
   const { theme, switchTheme, userRole, setUserRole, room, participants } = useGame();
@@ -63,20 +64,24 @@ export const Header = () => {
           </div>
 
           {/* Room Code Badge (Host Only) */}
-          {userRole === 'host' && room.code && (
+          {userRole === 'host' && room.code && room.status !== 'setup' && (
             <div style={{
               background: 'var(--button-gradient)',
               padding: '6px 16px',
               borderRadius: '20px',
-              fontSize: '1rem',
-              fontWeight: 900,
               color: '#000',
               display: 'flex',
               alignItems: 'center',
+              gap: '12px',
               boxShadow: '0 0 15px var(--primary-glow)',
-              letterSpacing: '1px'
             }}>
-              방 접속 코드: {room.code}
+              <div style={{ background: '#fff', padding: '4px', borderRadius: '8px', display: 'flex' }}>
+                <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={40} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.5px' }}>스캔하여 접속!</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 900, letterSpacing: '2px' }}>{room.code}</span>
+              </div>
             </div>
           )}
 

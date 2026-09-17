@@ -22,44 +22,100 @@ export const GameProvider = ({ children }) => {
   const [myPlayerName, setMyPlayerName] = useState('');
   const [myTeamId, setMyTeamId] = useState('');
 
-  // Broadcast channel for multi-tab sync
+  // Sync channel (Supabase or BroadcastChannel fallback)
   const [channel, setChannel] = useState(null);
+  const [isRealtime, setIsRealtime] = useState(false);
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
-  // Setup broadcast channel for real multi-tab simulation
+  // Setup broadcast channel for real multi-tab simulation OR Supabase
   useEffect(() => {
-    const bc = new BroadcastChannel('recreation_master_channel');
-    setChannel(bc);
-
-    bc.onmessage = (event) => {
-      const { type, payload } = event.data;
-      if (type === 'SYNC_STATE') {
-        setRoom(payload.room);
-        setParticipants(payload.participants);
-      } else if (type === 'PLAYER_JOIN') {
-        setParticipants(prev => {
-          if (prev.some(p => p.id === payload.id)) return prev;
-          return [...prev, payload];
+    import('../utils/supabase').then(({ supabase, isSupabaseConfigured }) => {
+      if (isSupabaseConfigured) {
+        setIsRealtime(true);
+        const roomChannel = supabase.channel('recreation_master_channel', {
+          config: { broadcast: { self: false } }
         });
-      } else if (type === 'PLAYER_SUBMIT') {
-        setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
+
+        roomChannel
+          .on('broadcast', { event: 'SYNC_STATE' }, ({ payload }) => {
+            setRoom(payload.room);
+            setParticipants(payload.participants);
+          })
+          .on('broadcast', { event: 'PLAYER_JOIN' }, ({ payload }) => {
+            setParticipants(prev => {
+              if (prev.some(p => p.id === payload.id)) return prev;
+              return [...prev, payload];
+            });
+          })
+          .on('broadcast', { event: 'PLAYER_SUBMIT' }, ({ payload }) => {
+            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
+          })
+          .on('broadcast', { event: 'HOST_EVENT' }, ({ payload }) => {
+            handleHostEvent(payload.action);
+          })
+          .subscribe();
+
+        setChannel(roomChannel);
+      } else {
+        // Fallback to BroadcastChannel
+        const bc = new BroadcastChannel('recreation_master_channel');
+        setChannel(bc);
+
+        bc.onmessage = (event) => {
+          const { type, payload } = event.data;
+          if (type === 'SYNC_STATE') {
+            setRoom(payload.room);
+            setParticipants(payload.participants);
+          } else if (type === 'PLAYER_JOIN') {
+            setParticipants(prev => {
+              if (prev.some(p => p.id === payload.id)) return prev;
+              return [...prev, payload];
+            });
+          } else if (type === 'PLAYER_SUBMIT') {
+            setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, ...payload } : p));
+          } else if (type === 'HOST_EVENT') {
+            handleHostEvent(payload.action);
+          }
+        };
       }
-    };
+    });
 
     return () => {
-      bc.close();
+      if (channel) {
+        if (isRealtime) channel.unsubscribe();
+        else channel.close();
+      }
     };
-  }, []);
+  }, []); // Note: channel state changes shouldn't trigger this again
+
+  const handleHostEvent = (actionType) => {
+    if (actionType === 'FREEZE') {
+      alert('🥶 호스트가 얼음(화면 잠금)을 발동했습니다!');
+    } else if (actionType === 'EVENT') {
+      alert('🎁 깜짝 이벤트 발동!');
+    } else if (actionType === 'BGM') {
+      alert('🎵 호스트가 BGM을 변경했습니다.');
+    }
+    // Other events handled similarly
+  };
 
   // Broadcast helper
   const broadcast = (type, payload) => {
     if (channel) {
-      try {
-        channel.postMessage({ type, payload });
-      } catch (e) {}
+      if (isRealtime) {
+        channel.send({
+          type: 'broadcast',
+          event: type,
+          payload: payload
+        });
+      } else {
+        try {
+          channel.postMessage({ type, payload });
+        } catch (e) {}
+      }
     }
   };
 
@@ -140,13 +196,22 @@ export const GameProvider = ({ children }) => {
 
   // Host creates a room
   const createRoom = () => {
-    const newCode = 'REC-' + Math.floor(1000 + Math.random() * 9000); // e.g. REC-7739
-    setRoom(prev => ({ ...prev, code: newCode, status: 'lobby' }));
+    // Generate a random 6-character alphanumeric code
+    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setRoom(prev => ({ ...prev, code: newCode, status: 'setup' }));
     setUserRole('host');
     setMyPlayerId('host-me');
     setMyPlayerName('사회자');
     soundFx.playSuccess();
     broadcast('SYNC_STATE', { room: { ...room, code: newCode }, participants });
+  };
+
+  // Host confirms setup and opens room
+  const confirmRoomSetup = () => {
+    const nextRoom = { ...room, status: 'lobby' };
+    setRoom(nextRoom);
+    soundFx.playSuccess();
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
   };
 
   // Update Game State
@@ -163,6 +228,11 @@ export const GameProvider = ({ children }) => {
     const nextRoom = { ...room, activeGame: null, status: 'lobby' };
     setRoom(nextRoom);
     broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
+
+  // Broadcast special host event
+  const broadcastHostEvent = (actionType) => {
+    broadcast('HOST_EVENT', { action: actionType });
   };
 
   // Record player input
@@ -255,12 +325,14 @@ export const GameProvider = ({ children }) => {
         populateBots,
         clearBots,
         createRoom,
+        confirmRoomSetup,
         joinAsPlayer,
         startGame,
         returnToLobby,
         submitPlayerInput,
         awardPoints,
-        simulateBotGameInputs
+        simulateBotGameInputs,
+        broadcastHostEvent
       }}
     >
       {children}

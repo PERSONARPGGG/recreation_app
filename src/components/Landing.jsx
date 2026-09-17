@@ -11,6 +11,15 @@ export const Landing = () => {
   const [inputCode, setInputCode] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(activeTeams[0]?.id);
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const codeParam = params.get('code');
+    if (codeParam) {
+      setInputCode(codeParam.toUpperCase());
+      setView('guest_form');
+    }
+  }, []);
+
   const handleHostClick = () => {
     setView('host_loading');
     soundFx.playTick();

@@ -3,6 +3,8 @@ import { useGame } from '../context/GameContext';
 import { soundFx } from '../utils/sound';
 import { GAMES_METADATA } from '../utils/constants';
 import { GameRenderer } from './games/GameRenderer';
+import { HostControls } from './HostControls';
+import { ParticipantMiniBoard } from './ParticipantMiniBoard';
 import { Zap, RefreshCw, Play } from 'lucide-react';
 
 export const HostDashboard = () => {
@@ -13,12 +15,74 @@ export const HostDashboard = () => {
     activeTeams,
     populateBots,
     clearBots,
-    startGame
+    startGame,
+    confirmRoomSetup
   } = useGame();
 
   // Render current active game if in playing state
   if (room.status === 'playing') {
-    return <GameRenderer activeGame={room.activeGame} />;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '10px' }}>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <GameRenderer activeGame={room.activeGame} />
+        </div>
+        <ParticipantMiniBoard />
+        <HostControls />
+      </div>
+    );
+  }
+
+  if (room.status === 'setup') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="glass-panel" style={{ padding: '40px', width: '100%', maxWidth: '600px', textAlign: 'center' }}>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>방 개설 기본 설정</h2>
+          <p style={{ color: 'var(--text-sub)', marginBottom: '30px' }}>게임 모드와 팀 갯수를 먼저 설정한 뒤 방을 개방합니다.</p>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px' }}>
+            <button
+              onClick={() => setRoom({ ...room, mode: 'team' })}
+              className={room.mode === 'team' ? 'btn-primary' : 'btn-secondary'}
+              style={{ fontSize: '1.2rem', padding: '15px 30px' }}
+            >
+              🏆 팀전 모드
+            </button>
+            <button
+              onClick={() => setRoom({ ...room, mode: 'solo' })}
+              className={room.mode === 'solo' ? 'btn-primary' : 'btn-secondary'}
+              style={{ fontSize: '1.2rem', padding: '15px 30px' }}
+            >
+              👤 개인전 모드
+            </button>
+          </div>
+
+          {room.mode === 'team' && (
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>몇 개의 팀으로 진행할까요?</h3>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
+                <button 
+                  onClick={() => setRoom({ ...room, teamCount: Math.max(2, room.teamCount - 1) })}
+                  className="btn-secondary" style={{ width: '50px', height: '50px', fontSize: '1.5rem', padding: 0 }}
+                >-</button>
+                <span style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary-color)' }}>{room.teamCount}</span>
+                <button 
+                  onClick={() => setRoom({ ...room, teamCount: Math.min(10, room.teamCount + 1) })}
+                  className="btn-secondary" style={{ width: '50px', height: '50px', fontSize: '1.5rem', padding: 0 }}
+                >+</button>
+              </div>
+            </div>
+          )}
+
+          <button 
+            onClick={() => confirmRoomSetup()}
+            className="btn-primary" 
+            style={{ width: '100%', fontSize: '1.5rem', padding: '20px', animation: 'pulse-glow 2s infinite' }}
+          >
+            ✅ 팀 확정 및 방 개설하기
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Calculate team scores for lobby view
@@ -175,6 +239,7 @@ export const HostDashboard = () => {
         ))}
       </div>
 
+      <HostControls />
     </div>
   );
 };
