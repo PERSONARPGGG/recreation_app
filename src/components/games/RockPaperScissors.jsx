@@ -7,7 +7,7 @@ const CHOICES = ['가위', '바위', '보'];
 const EMOJIS = { '가위': '✌️', '바위': '✊', '보': '✋' };
 
 export const RockPaperScissors = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, setRoom, broadcast } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState } = useGame();
   
   // Use room state instead of local state for sync
   const rpsState = room.rpsState || 'ready';
@@ -15,14 +15,8 @@ export const RockPaperScissors = () => {
   const hostChoice = room.rpsHostChoice || null;
   const survivors = room.rpsSurvivors || participants;
 
-  const updateGameState = (updates) => {
-    const nextRoom = { ...room, ...updates };
-    setRoom(nextRoom);
-    broadcast('SYNC_STATE', { room: nextRoom, participants });
-  };
-
   const startGame = () => {
-    updateGameState({ rpsState: 'choosing', rpsHostChoice: null, rpsRound: 1, rpsSurvivors: participants });
+    updateRoomState({ rpsState: 'choosing', rpsHostChoice: null, rpsRound: 1, rpsSurvivors: participants });
     soundFx.playTick();
   };
 
@@ -48,11 +42,11 @@ export const RockPaperScissors = () => {
       return false; // lose or tie means elimination
     });
     
-    updateGameState({ rpsState: 'result', rpsHostChoice: aiChoice, rpsSurvivors: newSurvivors });
+    updateRoomState({ rpsState: 'result', rpsHostChoice: aiChoice, rpsSurvivors: newSurvivors });
   };
 
   const nextRound = () => {
-    updateGameState({ rpsRound: round + 1, rpsState: 'choosing', rpsHostChoice: null });
+    updateRoomState({ rpsRound: round + 1, rpsState: 'choosing', rpsHostChoice: null });
   };
 
   const handleSelect = (choice) => {

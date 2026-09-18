@@ -4,27 +4,21 @@ import { Flame, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const BombPass = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, setRoom, broadcast } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
   
   const gameState = room.bombState || 'ready';
   const timeLeft = room.bombTimeLeft || 0;
   const bombHolder = room.bombHolder || null;
-
-  const updateGameState = (updates) => {
-    const nextRoom = { ...room, ...updates };
-    setRoom(nextRoom);
-    broadcast('SYNC_STATE', { room: nextRoom, participants });
-  };
 
   // Host simulation for bomb passing
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
       const interval = setInterval(() => {
         if (room.bombTimeLeft <= 1) {
-          updateGameState({ bombState: 'exploded', bombTimeLeft: 0 });
+          updateRoomState({ bombState: 'exploded', bombTimeLeft: 0 });
           soundFx.playError();
         } else {
-          updateGameState({ bombTimeLeft: room.bombTimeLeft - 1 });
+          updateRoomState({ bombTimeLeft: room.bombTimeLeft - 1 });
         }
       }, 1000);
       return () => clearInterval(interval);
@@ -42,7 +36,7 @@ export const BombPass = () => {
         const others = participants.filter(p => p.id !== lastInputPlayer.id);
         if (others.length > 0) {
           const next = others[Math.floor(Math.random() * others.length)];
-          updateGameState({ bombHolder: next });
+          updateRoomState({ bombHolder: next });
           submitPlayerInput(lastInputPlayer.id, null);
           soundFx.playTick();
         }
@@ -56,7 +50,7 @@ export const BombPass = () => {
     if (participants.length > 0) {
       initialHolder = participants[Math.floor(Math.random() * participants.length)];
     }
-    updateGameState({ bombState: 'playing', bombTimeLeft: explosionTime, bombHolder: initialHolder });
+    updateRoomState({ bombState: 'playing', bombTimeLeft: explosionTime, bombHolder: initialHolder });
     soundFx.playSpookyNight();
   };
 

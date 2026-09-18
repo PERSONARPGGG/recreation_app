@@ -15,18 +15,12 @@ const WORD_LIST = [
 ];
 
 export const InitialWordQuiz = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, setRoom, broadcast } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
   const gameState = room.quizState || 'ready';
   const currentWord = room.quizCurrentWord || null;
   const winners = room.quizWinners || [];
   
   const [myInput, setMyInput] = useState('');
-
-  const updateGameState = (updates) => {
-    const nextRoom = { ...room, ...updates };
-    setRoom(nextRoom);
-    broadcast('SYNC_STATE', { room: nextRoom, participants });
-  };
 
   // Host checks answers
   useEffect(() => {
@@ -41,7 +35,7 @@ export const InitialWordQuiz = () => {
         if (allWinners.length >= 3) {
           // Top 3 found
           const top3 = allWinners.slice(0, 3);
-          updateGameState({ quizWinners: top3, quizState: 'finished' });
+          updateRoomState({ quizWinners: top3, quizState: 'finished' });
           soundFx.playSuccess();
         
         // Award points
@@ -56,7 +50,7 @@ export const InitialWordQuiz = () => {
 
   const startGame = () => {
     const randomWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
-    updateGameState({ quizCurrentWord: randomWord, quizWinners: [], quizState: 'playing' });
+    updateRoomState({ quizCurrentWord: randomWord, quizWinners: [], quizState: 'playing' });
     soundFx.playTick();
   };
 

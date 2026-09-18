@@ -4,29 +4,26 @@ import { Activity, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const TugOfWar = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
   
-  const [gameState, setGameState] = useState('ready'); // ready, playing, finished
-  const [timeLeft, setTimeLeft] = useState(10);
-  const [ropePosition, setRopePosition] = useState(50); // 50 is center, 0 is left win, 100 is right win
+  const gameState = room.tugState || 'ready';
+  const timeLeft = room.tugTimeLeft || 10;
+  const ropePosition = room.tugRopePos || 50;
 
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
       const interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            setGameState('finished');
-            soundFx.playSuccess();
-            // Award winner points
-            if (ropePosition < 50) {
-              awardPoints('odd', 500, true); // Assuming left is odd teams
-            } else if (ropePosition > 50) {
-              awardPoints('even', 500, true);
-            }
-            return 0;
+        if (room.tugTimeLeft <= 1) {
+          updateRoomState({ tugState: 'finished', tugTimeLeft: 0 });
+          soundFx.playSuccess();
+          if (room.tugRopePos < 50) {
+            awardPoints('odd', 500, true);
+          } else if (room.tugRopePos > 50) {
+            awardPoints('even', 500, true);
           }
-          return prev - 1;
-        });
+        } else {
+          updateRoomState({ tugTimeLeft: room.tugTimeLeft - 1 });
+        }
       }, 1000);
       return () => clearInterval(interval);
     }
@@ -52,15 +49,13 @@ export const TugOfWar = () => {
       if (newPos < 0) newPos = 0;
       if (newPos > 100) newPos = 100;
       
-      setRopePosition(newPos);
+      updateRoomState({ tugRopePos: newPos });
     }
   }, [participants, userRole, gameState]);
 
   const startGame = () => {
-    setTimeLeft(10);
-    setRopePosition(50);
-    setGameState('playing');
-    soundFx.playSpookyNight();
+    updateRoomState({ tugTimeLeft: 10, tugRopePos: 50, tugState: 'playing' });
+    soundFx.playTick();
   };
 
   const handlePull = () => {

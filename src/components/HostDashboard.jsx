@@ -78,10 +78,30 @@ export const HostDashboard = () => {
           <button 
             onClick={() => confirmRoomSetup()}
             className="btn-primary" 
-            style={{ width: '100%', fontSize: '1.5rem', padding: '20px', animation: 'pulse-glow 2s infinite' }}
+            style={{ width: '100%', fontSize: '1.5rem', padding: '20px', animation: 'pulse-glow 2s infinite', marginBottom: '30px' }}
           >
             ✅ 팀 확정 및 방 개설하기
           </button>
+
+          {/* Active Users List in Setup */}
+          <div style={{ textAlign: 'left', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-sub)' }}>
+              <Users size={18} /> 현재 대기 중인 접속자 ({participants.length}명)
+            </h3>
+            {participants.length === 0 ? (
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
+                아직 접속한 참가자가 없습니다.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
+                {participants.map(p => (
+                  <div key={p.id} style={{ background: 'rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>
+                    {p.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

@@ -274,6 +274,14 @@ export const GameProvider = ({ children }) => {
     soundFx.playSuccess();
     broadcast('SYNC_STATE', { room: nextRoom, participants });
   };
+  // Safe robust state updater to prevent stale closures during intervals
+  const updateRoomState = (updates) => {
+    setRoom(prev => {
+      const nextRoom = { ...prev, ...updates };
+      broadcast('SYNC_STATE', { room: nextRoom, participants: participantsRef.current });
+      return nextRoom;
+    });
+  };
 
   // Update Game State
   const startGame = (gameId) => {
@@ -495,6 +503,7 @@ export const GameProvider = ({ children }) => {
         requestSync,
         joinAsPlayer,
         startGame,
+        updateRoomState,
         startRound,
         endRound,
         returnToLobby,

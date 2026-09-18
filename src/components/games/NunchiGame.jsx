@@ -4,18 +4,12 @@ import { Eye, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const NunchiGame = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, setRoom, broadcast } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState } = useGame();
   
   const gameState = room.nunchiState || 'ready';
   const currentNumber = room.nunchiNumber || 0;
   const eliminated = room.nunchiEliminated || [];
   const passed = room.nunchiPassed || [];
-
-  const updateGameState = (updates) => {
-    const nextRoom = { ...room, ...updates };
-    setRoom(nextRoom);
-    broadcast('SYNC_STATE', { room: nextRoom, participants });
-  };
 
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
@@ -37,13 +31,13 @@ export const NunchiGame = () => {
           if (duplicates.length > 0) {
             // Anyone who picked a duplicate is eliminated
             const newlyEliminated = allSubmissions.filter(s => duplicates.includes(s.num));
-            updateGameState({ nunchiEliminated: [...eliminated, ...newlyEliminated] });
+            updateRoomState({ nunchiEliminated: [...eliminated, ...newlyEliminated] });
             soundFx.playError();
           } else {
             // Valid sequence
             const latest = allSubmissions[allSubmissions.length - 1];
             if (latest.num === currentNumber + 1) {
-              updateGameState({ nunchiNumber: latest.num, nunchiPassed: [...passed, latest.id] });
+              updateRoomState({ nunchiNumber: latest.num, nunchiPassed: [...passed, latest.id] });
               submitPlayerInput(latest.id, null);
               soundFx.playSuccess();
             }
@@ -53,7 +47,7 @@ export const NunchiGame = () => {
   }, [participants, userRole, gameState, currentNumber, eliminated, room]);
 
   const startGame = () => {
-    updateGameState({
+    updateRoomState({
       nunchiState: 'playing',
       nunchiNumber: 0,
       nunchiEliminated: [],
