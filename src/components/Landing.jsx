@@ -4,7 +4,7 @@ import { Monitor, Smartphone, MailOpen, User, Users } from 'lucide-react';
 import { soundFx } from '../utils/sound';
 
 export const Landing = () => {
-  const { createRoom, joinAsPlayer, activeTeams, setUserRole, requestSync } = useGame();
+  const { createRoom, joinAsPlayer, activeTeams, setUserRole, requestSync, room } = useGame();
   
   const [view, setView] = useState('main'); // main, host_loading, guest_envelope, guest_form
   const [inputName, setInputName] = useState('');
@@ -116,26 +116,28 @@ export const Landing = () => {
             />
           </div>
 
-          <div>
-            <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>소속 팀</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {activeTeams.map(t => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setSelectedTeam(t.id)}
-                  style={{
-                    padding: '16px', borderRadius: '12px',
-                    border: selectedTeam === t.id ? `3px solid ${t.color}` : '2px solid rgba(255,255,255,0.1)',
-                    background: selectedTeam === t.id ? `${t.color}30` : 'rgba(255,255,255,0.05)',
-                    color: t.color, fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer'
-                  }}
-                >
-                  {t.name}
-                </button>
-              ))}
+          {room.mode === 'team' && (
+            <div>
+              <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>소속 팀</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {activeTeams.map(t => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setSelectedTeam(t.id)}
+                    style={{
+                      padding: '16px', borderRadius: '12px',
+                      border: selectedTeam === t.id ? `3px solid ${t.color}` : '2px solid rgba(255,255,255,0.1)',
+                      background: selectedTeam === t.id ? `${t.color}30` : 'rgba(255,255,255,0.05)',
+                      color: t.color, fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer'
+                    }}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <button type="submit" className="btn-primary" style={{ marginTop: '20px', padding: '20px', fontSize: '1.8rem', fontWeight: 900 }}>
             🚀 방 입장하기

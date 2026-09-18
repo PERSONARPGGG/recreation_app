@@ -43,6 +43,7 @@ export const BombPass = () => {
         if (others.length > 0) {
           const next = others[Math.floor(Math.random() * others.length)];
           updateGameState({ bombHolder: next });
+          submitPlayerInput(lastInputPlayer.id, null);
           soundFx.playTick();
         }
       }

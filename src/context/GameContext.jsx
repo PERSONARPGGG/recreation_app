@@ -85,6 +85,17 @@ export const GameProvider = ({ children }) => {
           .on('broadcast', { event: 'PLAYER_SUBMIT' }, ({ payload }) => {
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
           })
+          .on('broadcast', { event: 'SCORE_UPDATE' }, ({ payload }) => {
+            if (userRoleRef.current === 'host') {
+               awardPoints(payload.targetId, payload.points, payload.isTeam);
+            }
+          })
+          .on('broadcast', { event: 'CONFIG_CHANGE' }, () => {
+            if (userRoleRef.current === 'participant') {
+               setUserRole(null);
+               setRoom(prev => ({ ...prev, status: 'lobby' }));
+            }
+          })
           .on('broadcast', { event: 'HOST_EVENT' }, ({ payload }) => {
             handleHostEvent(payload.action);
           })
@@ -118,6 +129,15 @@ export const GameProvider = ({ children }) => {
             }
           } else if (type === 'PLAYER_SUBMIT') {
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
+          } else if (type === 'SCORE_UPDATE') {
+            if (userRoleRef.current === 'host') {
+               awardPoints(payload.targetId, payload.points, payload.isTeam);
+            }
+          } else if (type === 'CONFIG_CHANGE') {
+            if (userRoleRef.current === 'participant') {
+               setUserRole(null);
+               setRoom(prev => ({ ...prev, status: 'lobby' }));
+            }
           } else if (type === 'HOST_EVENT') {
             handleHostEvent(payload.action);
           }
@@ -385,6 +405,13 @@ export const GameProvider = ({ children }) => {
 
   // Add points to participant or team
   const awardPoints = (playerIdOrTeamId, points, isTeam = false) => {
+    // If we are participant, send score update request to host
+    if (userRoleRef.current === 'participant') {
+      broadcast('SCORE_UPDATE', { targetId: playerIdOrTeamId, points, isTeam });
+      return;
+    }
+
+    // Host updates and syncs
     setParticipants(prev => {
       const updated = prev.map(p => {
         if (isTeam && p.teamId === playerIdOrTeamId) {
@@ -394,7 +421,12 @@ export const GameProvider = ({ children }) => {
         }
         return p;
       });
-      broadcast('SYNC_STATE', { room, participants: updated });
+      
+      // Delay broadcast slightly to ensure it happens outside the render cycle if batched
+      setTimeout(() => {
+        broadcast('SYNC_STATE', { room: roomRef.current, participants: updated });
+      }, 0);
+      
       return updated;
     });
     // Trigger celebration fireworks!

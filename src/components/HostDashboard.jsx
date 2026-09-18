@@ -5,7 +5,8 @@ import { GAMES_METADATA } from '../utils/constants';
 import { GameRenderer } from './games/GameRenderer';
 import { HostControls } from './HostControls';
 import { ParticipantMiniBoard } from './ParticipantMiniBoard';
-import { Zap, RefreshCw, Play } from 'lucide-react';
+import { Zap, RefreshCw, Play, QrCode, Users } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export const HostDashboard = () => {
   const {
@@ -16,7 +17,8 @@ export const HostDashboard = () => {
     populateBots,
     clearBots,
     startGame,
-    confirmRoomSetup
+    confirmRoomSetup,
+    broadcast
   } = useGame();
 
   // Render current active game if in playing state
@@ -109,6 +111,17 @@ export const HostDashboard = () => {
           <h1 className="font-heading text-gradient" style={{ fontSize: '2rem', fontWeight: 900, marginTop: '6px' }}>
             {room.title}
           </h1>
+          
+          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(255,255,255,0.05)', padding: '16px 24px', borderRadius: '16px' }}>
+            <div style={{ background: '#fff', padding: '12px', borderRadius: '12px' }}>
+              <QRCodeSVG value={`${window.location.origin}/?code=${room.code}`} size={120} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1rem', color: 'var(--text-sub)', marginBottom: '8px' }}>스마트폰 카메라로 스캔하여 즉시 입장하세요!</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-color)' }}>대규모 라이브 서버 접속용 QR</div>
+              <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>참여자는 이 QR을 통해 자동 로그인됩니다.</div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Room Setup Controls */}
@@ -116,14 +129,20 @@ export const HostDashboard = () => {
           
           <div style={{ display: 'flex', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
             <button
-              onClick={() => setRoom({ ...room, mode: 'team' })}
+              onClick={() => {
+                setRoom({ ...room, mode: 'team' });
+                broadcast('CONFIG_CHANGE');
+              }}
               className={room.mode === 'team' ? 'btn-primary' : 'btn-secondary'}
               style={{ padding: '8px 14px', fontSize: '0.82rem' }}
             >
               🏆 팀전 ({room.teamCount}팀)
             </button>
             <button
-              onClick={() => setRoom({ ...room, mode: 'solo' })}
+              onClick={() => {
+                setRoom({ ...room, mode: 'solo' });
+                broadcast('CONFIG_CHANGE');
+              }}
               className={room.mode === 'solo' ? 'btn-primary' : 'btn-secondary'}
               style={{ padding: '8px 14px', fontSize: '0.82rem' }}
             >
@@ -181,6 +200,31 @@ export const HostDashboard = () => {
           ))}
         </div>
       )}
+
+      {/* Active Users Lobby List */}
+      <div className="glass-panel" style={{ padding: '24px' }}>
+        <h2 className="font-heading" style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Users size={20} color="var(--primary-color)" /> 현재 접속 중인 참가자 ({participants.length}명)
+        </h2>
+        {participants.length === 0 ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-sub)' }}>
+            아직 접속한 참가자가 없습니다. 메인 화면의 QR 코드를 스캔하도록 안내해 주세요.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+            {participants.map(p => (
+              <div key={p.id} className="glass-card" style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                {room.mode === 'team' && (
+                  <span style={{ fontSize: '0.75rem', color: p.teamColor, fontWeight: 700 }}>
+                    {p.teamName}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Game Selector Arcade Grid */}
       <h2 className="font-heading" style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '10px' }}>

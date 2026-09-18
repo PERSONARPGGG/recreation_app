@@ -16,10 +16,10 @@ export const ParticipantMobileView = () => {
 
   // Find my player object
   const me = participants.find(p => p.id === myPlayerId) || {
-    name: inputName,
+    name: myPlayerName || '참가자',
     score: 0,
-    teamName: activeTeams.find(t => t.id === selectedTeam)?.name || '개인',
-    teamColor: activeTeams.find(t => t.id === selectedTeam)?.color || '#00f3ff'
+    teamName: activeTeams.find(t => t.id === myTeamId)?.name || '개인',
+    teamColor: activeTeams.find(t => t.id === myTeamId)?.color || '#00f3ff'
   };
 
   // Render current active game if in playing state
@@ -87,16 +87,23 @@ export const ParticipantMobileView = () => {
         </div>
 
         <div style={{
-          padding: '20px',
-          borderRadius: '12px',
+          padding: '24px',
+          borderRadius: '16px',
           background: 'rgba(0, 243, 255, 0.08)',
-          border: '1px dashed var(--primary-color)',
+          border: '2px dashed var(--primary-color)',
           color: 'var(--text-sub)',
-          fontSize: '1rem',
-          lineHeight: '1.5'
+          fontSize: '1.1rem',
+          lineHeight: '1.6',
+          boxShadow: 'inset 0 0 20px rgba(0, 243, 255, 0.1)'
         }}>
-          ⏳ <strong>사회자가 게임을 시작하면 모바일 컨트롤러가 자동으로 가동됩니다.</strong><br/>
-          빔프로젝터 메인 화면을 주목해 주세요!
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ display: 'inline-block', animation: 'spin 3s linear infinite', fontSize: '1.5rem' }}>⏳</span>
+          </div>
+          <strong style={{ color: '#fff', fontSize: '1.2rem', display: 'block', marginBottom: '8px' }}>
+            진행자의 게임 시작을 대기 중입니다!
+          </strong>
+          곧 게임이 시작되면 이 화면이 컨트롤러로 변합니다.<br/>
+          빔프로젝터 메인 화면을 주목해 주세요.
         </div>
 
       </div>

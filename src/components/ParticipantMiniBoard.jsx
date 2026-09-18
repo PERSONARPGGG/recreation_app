@@ -23,16 +23,22 @@ export const ParticipantMiniBoard = () => {
           {activeTeams.map(team => {
             const teamMembers = participants.filter(p => p.teamId === team.id);
             if (teamMembers.length === 0) return null;
+            const teamScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
+            
             return (
-              <div key={team.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '8px', borderRadius: '8px', border: `1px solid ${team.color}40` }}>
-                <div style={{ fontSize: '0.75rem', color: team.color, fontWeight: 800, marginBottom: '6px' }}>{team.name}</div>
+              <div key={team.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', border: `1px solid ${team.color}40`, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '0.85rem', color: team.color, fontWeight: 800 }}>{team.name}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff' }}>{teamScore} <span style={{fontSize: '0.65rem', color: 'var(--text-sub)'}}>PTS</span></div>
+                </div>
+                
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {teamMembers.map(p => {
                     const hasSubmitted = p.lastInput !== null;
                     return (
                       <div 
                         key={p.id}
-                        title={`${p.name} ${hasSubmitted ? '(입력완료)' : '(대기중)'}`}
+                        title={`${p.name}: ${p.score}점 ${hasSubmitted ? '(입력완료)' : '(대기중)'}`}
                         style={{
                           width: '12px', height: '12px', borderRadius: '50%',
                           background: hasSubmitted ? team.color : 'rgba(255,255,255,0.1)',
@@ -48,7 +54,7 @@ export const ParticipantMiniBoard = () => {
           })}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }}>
           {participants.map(p => {
             const hasSubmitted = p.lastInput !== null;
             return (
@@ -56,12 +62,22 @@ export const ParticipantMiniBoard = () => {
                 key={p.id}
                 title={`${p.name} ${hasSubmitted ? '(입력완료)' : '(대기중)'}`}
                 style={{
-                  width: '14px', height: '14px', borderRadius: '50%',
-                  background: hasSubmitted ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)',
-                  boxShadow: hasSubmitted ? `0 0 5px var(--primary-color)` : 'none',
-                  transition: 'all 0.3s ease'
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: `1px solid ${hasSubmitted ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
                 }}
-              />
+              >
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {p.name}
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+                  {p.score}
+                </div>
+              </div>
             );
           })}
         </div>

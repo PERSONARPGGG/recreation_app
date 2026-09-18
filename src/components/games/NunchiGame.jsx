@@ -9,6 +9,7 @@ export const NunchiGame = () => {
   const gameState = room.nunchiState || 'ready';
   const currentNumber = room.nunchiNumber || 0;
   const eliminated = room.nunchiEliminated || [];
+  const passed = room.nunchiPassed || [];
 
   const updateGameState = (updates) => {
     const nextRoom = { ...room, ...updates };
@@ -23,7 +24,7 @@ export const NunchiGame = () => {
         name: p.name,
         num: p.lastInput?.nunchiNum,
         time: p.lastInput?.time
-      })).filter(p => p.num && !eliminated.some(e => e.id === p.id));
+      })).filter(p => p.num && !eliminated.some(e => e.id === p.id) && !passed.includes(p.id));
 
       // Sort by time
       allSubmissions.sort((a, b) => a.time - b.time);
@@ -42,7 +43,8 @@ export const NunchiGame = () => {
             // Valid sequence
             const latest = allSubmissions[allSubmissions.length - 1];
             if (latest.num === currentNumber + 1) {
-              updateGameState({ nunchiNumber: latest.num });
+              updateGameState({ nunchiNumber: latest.num, nunchiPassed: [...passed, latest.id] });
+              submitPlayerInput(latest.id, null);
               soundFx.playSuccess();
             }
           }
@@ -54,7 +56,8 @@ export const NunchiGame = () => {
     updateGameState({
       nunchiState: 'playing',
       nunchiNumber: 0,
-      nunchiEliminated: []
+      nunchiEliminated: [],
+      nunchiPassed: []
     });
     soundFx.playTick();
   };
@@ -69,12 +72,15 @@ export const NunchiGame = () => {
 
   if (userRole === 'participant') {
     const isEliminated = eliminated.some(e => e.id === myPlayerId);
+    const isPassed = passed.includes(myPlayerId);
 
     return (
       <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🙈 눈치게임</h2>
         {isEliminated ? (
           <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 800 }}>💀 동시 클릭 탈락!</div>
+        ) : isPassed ? (
+          <div style={{ color: 'var(--success-color)', fontSize: '1.5rem', fontWeight: 800 }}>✅ 생존 (통과)!</div>
         ) : gameState === 'playing' ? (
           <button onClick={handlePickNumber} className="btn-primary" style={{ padding: '50px 20px', fontSize: '3rem', background: '#af52de' }}>
             {currentNumber + 1}!
