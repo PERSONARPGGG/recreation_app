@@ -66,7 +66,7 @@ export const TugOfWar = () => {
 
   if (userRole === 'participant') {
     return (
-      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🪢 100인 줄다리기</h2>
         {gameState === 'playing' ? (
           <button onClick={handlePull} className="btn-primary" style={{ padding: '50px 20px', fontSize: '2rem', background: 'var(--primary-color)', color: '#000' }}>

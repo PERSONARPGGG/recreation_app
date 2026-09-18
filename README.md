@@ -24,3 +24,7 @@ A recreational game web application.
 ### v1.3.1
 * **Sync Stability:** Refactored `GameContext.jsx` to use functional state updates (`updateRoomState`), resolving a closure stale-state bug where participant screens would hang indefinitely on 'Waiting...' despite the host starting games like Bomb Pass or Nunchi.
 * **Host UI Improvement:** Added the active participant list directly to the room setup lobby, allowing the host to monitor incoming connections before finalizing the room.
+
+### v1.3.2
+* **Joining Flow Refactor:** Split the participant joining flow into two stages. Participants now connect and verify the room state before being presented with team selection, preventing cases where participants select obsolete teams while the host is still in the setup phase.
+* **Participant Mobile UI Optimization:** Compacted the "Joined Dashboard" in the participant's waiting screen to reduce unnecessary scrolling. Prominently positioned the actual game/waiting status at the top of the mobile screen. Reduced excess vertical padding across all mobile mini-game views.

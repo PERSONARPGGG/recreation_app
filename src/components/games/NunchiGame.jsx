@@ -69,7 +69,7 @@ export const NunchiGame = () => {
     const isPassed = passed.includes(myPlayerId);
 
     return (
-      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🙈 눈치게임</h2>
         {isEliminated ? (
           <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 800 }}>💀 동시 클릭 탈락!</div>

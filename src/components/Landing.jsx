@@ -47,11 +47,18 @@ export const Landing = () => {
     }, 1500); // envelope opening animation
   };
 
-  const handleJoinSubmit = (e) => {
+  const handleAuthSubmit = (e) => {
     e.preventDefault();
     if (!inputName.trim() || !inputCode.trim()) return;
     
-    // In a real app we'd verify the room code here. For now we assume valid.
+    // Auth stage done. Request sync to get actual room state before team selection.
+    requestSync();
+    setView('guest_team_select');
+    soundFx.playTick();
+  };
+
+  const handleJoinSubmit = (e) => {
+    e.preventDefault();
     joinAsPlayer(inputName, selectedTeam);
     setUserRole('participant');
     soundFx.playSuccess();
@@ -83,7 +90,7 @@ export const Landing = () => {
   if (view === 'guest_form') {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <form onSubmit={handleJoinSubmit} className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeInUp 0.5s ease' }}>
+        <form onSubmit={handleAuthSubmit} className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeInUp 0.5s ease' }}>
           <h2 className="font-heading text-gradient" style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>초대장 확인</h2>
           
           <div>
@@ -116,33 +123,66 @@ export const Landing = () => {
             />
           </div>
 
-          {room.mode === 'team' && (
-            <div>
-              <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>소속 팀</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {activeTeams.map(t => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setSelectedTeam(t.id)}
-                    style={{
-                      padding: '16px', borderRadius: '12px',
-                      border: selectedTeam === t.id ? `3px solid ${t.color}` : '2px solid rgba(255,255,255,0.1)',
-                      background: selectedTeam === t.id ? `${t.color}30` : 'rgba(255,255,255,0.05)',
-                      color: t.color, fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer'
-                    }}
-                  >
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <button type="submit" className="btn-primary" style={{ marginTop: '20px', padding: '20px', fontSize: '1.8rem', fontWeight: 900 }}>
-            🚀 방 입장하기
+            다음 단계
           </button>
         </form>
+      </div>
+    );
+  }
+
+  if (view === 'guest_team_select') {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeInUp 0.5s ease' }}>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>입장 준비</h2>
+          
+          {room.status === 'setup' ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <Monitor size={60} color="var(--primary-color)" style={{ marginBottom: '20px', animation: 'pulse 2s infinite' }} />
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>진행자가 방을 설정 중입니다</h3>
+              <p style={{ color: 'var(--text-sub)' }}>설정이 완료될 때까지 잠시 대기해 주세요...</p>
+            </div>
+          ) : (
+            <form onSubmit={handleJoinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {room.mode === 'team' && (
+                <div>
+                  <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '15px' }}>소속 팀을 선택하세요</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    {activeTeams.map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSelectedTeam(t.id)}
+                        style={{
+                          padding: '16px', borderRadius: '12px',
+                          border: selectedTeam === t.id ? `3px solid ${t.color}` : '2px solid rgba(255,255,255,0.1)',
+                          background: selectedTeam === t.id ? `${t.color}30` : 'rgba(255,255,255,0.05)',
+                          color: t.color, fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {room.mode === 'solo' && (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <User size={60} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
+                  <h3 style={{ fontSize: '1.5rem' }}>개인전 모드입니다</h3>
+                  <p style={{ color: 'var(--text-sub)' }}>준비되셨다면 입장하기 버튼을 눌러주세요!</p>
+                </div>
+              )}
+
+              <button type="submit" className="btn-primary" style={{ marginTop: '20px', padding: '20px', fontSize: '1.8rem', fontWeight: 900 }}>
+                🚀 방 입장하기
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     );
   }
