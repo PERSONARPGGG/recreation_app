@@ -106,9 +106,23 @@ export const NunchiGame = () => {
             <h3 style={{ fontSize: '1.5rem', color: 'var(--text-sub)' }}>현재 숫자</h3>
             <div style={{ fontSize: '8rem', fontWeight: 900, color: '#fff', margin: '20px 0' }}>{currentNumber}</div>
             
-            <div style={{ marginTop: '20px', fontSize: '1.2rem', color: 'var(--danger-color)' }}>
-              탈락자: {eliminated.length}명
+            <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
+              <div className="glass-card" style={{ padding: '15px', minWidth: '200px' }}>
+                <h4 style={{ color: 'var(--success-color)', marginBottom: '10px' }}>✅ 통과 ({passed.length}명)</h4>
+                {passed.map(id => {
+                  const p = participants.find(part => part.id === id);
+                  return <div key={id} style={{ fontSize: '1.1rem' }}>{p?.name}</div>;
+                })}
+              </div>
+              <div className="glass-card" style={{ padding: '15px', minWidth: '200px' }}>
+                <h4 style={{ color: 'var(--danger-color)', marginBottom: '10px' }}>💀 탈락 ({eliminated.length}명)</h4>
+                {eliminated.map(e => <div key={e.id} style={{ fontSize: '1.1rem' }}>{e.name}</div>)}
+              </div>
             </div>
+            
+            <button onClick={startGame} className="btn-secondary" style={{ marginTop: '30px' }}>
+              🔄 라운드 재시작
+            </button>
           </div>
         )}
       </div>

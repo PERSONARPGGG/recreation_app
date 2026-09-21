@@ -4,6 +4,10 @@ A recreational game web application.
 
 ## Patch Notes
 
+### v1.4.0
+* **Nunchi Game:** Added survivor and elimination lists on the Host screen and a round reset function.
+* **Initial Word Quiz:** Added a custom word input feature for the host and improved whitespace handling for answers.
+
 ### v0.01
 * Initial project setup.
 * Added basic UI components and game structure (Header, Survival OX Quiz).

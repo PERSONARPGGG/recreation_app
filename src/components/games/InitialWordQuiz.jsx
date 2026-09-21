@@ -21,11 +21,17 @@ export const InitialWordQuiz = () => {
   const winners = room.quizWinners || [];
   
   const [myInput, setMyInput] = useState('');
+  const [customInitial, setCustomInitial] = useState('');
+  const [customAnswer, setCustomAnswer] = useState('');
 
   // Host checks answers
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing' && currentWord) {
-      const activeSubmissions = participants.filter(p => p.lastInput?.word === currentWord.answer);
+      const activeSubmissions = participants.filter(p => {
+        const pWord = p.lastInput?.word?.trim().toLowerCase();
+        const ansWord = currentWord.answer.trim().toLowerCase();
+        return pWord === ansWord;
+      });
       
       // Also simulate bots
       const botSubmissions = participants.filter(p => p.isBot && Math.random() > 0.995);
@@ -48,9 +54,14 @@ export const InitialWordQuiz = () => {
     }
   }, [participants, userRole, gameState, currentWord, awardPoints]);
 
-  const startGame = () => {
-    const randomWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
-    updateRoomState({ quizCurrentWord: randomWord, quizWinners: [], quizState: 'playing' });
+  const startGame = (isCustom = false) => {
+    let wordToUse;
+    if (isCustom && customInitial.trim() && customAnswer.trim()) {
+      wordToUse = { initial: customInitial.trim(), answer: customAnswer.trim() };
+    } else {
+      wordToUse = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+    }
+    updateRoomState({ quizCurrentWord: wordToUse, quizWinners: [], quizState: 'playing' });
     soundFx.playTick();
   };
 
@@ -106,9 +117,35 @@ export const InitialWordQuiz = () => {
         {gameState === 'ready' && (
           <div style={{ textAlign: 'center' }}>
             <Type size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
-            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}>
-              <Play size={20} /> 초성 퀴즈 시작
-            </button>
+            
+            <div style={{ marginBottom: '30px' }}>
+              <button onClick={() => startGame(false)} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}>
+                <Play size={20} /> 랜덤 초성 퀴즈 시작
+              </button>
+            </div>
+
+            <div className="glass-card" style={{ padding: '20px', display: 'inline-block', textAlign: 'left', marginTop: '10px' }}>
+              <h3 style={{ marginBottom: '15px', color: 'var(--primary-color)' }}>📝 직접 출제하기</h3>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
+                <input 
+                  type="text" 
+                  placeholder="초성 (예: ㅇㅍ)" 
+                  value={customInitial} 
+                  onChange={(e) => setCustomInitial(e.target.value)}
+                  style={{ padding: '10px', borderRadius: '5px', border: '1px solid #444', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="정답 (예: 애플)" 
+                  value={customAnswer} 
+                  onChange={(e) => setCustomAnswer(e.target.value)}
+                  style={{ padding: '10px', borderRadius: '5px', border: '1px solid #444', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+                />
+              </div>
+              <button onClick={() => startGame(true)} className="btn-secondary" style={{ width: '100%', padding: '12px' }}>
+                커스텀 문제 출제
+              </button>
+            </div>
           </div>
         )}
 
@@ -134,7 +171,7 @@ export const InitialWordQuiz = () => {
                 </div>
               ))}
             </div>
-            <button onClick={startGame} className="btn-primary" style={{ marginTop: '40px' }}>다음 문제 출제</button>
+            <button onClick={() => updateRoomState({ quizState: 'ready' })} className="btn-primary" style={{ marginTop: '40px' }}>다음 문제 준비</button>
           </div>
         )}
       </div>
