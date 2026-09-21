@@ -31,7 +31,7 @@ const MainAppContent = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.4 (전체 미니게임 상시 포인트 일괄 정산 및 로비 복귀 자동 정산)
+          버전: v1.4.5 (타이머/결과 마감 후 입력 차단 및 전 게임 재진입·새로고침 상태 동기화)
         </div>
       </footer>
     </div>

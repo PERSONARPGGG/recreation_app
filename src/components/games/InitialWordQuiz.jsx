@@ -62,42 +62,73 @@ export const InitialWordQuiz = () => {
     } else {
       wordToUse = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
     }
+    // Clear all player inputs for fresh round
+    participants.forEach(p => submitPlayerInput(p.id, null));
     updateRoomState({ quizCurrentWord: wordToUse, quizWinners: [], quizState: 'playing' });
+    setIsSettled(false);
     soundFx.playTick();
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!myInput.trim()) return;
+    if (!myInput.trim() || gameState !== 'playing') return;
     submitPlayerInput(myPlayerId, { word: myInput.trim() });
     setMyInput('');
     soundFx.playTick();
   };
 
   if (userRole === 'participant') {
+    const myPlayer = participants.find(p => p.id === myPlayerId);
+    const mySubmittedWord = myPlayer?.lastInput?.word;
+    const isWinner = winners.some(w => w.id === myPlayerId);
+    const winnerRank = winners.findIndex(w => w.id === myPlayerId) + 1;
+
     return (
       <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🅰️ 초성 텔레파시</h2>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '15px' }}>🅰️ 초성 텔레파시</h2>
         {gameState === 'playing' ? (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input
-              type="text"
-              value={myInput}
-              onChange={(e) => setMyInput(e.target.value)}
-              placeholder="정답을 입력하세요"
-              style={{ padding: '15px', borderRadius: '10px', fontSize: '1.2rem', textAlign: 'center' }}
-            />
-            <button type="submit" className="btn-primary" style={{ padding: '15px', fontSize: '1.2rem' }}>
-              정답 제출!
-            </button>
-          </form>
-        ) : gameState === 'finished' ? (
           <div>
-            <h3 style={{ color: 'var(--success-color)' }}>라운드 종료!</h3>
-            <p>결과를 화면에서 확인하세요.</p>
+            <div style={{ color: 'var(--text-sub)', marginBottom: '10px' }}>제시된 초성을 보고 정답을 입력하세요!</div>
+            <div style={{ fontSize: '4.5rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '8px', margin: '15px 0' }}>
+              {currentWord?.initial}
+            </div>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
+              <input
+                type="text"
+                value={myInput}
+                onChange={(e) => setMyInput(e.target.value)}
+                placeholder="정답 단어 입력"
+                style={{ padding: '16px', borderRadius: '12px', fontSize: '1.3rem', textAlign: 'center', border: '2px solid var(--primary-color)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.2rem' }}>
+                🚀 정답 제출!
+              </button>
+            </form>
+            {mySubmittedWord && (
+              <div style={{ marginTop: '16px', color: 'var(--text-sub)', fontSize: '1rem' }}>
+                최근 제출: <strong style={{ color: '#fff' }}>"{mySubmittedWord}"</strong>
+              </div>
+            )}
+          </div>
+        ) : gameState === 'finished' ? (
+          <div style={{ padding: '20px' }}>
+            <h3 style={{ color: 'var(--success-color)', fontSize: '2rem', marginBottom: '10px' }}>
+              🎉 정답: {currentWord?.answer}!
+            </h3>
+            {isWinner ? (
+              <div style={{ color: '#ffd700', fontSize: '1.4rem', fontWeight: 900, marginTop: '15px' }}>
+                🏆 축하합니다! {winnerRank}등으로 정답을 맞히셨습니다!
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-sub)', marginTop: '10px', fontSize: '1.1rem' }}>
+                이번 라운드가 마감되었습니다. 다음 문제를 준비하세요!
+              </p>
+            )}
           </div>
         ) : (
-          <div style={{ color: 'var(--text-sub)' }}>호스트의 시작을 기다려주세요...</div>
+          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
+            호스트가 문제를 출제하고 있습니다. 잠시만 기다려주세요...
+          </div>
         )}
       </div>
     );
@@ -207,7 +238,17 @@ export const InitialWordQuiz = () => {
                 </div>
               ))}
             </div>
-            <button onClick={() => updateRoomState({ quizState: 'ready' })} className="btn-primary" style={{ marginTop: '40px' }}>다음 문제 준비</button>
+            <button 
+              onClick={() => {
+                participants.forEach(p => submitPlayerInput(p.id, null));
+                updateRoomState({ quizState: 'ready', quizCurrentWord: null, quizWinners: [] });
+                setIsSettled(false);
+              }} 
+              className="btn-primary" 
+              style={{ marginTop: '40px', fontSize: '1.2rem', padding: '12px 30px' }}
+            >
+              🔄 다음 문제 준비 (새 라운드)
+            </button>
           </div>
         )}
       </div>

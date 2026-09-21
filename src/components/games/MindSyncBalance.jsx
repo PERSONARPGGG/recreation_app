@@ -4,16 +4,49 @@ import { soundFx } from '../../utils/sound';
 import { Scale, Zap, Eye, Trophy, RefreshCw } from 'lucide-react';
 
 export const MindSyncBalance = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
-  const [selectedNum, setSelectedNum] = useState(50);
-  const [revealed, setRevealed] = useState(false);
+  const isRevealed = !!room.mindsyncRevealed;
+  const isLocked = !!room.mindsyncLocked || isRevealed;
+  const timeLeft = room.mindsyncTimeLeft ?? null;
+
+  const myPlayer = participants.find(p => p.id === myPlayerId);
+  const [selectedNum, setSelectedNum] = useState(myPlayer?.lastInput?.choiceNum ?? 50);
   const [isSettled, setIsSettled] = useState(false);
 
+  // Sync selectedNum if participant has already submitted
+  useEffect(() => {
+    if (myPlayer?.lastInput?.choiceNum !== undefined) {
+      setSelectedNum(myPlayer.lastInput.choiceNum);
+    }
+  }, [myPlayer?.lastInput?.choiceNum]);
+
+  // Host timer countdown effect
+  useEffect(() => {
+    let timer;
+    if (userRole === 'host' && timeLeft !== null && timeLeft > 0 && !isLocked) {
+      timer = setInterval(() => {
+        if (room.mindsyncTimeLeft <= 1) {
+          updateRoomState({ mindsyncTimeLeft: 0, mindsyncLocked: true });
+          soundFx.playSuccess();
+        } else {
+          updateRoomState({ mindsyncTimeLeft: room.mindsyncTimeLeft - 1 });
+        }
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [userRole, timeLeft, isLocked, room.mindsyncTimeLeft, updateRoomState]);
+
   const handleSelectNumber = (num) => {
+    if (isLocked) return;
     setSelectedNum(num);
     submitPlayerInput(myPlayerId, { choiceNum: num });
     soundFx.playTick();
+  };
+
+  const handleStartTimer = (seconds = 15) => {
+    updateRoomState({ mindsyncTimeLeft: seconds, mindsyncLocked: false, mindsyncRevealed: false });
+    soundFx.playCountdown(true);
   };
 
   const handleSimulateBots = () => {
@@ -40,14 +73,24 @@ export const MindSyncBalance = () => {
   const handleRevealResult = () => {
     soundFx.playDrumroll(2);
     setTimeout(() => {
-      setRevealed(true);
+      updateRoomState({ mindsyncRevealed: true, mindsyncLocked: true, mindsyncTimeLeft: 0 });
       soundFx.playSuccess();
     }, 2000);
   };
 
+  const handleResetRound = () => {
+    updateRoomState({
+      mindsyncRevealed: false,
+      mindsyncLocked: false,
+      mindsyncTimeLeft: null
+    });
+    setIsSettled(false);
+    soundFx.playTick();
+  };
+
   const handleSettlePoints = () => {
     if (isSettled) return;
-    setRevealed(true);
+    updateRoomState({ mindsyncRevealed: true, mindsyncLocked: true, mindsyncTimeLeft: 0 });
     if (rankedWinners.length > 0) {
       rankedWinners.slice(0, 3).forEach((player, rank) => {
         const points = rank === 0 ? 500 : rank === 1 ? 300 : 150;
@@ -111,10 +154,23 @@ export const MindSyncBalance = () => {
         
         {/* Number Selector Dial */}
         <div className="glass-panel glass-panel-glow" style={{ padding: '30px', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
-            내가 선택한 숫자
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div style={{ fontSize: '1.1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
+              내가 선택한 숫자
+            </div>
+            {timeLeft !== null && timeLeft > 0 && (
+              <div style={{ color: 'var(--danger-color)', fontWeight: 900, fontSize: '1.2rem', animation: 'pulse 1s infinite' }}>
+                ⏱️ 마감까지 {timeLeft}초
+              </div>
+            )}
+            {isLocked && (
+              <div style={{ color: 'var(--danger-color)', fontWeight: 900, fontSize: '1rem', background: 'rgba(255, 59, 48, 0.15)', padding: '4px 10px', borderRadius: '8px' }}>
+                🔒 입력 마감됨
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: '5rem', fontWeight: 900, color: 'var(--primary-color)', margin: '10px 0' }}>
+
+          <div style={{ fontSize: '5rem', fontWeight: 900, color: isLocked ? 'var(--text-sub)' : 'var(--primary-color)', margin: '10px 0' }}>
             {selectedNum}
           </div>
 
@@ -123,32 +179,45 @@ export const MindSyncBalance = () => {
             min="1"
             max="100"
             value={selectedNum}
+            disabled={isLocked}
             onChange={(e) => handleSelectNumber(parseInt(e.target.value))}
-            style={{ width: '80%', margin: '20px 0', accentColor: 'var(--primary-color)', cursor: 'pointer' }}
+            style={{ width: '80%', margin: '20px 0', accentColor: 'var(--primary-color)', cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.5 : 1 }}
           />
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
             {[10, 25, 33, 50, 66, 75, 100].map(val => (
               <button
                 key={val}
+                disabled={isLocked}
                 onClick={() => handleSelectNumber(val)}
                 className="btn-secondary"
-                style={{ padding: '6px 14px', borderRadius: '10px', fontSize: '0.85rem' }}
+                style={{ padding: '6px 14px', borderRadius: '10px', fontSize: '0.85rem', opacity: isLocked ? 0.4 : 1, cursor: isLocked ? 'not-allowed' : 'pointer' }}
               >
                 {val}
               </button>
             ))}
           </div>
 
+          {isLocked && (
+            <div style={{ marginTop: '20px', color: 'var(--warning-color)', fontWeight: 700, fontSize: '0.95rem' }}>
+              ⚠️ 타겟 계산이 진행 중이거나 마감되어 숫자를 변경할 수 없습니다.
+            </div>
+          )}
+
           {userRole === 'host' && (
-            <div style={{ marginTop: '30px' }}>
-              {!revealed ? (
-                <button onClick={handleRevealResult} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px' }}>
+            <div style={{ marginTop: '30px', display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {!isLocked && (
+                <button onClick={() => handleStartTimer(15)} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
+                  ⏱️ 15초 마감 타이머 가동
+                </button>
+              )}
+              {!isRevealed ? (
+                <button onClick={handleRevealResult} className="btn-primary" style={{ fontSize: '1.1rem', padding: '12px 28px' }}>
                   <Eye size={20} /> 황금비율 타겟 계산 및 공개!
                 </button>
               ) : (
-                <button onClick={() => setRevealed(false)} className="btn-secondary">
-                  <RefreshCw size={16} /> 다시 입력받기
+                <button onClick={handleResetRound} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
+                  <RefreshCw size={16} /> 다시 입력받기 (새 라운드)
                 </button>
               )}
             </div>
@@ -201,7 +270,7 @@ export const MindSyncBalance = () => {
                 );
               })}
 
-              {revealed && (
+              {isRevealed && (
                 <div style={{
                   position: 'absolute',
                   left: `${targetValue}%`,
@@ -227,7 +296,7 @@ export const MindSyncBalance = () => {
             </div>
           </div>
 
-          {revealed && (
+          {isRevealed && (
             <div style={{ background: 'rgba(0, 243, 255, 0.1)', padding: '20px', borderRadius: '16px', border: '1px solid var(--primary-color)', marginBottom: '20px' }}>
               <div style={{ fontSize: '1rem', color: 'var(--text-sub)' }}>전체 제출 평균값: {averageValue.toFixed(2)}</div>
               <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--primary-color)', margin: '6px 0' }}>

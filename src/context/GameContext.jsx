@@ -301,11 +301,29 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  // Helper to remove lingering mini-game transient states from room
+  const cleanTransientGameStates = (baseRoom) => {
+    const cleaned = { ...baseRoom };
+    const transientKeys = [
+      'rpsState', 'rpsRound', 'rpsHostChoice', 'rpsSurvivors',
+      'nunchiState', 'nunchiNumber', 'nunchiEliminated', 'nunchiPassed',
+      'bombState', 'bombTimeLeft', 'bombHolder',
+      'quizCurrentWord', 'quizWinners', 'quizState',
+      'mindsyncRevealed', 'mindsyncLocked', 'mindsyncTimeLeft',
+      'oxQIndex', 'oxRevealed',
+      'tugState', 'tugTimeLeft', 'tugRopePos',
+      'sprintTimeLeft'
+    ];
+    transientKeys.forEach(k => delete cleaned[k]);
+    return cleaned;
+  };
+
   // Update Game State
   const startGame = (gameId) => {
-    const nextRoom = { ...room, activeGame: gameId, status: 'playing', gameState: 'ready' };
+    const cleaned = cleanTransientGameStates(room);
+    const nextRoom = { ...cleaned, activeGame: gameId, status: 'playing', gameState: 'ready' };
     setRoom(nextRoom);
-    // Reset inputs
+    // Reset inputs for all participants
     const resetParticipants = participants.map(p => ({ ...p, lastInput: null }));
     setParticipants(resetParticipants);
     broadcast('SYNC_STATE', { room: nextRoom, participants: resetParticipants });
@@ -328,9 +346,12 @@ export const GameProvider = ({ children }) => {
   };
 
   const returnToLobby = () => {
-    const nextRoom = { ...room, activeGame: null, status: 'lobby', gameState: 'ready' };
+    const cleaned = cleanTransientGameStates(room);
+    const nextRoom = { ...cleaned, activeGame: null, status: 'lobby', gameState: 'ready' };
     setRoom(nextRoom);
-    broadcast('SYNC_STATE', { room: nextRoom, participants });
+    const resetParticipants = participants.map(p => ({ ...p, lastInput: null }));
+    setParticipants(resetParticipants);
+    broadcast('SYNC_STATE', { room: nextRoom, participants: resetParticipants });
   };
 
   // Host Control Actions

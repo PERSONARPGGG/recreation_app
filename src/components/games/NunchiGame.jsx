@@ -48,12 +48,15 @@ export const NunchiGame = () => {
   }, [participants, userRole, gameState, currentNumber, eliminated, room]);
 
   const startGame = () => {
+    // Clear all player inputs for fresh round
+    participants.forEach(p => submitPlayerInput(p.id, null));
     updateRoomState({
       nunchiState: 'playing',
       nunchiNumber: 0,
       nunchiEliminated: [],
       nunchiPassed: []
     });
+    setIsSettled(false);
     soundFx.playTick();
   };
 
@@ -66,13 +69,15 @@ export const NunchiGame = () => {
   };
 
   if (userRole === 'participant') {
-    const isEliminated = eliminated.some(e => e.id === myPlayerId);
-    const isPassed = passed.includes(myPlayerId);
+    const isEliminated = gameState !== 'ready' && eliminated.some(e => e.id === myPlayerId);
+    const isPassed = gameState !== 'ready' && passed.includes(myPlayerId);
 
     return (
       <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🙈 눈치게임</h2>
-        {isEliminated ? (
+        {gameState === 'ready' ? (
+          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>🎮 호스트의 게임 시작을 기다리고 있습니다...</div>
+        ) : isEliminated ? (
           <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 800 }}>💀 동시 클릭 탈락!</div>
         ) : isPassed ? (
           <div style={{ color: 'var(--success-color)', fontSize: '1.5rem', fontWeight: 800 }}>✅ 생존 (통과)!</div>

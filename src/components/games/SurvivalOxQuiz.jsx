@@ -12,19 +12,20 @@ const OX_QUESTION_BANK = [
 ];
 
 export const SurvivalOxQuiz = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
-  const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [customQuestion, setCustomQuestion] = useState('');
-  const [customAnswer, setCustomAnswer] = useState('O');
-  const [myChoice, setMyChoice] = useState(null);
-  const [revealed, setRevealed] = useState(false);
+  const currentQIndex = room.oxQIndex || 0;
+  const revealed = !!room.oxRevealed;
   const [isSettled, setIsSettled] = useState(false);
 
-  const questionObj = OX_QUESTION_BANK[currentQIndex];
+  const myPlayer = participants.find(p => p.id === myPlayerId);
+  const myChoice = myPlayer?.lastInput?.choice || null;
+  const hasChosen = !!myChoice;
+
+  const questionObj = OX_QUESTION_BANK[currentQIndex] || OX_QUESTION_BANK[0];
 
   const handleSelectAnswer = (choice) => {
-    setMyChoice(choice);
+    if (revealed) return; // Disallow picking after reveal
     submitPlayerInput(myPlayerId, { choice });
     soundFx.playTick();
   };
@@ -32,20 +33,20 @@ export const SurvivalOxQuiz = () => {
   const handleRevealAnswer = () => {
     soundFx.playDrumroll(1.5);
     setTimeout(() => {
-      setRevealed(true);
+      updateRoomState({ oxRevealed: true });
       setIsSettled(false);
       soundFx.playSuccess();
     }, 1500);
   };
 
-
   const handleNextQuestion = () => {
-    setRevealed(false);
+    // Clear player inputs for the new question
+    participants.forEach(p => submitPlayerInput(p.id, null));
+    const nextIdx = (currentQIndex + 1) % OX_QUESTION_BANK.length;
+    updateRoomState({ oxQIndex: nextIdx, oxRevealed: false });
     setIsSettled(false);
-    setMyChoice(null);
-    setCurrentQIndex((prev) => (prev + 1) % OX_QUESTION_BANK.length);
+    soundFx.playTick();
   };
-
 
   const handleSimulateBots = () => {
     simulateBotGameInputs('oxquiz');
@@ -140,6 +141,7 @@ export const SurvivalOxQuiz = () => {
           
           <button
             onClick={() => handleSelectAnswer('O')}
+            disabled={revealed}
             style={{
               background: myChoice === 'O' ? 'rgba(0, 243, 255, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'O' ? '3px solid var(--primary-color)' : '2px solid rgba(255, 255, 255, 0.1)',
@@ -148,7 +150,8 @@ export const SurvivalOxQuiz = () => {
               color: 'var(--primary-color)',
               fontSize: '4.5rem',
               fontWeight: 900,
-              cursor: 'pointer',
+              cursor: revealed ? 'not-allowed' : 'pointer',
+              opacity: revealed && myChoice !== 'O' ? 0.35 : 1,
               boxShadow: myChoice === 'O' ? '0 0 30px var(--primary-glow)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
@@ -163,6 +166,7 @@ export const SurvivalOxQuiz = () => {
 
           <button
             onClick={() => handleSelectAnswer('X')}
+            disabled={revealed}
             style={{
               background: myChoice === 'X' ? 'rgba(255, 0, 122, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'X' ? '3px solid #ff007a' : '2px solid rgba(255, 255, 255, 0.1)',
@@ -171,7 +175,8 @@ export const SurvivalOxQuiz = () => {
               color: '#ff007a',
               fontSize: '4.5rem',
               fontWeight: 900,
-              cursor: 'pointer',
+              cursor: revealed ? 'not-allowed' : 'pointer',
+              opacity: revealed && myChoice !== 'X' ? 0.35 : 1,
               boxShadow: myChoice === 'X' ? '0 0 30px rgba(255,0,122,0.6)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
@@ -231,6 +236,11 @@ export const SurvivalOxQuiz = () => {
             <p style={{ fontSize: '0.95rem', color: 'var(--primary-color)', marginTop: '12px', fontWeight: 800 }}>
               생존자: {survivors.length}명! (+생존 점수 부여)
             </p>
+            {userRole === 'participant' && myChoice && (
+              <div style={{ marginTop: '14px', fontSize: '1.2rem', fontWeight: 900, color: myChoice === questionObj.a ? 'var(--success-color)' : 'var(--danger-color)' }}>
+                {myChoice === questionObj.a ? '🎉 축하합니다! 정답을 맞혀 생존하셨습니다!' : '💀 아쉽게 오답입니다! 다음 문제를 기대하세요.'}
+              </div>
+            )}
           </div>
         )}
 

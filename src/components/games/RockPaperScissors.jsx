@@ -18,7 +18,16 @@ export const RockPaperScissors = () => {
   const survivors = room.rpsSurvivors || participants;
 
   const startGame = () => {
-    updateRoomState({ rpsState: 'choosing', rpsHostChoice: null, rpsRound: 1, rpsSurvivors: participants });
+    // Reset all participants to alive survivors
+    const allSurvivors = participants.map(p => ({ id: p.id, name: p.name, teamId: p.teamId }));
+    // Clear participant inputs for fresh round
+    participants.forEach(p => submitPlayerInput(p.id, null));
+    updateRoomState({
+      rpsState: 'choosing',
+      rpsHostChoice: null,
+      rpsRound: 1,
+      rpsSurvivors: allSurvivors
+    });
     setIsSettled(false);
     soundFx.playTick();
   };
@@ -29,8 +38,9 @@ export const RockPaperScissors = () => {
     
     // Determine survivors
     const newSurvivors = survivors.filter(p => {
-      // Simulate bots
-      let playerChoice = p.lastInput?.rps;
+      // Find latest player input
+      const participantObj = participants.find(part => part.id === p.id);
+      let playerChoice = participantObj?.lastInput?.rps;
       if (p.isBot) {
         playerChoice = CHOICES[Math.floor(Math.random() * 3)];
       }
@@ -49,6 +59,8 @@ export const RockPaperScissors = () => {
   };
 
   const nextRound = () => {
+    // Clear player inputs for the new round
+    participants.forEach(p => submitPlayerInput(p.id, null));
     updateRoomState({ rpsRound: round + 1, rpsState: 'choosing', rpsHostChoice: null });
   };
 
@@ -81,35 +93,53 @@ export const RockPaperScissors = () => {
 
   if (userRole === 'participant') {
     const myPlayer = participants.find(p => p.id === myPlayerId);
-    const isSurvivor = survivors.some(s => s.id === myPlayerId);
-    const hasChosen = !!myPlayer?.lastInput?.rps;
+    const isSurvivor = rpsState === 'ready' ? true : survivors.some(s => s.id === myPlayerId);
+    const chosenHand = myPlayer?.lastInput?.rps;
+    const hasChosen = !!chosenHand;
 
     return (
-      <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>✊✌️✋ 가위바위보 생존게임</h2>
-        {!isSurvivor && rpsState !== 'ready' ? (
-          <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 800 }}>💀 탈락하셨습니다</div>
+      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '50vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '20px' }}>✊✌️✋ 대규모 가위바위보 서바이벌</h2>
+        
+        {rpsState === 'ready' ? (
+          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
+            🎮 호스트가 게임을 준비 중입니다. 잠시만 기다려주세요!
+          </div>
+        ) : !isSurvivor ? (
+          <div style={{ padding: '20px' }}>
+            <div style={{ color: 'var(--danger-color)', fontSize: '2rem', fontWeight: 900, marginBottom: '10px' }}>💀 이번 라운드 탈락!</div>
+            <p style={{ color: 'var(--text-sub)', fontSize: '1rem' }}>아쉽게 탈락하셨습니다. 화면에서 다음 승부를 지켜보세요!</p>
+          </div>
         ) : rpsState === 'choosing' ? (
           <div>
-            <h3 style={{ marginBottom: '20px' }}>선택하세요!</h3>
+            <h3 style={{ marginBottom: '10px', fontSize: '1.5rem' }}>라운드 {round}: 하나를 선택하세요!</h3>
+            <p style={{ color: 'var(--text-sub)', marginBottom: '20px' }}>호스트를 이겨야만 생존합니다! (선택 후 변경 불가)</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
               {CHOICES.map(c => (
                 <button 
                   key={c} 
+                  disabled={hasChosen}
                   onClick={() => handleSelect(c)}
-                  className={myPlayer?.lastInput?.rps === c ? "btn-primary" : "btn-secondary"}
-                  style={{ fontSize: '3rem', padding: '20px' }}
+                  className={chosenHand === c ? "btn-primary" : "btn-secondary"}
+                  style={{ fontSize: '3rem', padding: '20px', opacity: hasChosen && chosenHand !== c ? 0.4 : 1, cursor: hasChosen ? 'default' : 'pointer' }}
                 >
                   {EMOJIS[c]}
                 </button>
               ))}
             </div>
-            {hasChosen && <div style={{ marginTop: '20px', color: 'var(--success-color)' }}>선택 완료! 호스트의 결과를 기다리세요.</div>}
+            {hasChosen && (
+              <div style={{ marginTop: '20px', color: 'var(--success-color)', fontSize: '1.1rem', fontWeight: 800 }}>
+                ✅ 선택 완료: [{EMOJIS[chosenHand]} {chosenHand}] 호스트의 발표를 기다리세요!
+              </div>
+            )}
           </div>
         ) : rpsState === 'result' ? (
           <div>
-            <h3 style={{ fontSize: '1.5rem' }}>호스트의 선택: {EMOJIS[hostChoice]}</h3>
-            <p>결과를 메인 화면에서 확인하세요!</p>
+            <h3 style={{ fontSize: '1.6rem', marginBottom: '10px' }}>결과 발표</h3>
+            <div style={{ fontSize: '3rem', margin: '15px 0' }}>호스트: {EMOJIS[hostChoice]} vs 나: {chosenHand ? EMOJIS[chosenHand] : '❓'}</div>
+            <p style={{ color: isSurvivor ? 'var(--success-color)' : 'var(--danger-color)', fontSize: '1.3rem', fontWeight: 900 }}>
+              {isSurvivor ? '🎉 축하합니다! 다음 라운드로 진출합니다!' : '💀 탈락하셨습니다!'}
+            </p>
           </div>
         ) : (
           <div style={{ color: 'var(--text-sub)' }}>게임 시작을 기다려주세요...</div>
@@ -166,8 +196,14 @@ export const RockPaperScissors = () => {
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.5rem', color: 'var(--text-sub)' }}>호스트의 선택</h3>
             <div style={{ fontSize: '6rem', margin: '20px 0' }}>{EMOJIS[hostChoice]}</div>
-            <h2 style={{ fontSize: '2rem', color: 'var(--success-color)' }}>생존자: {survivors.length}명</h2>
-            <button onClick={nextRound} className="btn-primary" style={{ marginTop: '30px' }}>다음 라운드 진행</button>
+            <div style={{ marginTop: '30px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button onClick={nextRound} className="btn-primary" style={{ fontSize: '1.2rem', padding: '12px 28px' }}>
+                다음 라운드 진행
+              </button>
+              <button onClick={startGame} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
+                🔄 처음부터 다시 시작 (모두 부활)
+              </button>
+            </div>
           </div>
         )}
       </div>
