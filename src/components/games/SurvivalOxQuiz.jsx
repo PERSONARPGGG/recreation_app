@@ -86,27 +86,24 @@ export const SurvivalOxQuiz = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
-      {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>🧠</div>
+      {/* Header Toolbar */}
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '1.4rem' }}>🧠</div>
           <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
               100인 서바이벌 OX 퀴즈
             </h2>
-            <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              100명의 참가자가 선택한 O/X 실시간 현황과 서바이벌 라이브 매치!
-            </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 100인 투표 시뮬레이션
+              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Zap size={14} /> 100인 투표 시뮬레이션
               </button>
               <button 
                 onClick={handleSettlePoints} 
@@ -115,13 +112,14 @@ export const SurvivalOxQuiz = () => {
                 style={{ 
                   background: isSettled ? '#555' : !revealed ? '#333' : 'var(--success-color)', 
                   cursor: isSettled || !revealed ? 'not-allowed' : 'pointer',
-                  opacity: (!revealed && !isSettled) ? 0.6 : 1
+                  opacity: (!revealed && !isSettled) ? 0.6 : 1,
+                  padding: '6px 14px', fontSize: '0.85rem'
                 }}
               >
                 {isSettled ? '✅ 정산 완료' : !revealed ? '⏳ 정답 공개 후 정산' : '🏆 포인트 정산하기'}
               </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                🏠 로비로
               </button>
             </>
           )}
@@ -129,18 +127,18 @@ export const SurvivalOxQuiz = () => {
       </div>
 
       {/* Main Quiz Area */}
-      <div className="glass-panel glass-panel-glow" style={{ padding: '30px', textAlign: 'center' }}>
+      <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 20px', textAlign: 'center' }}>
         
-        <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+        <div style={{ fontSize: '0.8rem', color: 'var(--primary-color)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
           QUESTION #{currentQIndex + 1}
         </div>
 
-        <h1 className="font-heading" style={{ fontSize: '2.1rem', fontWeight: 900, margin: '15px 0 30px 0', lineHeight: 1.4 }}>
+        <h1 className="font-heading" style={{ fontSize: userRole === 'participant' ? '1.35rem' : '1.8rem', fontWeight: 900, margin: '8px 0 16px 0', lineHeight: 1.35 }}>
           "{questionObj.q}"
         </h1>
 
         {/* O vs X Touch Buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '600px', margin: '0 auto 30px auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', maxWidth: '520px', margin: '0 auto 16px auto' }}>
           
           <button
             onClick={() => handleSelectAnswer('O')}
@@ -148,23 +146,23 @@ export const SurvivalOxQuiz = () => {
             style={{
               background: myChoice === 'O' ? 'rgba(0, 243, 255, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'O' ? '3px solid var(--primary-color)' : '2px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '24px',
-              padding: '30px',
+              borderRadius: '18px',
+              padding: userRole === 'participant' ? '18px 10px' : '24px 16px',
               color: 'var(--primary-color)',
-              fontSize: '4.5rem',
+              fontSize: userRole === 'participant' ? '3.2rem' : '4rem',
               fontWeight: 900,
               cursor: (revealed || (userRole === 'participant' && hasChosen)) ? 'not-allowed' : 'pointer',
               opacity: (revealed || hasChosen) && myChoice !== 'O' ? 0.35 : 1,
-              boxShadow: myChoice === 'O' ? '0 0 30px var(--primary-glow)' : 'none',
+              boxShadow: myChoice === 'O' ? '0 0 25px var(--primary-glow)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '10px'
+              gap: '6px'
             }}
           >
             <span>⭕ O</span>
-            <span style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: 700 }}>참 (TRUE)</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 700 }}>참 (TRUE)</span>
           </button>
 
           <button
@@ -173,46 +171,46 @@ export const SurvivalOxQuiz = () => {
             style={{
               background: myChoice === 'X' ? 'rgba(255, 0, 122, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'X' ? '3px solid #ff007a' : '2px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '24px',
-              padding: '30px',
+              borderRadius: '18px',
+              padding: userRole === 'participant' ? '18px 10px' : '24px 16px',
               color: '#ff007a',
-              fontSize: '4.5rem',
+              fontSize: userRole === 'participant' ? '3.2rem' : '4rem',
               fontWeight: 900,
               cursor: (revealed || (userRole === 'participant' && hasChosen)) ? 'not-allowed' : 'pointer',
               opacity: (revealed || hasChosen) && myChoice !== 'X' ? 0.35 : 1,
-              boxShadow: myChoice === 'X' ? '0 0 30px rgba(255,0,122,0.6)' : 'none',
+              boxShadow: myChoice === 'X' ? '0 0 25px rgba(255,0,122,0.6)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '10px'
+              gap: '6px'
             }}
           >
             <span>❌ X</span>
-            <span style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: 700 }}>거짓 (FALSE)</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 700 }}>거짓 (FALSE)</span>
           </button>
 
         </div>
 
         {userRole === 'participant' && hasChosen && !revealed && (
-          <div className="glass-card" style={{ maxWidth: '400px', margin: '-10px auto 25px auto', padding: '12px 20px', textAlign: 'center', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)' }}>
-            <div style={{ color: 'var(--success-color)', fontWeight: 800 }}>
-              ✅ 입력을 완료하였습니다. (선택: {myChoice === 'O' ? '⭕ O (참)' : '❌ X (거짓)'})
+          <div className="glass-card" style={{ maxWidth: '400px', margin: '-4px auto 16px auto', padding: '10px 16px', textAlign: 'center', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)', borderRadius: '12px' }}>
+            <div style={{ color: 'var(--success-color)', fontWeight: 800, fontSize: '0.95rem' }}>
+              ✅ 입력을 완료하였습니다. (선택: {myChoice === 'O' ? '⭕ O' : '❌ X'})
             </div>
-            <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '4px' }}>
+            <div style={{ color: 'var(--text-sub)', fontSize: '0.8rem', marginTop: '2px' }}>
               사회자의 정답 공개를 기다리는 중입니다...
             </div>
           </div>
         )}
 
         {/* Live Voting Distribution Bar */}
-        <div style={{ maxWidth: '700px', margin: '0 auto 30px auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 800, marginBottom: '8px' }}>
-            <span style={{ color: 'var(--primary-color)' }}>⭕ O 선택: {oCount}명 ({oPercent}%)</span>
-            <span style={{ color: '#ff007a' }}>❌ X 선택: {xCount}명 ({xPercent}%)</span>
+        <div style={{ maxWidth: '600px', margin: '0 auto 16px auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 800, marginBottom: '6px' }}>
+            <span style={{ color: 'var(--primary-color)' }}>⭕ O: {oCount}명 ({oPercent}%)</span>
+            <span style={{ color: '#ff007a' }}>❌ X: {xCount}명 ({xPercent}%)</span>
           </div>
 
-          <div style={{ height: '24px', borderRadius: '12px', background: '#111', overflow: 'hidden', display: 'flex', border: '1px solid var(--card-border)' }}>
+          <div style={{ height: '18px', borderRadius: '10px', background: '#111', overflow: 'hidden', display: 'flex', border: '1px solid var(--card-border)' }}>
             <div style={{ width: `${oPercent}%`, background: 'var(--primary-color)', transition: 'width 0.4s ease' }} />
             <div style={{ width: `${xPercent}%`, background: '#ff007a', transition: 'width 0.4s ease' }} />
           </div>
@@ -220,14 +218,14 @@ export const SurvivalOxQuiz = () => {
 
         {/* Host Controls for Reveal */}
         {userRole === 'host' && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '10px' }}>
             {!revealed ? (
-              <button onClick={handleRevealAnswer} className="btn-primary" style={{ fontSize: '1.2rem', padding: '16px 40px' }}>
-                <Eye size={20} /> 정답 공개 및 수집!
+              <button onClick={handleRevealAnswer} className="btn-primary" style={{ fontSize: '1.1rem', padding: '12px 32px' }}>
+                <Eye size={18} /> 정답 공개 및 수집!
               </button>
             ) : (
-              <button onClick={handleNextQuestion} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
-                <RotateCcw size={18} /> 다음 퀴즈 진행
+              <button onClick={handleNextQuestion} className="btn-secondary" style={{ fontSize: '1rem', padding: '10px 24px' }}>
+                <RotateCcw size={16} /> 다음 퀴즈 진행
               </button>
             )}
           </div>
@@ -236,22 +234,22 @@ export const SurvivalOxQuiz = () => {
         {/* Answer Banner */}
         {revealed && (
           <div style={{
-            marginTop: '30px',
-            padding: '24px',
-            borderRadius: '20px',
+            marginTop: '16px',
+            padding: '16px',
+            borderRadius: '16px',
             background: 'rgba(0, 255, 136, 0.15)',
             border: '2px solid var(--success-color)',
             animation: 'pulse-glow 2s infinite ease-in-out'
           }}>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--success-color)' }}>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--success-color)', margin: 0 }}>
               🎉 정답: {questionObj.a}!
             </h2>
-            <p style={{ fontSize: '1.1rem', color: '#fff', marginTop: '8px' }}>{questionObj.exp}</p>
-            <p style={{ fontSize: '0.95rem', color: 'var(--primary-color)', marginTop: '12px', fontWeight: 800 }}>
+            <p style={{ fontSize: '0.95rem', color: '#fff', marginTop: '6px', marginBottom: 0 }}>{questionObj.exp}</p>
+            <p style={{ fontSize: '0.9rem', color: 'var(--primary-color)', marginTop: '8px', marginBottom: 0, fontWeight: 800 }}>
               생존자: {survivors.length}명! (+생존 점수 부여)
             </p>
             {userRole === 'participant' && myChoice && (
-              <div style={{ marginTop: '14px', fontSize: '1.2rem', fontWeight: 900, color: myChoice === questionObj.a ? 'var(--success-color)' : 'var(--danger-color)' }}>
+              <div style={{ marginTop: '10px', fontSize: '1.05rem', fontWeight: 900, color: myChoice === questionObj.a ? 'var(--success-color)' : 'var(--danger-color)' }}>
                 {myChoice === questionObj.a ? '🎉 축하합니다! 정답을 맞혀 생존하셨습니다!' : '💀 아쉽게 오답입니다! 다음 문제를 기대하세요.'}
               </div>
             )}
@@ -259,7 +257,6 @@ export const SurvivalOxQuiz = () => {
         )}
 
       </div>
-
     </div>
   );
 };

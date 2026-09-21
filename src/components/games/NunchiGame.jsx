@@ -148,40 +148,48 @@ export const NunchiGame = () => {
     const isPassed = gameState !== 'ready' && passed.includes(myPlayerId);
 
     return (
-      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '50vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '20px' }}>🙈 눈치게임</h2>
+      <div className="glass-panel" style={{ padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary-color)' }}>🙈 눈치게임</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>
+            현재: <strong style={{ color: '#fff' }}>{currentNumber}</strong> (외칠 번호: {currentNumber + 1})
+          </span>
+        </div>
+
         {gameState === 'ready' ? (
-          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>🎮 호스트의 게임 시작을 기다리고 있습니다...</div>
+          <div style={{ padding: '30px 10px', color: 'var(--text-sub)', fontSize: '1.1rem' }}>
+            🎮 호스트의 게임 시작을 기다리고 있습니다...
+          </div>
         ) : isEliminated ? (
-          <div style={{ padding: '20px' }}>
-            <div style={{ color: 'var(--danger-color)', fontSize: '2.2rem', fontWeight: 900, marginBottom: '10px' }}>💀 탈락!</div>
-            <p style={{ color: 'var(--text-sub)', fontSize: '1.1rem' }}>동시에 외쳤거나 순서가 틀려 탈락하셨습니다.</p>
+          <div style={{ padding: '20px 10px' }}>
+            <div style={{ color: 'var(--danger-color)', fontSize: '2.2rem', fontWeight: 900, marginBottom: '6px' }}>💀 탈락!</div>
+            <p style={{ color: 'var(--text-sub)', fontSize: '1rem', margin: 0 }}>동시에 외쳤거나 순서가 틀려 탈락하셨습니다.</p>
           </div>
         ) : isPassed ? (
-          <div style={{ padding: '20px' }}>
-            <div style={{ color: 'var(--success-color)', fontSize: '2.2rem', fontWeight: 900, marginBottom: '10px' }}>✅ 생존 성공!</div>
-            <p style={{ color: '#fff', fontSize: '1.2rem' }}>성공적으로 숫자를 외쳤습니다! 남은 승부를 지켜보세요.</p>
+          <div style={{ padding: '20px 10px' }}>
+            <div style={{ color: 'var(--success-color)', fontSize: '2.2rem', fontWeight: 900, marginBottom: '6px' }}>✅ 생존 성공!</div>
+            <p style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>성공적으로 숫자를 외쳤습니다! 남은 승부를 지켜보세요.</p>
           </div>
         ) : gameState === 'playing' ? (
-          <div>
-            <p style={{ color: 'var(--text-sub)', marginBottom: '20px', fontSize: '1.1rem' }}>다른 사람과 겹치지 않게 타이밍을 노려 누르세요!</p>
+          <div style={{ marginTop: '8px' }}>
+            <p style={{ color: 'var(--text-sub)', marginBottom: '14px', fontSize: '0.95rem' }}>다른 사람과 겹치지 않게 타이밍을 노려 누르세요!</p>
             <button 
               onClick={handlePickNumber} 
-              className="btn-primary" 
+              className="btn-primary animate-pulse-glow" 
               style={{ 
-                padding: '40px 60px', 
-                fontSize: '3.5rem', 
+                padding: '28px 48px', 
+                fontSize: '3.2rem', 
                 fontWeight: 900, 
-                borderRadius: '30px',
+                borderRadius: '26px',
                 background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-                boxShadow: '0 0 35px rgba(168, 85, 247, 0.6)' 
+                boxShadow: '0 0 35px rgba(168, 85, 247, 0.6)',
+                touchAction: 'manipulation',
+                userSelect: 'none',
+                WebkitUserSelect: 'none'
               }}
             >
               {currentNumber + 1}!
             </button>
-            <div style={{ marginTop: '25px', color: 'var(--text-sub)', fontSize: '1rem' }}>
-              현재 번호: <strong style={{ color: '#fff' }}>{currentNumber}</strong> (외칠 번호: {currentNumber + 1})
-            </div>
           </div>
         ) : (
           <div style={{ color: 'var(--text-sub)' }}>대기 중...</div>
@@ -192,10 +200,12 @@ export const NunchiGame = () => {
 
   // Host View
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🙈 아슬아슬 1부터 눈치게임</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
+          🙈 1부터 눈치게임
+        </h2>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
@@ -204,59 +214,60 @@ export const NunchiGame = () => {
               style={{ 
                 background: isSettled ? '#555' : !hasGameActivity ? '#333' : 'var(--success-color)', 
                 cursor: isSettled || !hasGameActivity ? 'not-allowed' : 'pointer',
-                opacity: (!hasGameActivity && !isSettled) ? 0.6 : 1
+                opacity: (!hasGameActivity && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
               }}
             >
               {isSettled ? '✅ 정산 완료' : !hasGameActivity ? '⏳ 게임 진행 후 정산' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={handleReturnToLobby} className="btn-secondary">
-            🏠 로비로 돌아가기
+          <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+            🏠 로비로
           </button>
         </div>
       </div>
 
-      <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '30px' }}>
+      <div className="glass-panel glass-panel-glow" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px 16px' }}>
         {gameState === 'ready' && (
           <div style={{ textAlign: 'center' }}>
-            <Eye size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
-            <h3 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>아슬아슬 눈치게임</h3>
-            <p style={{ color: 'var(--text-sub)', marginBottom: '30px' }}>참가자들과 겹치지 않게 순서대로 1부터 숫자를 부르는 심리 스릴 게임!</p>
-            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px', borderRadius: '50px' }}>
-              <Play size={22} /> 게임 시작하기
+            <Eye size={60} color="var(--primary-color)" style={{ marginBottom: '14px' }} />
+            <h3 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>아슬아슬 눈치게임</h3>
+            <p style={{ color: 'var(--text-sub)', marginBottom: '20px', fontSize: '0.95rem' }}>참가자들과 겹치지 않게 순서대로 1부터 숫자를 부르는 심리 스릴 게임!</p>
+            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px', borderRadius: '50px' }}>
+              <Play size={20} /> 게임 시작하기
             </button>
           </div>
         )}
 
         {gameState === 'playing' && (
           <div style={{ width: '100%', textAlign: 'center', maxWidth: '700px' }}>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-sub)' }}>현재 진행 숫자</h3>
-            <div style={{ fontSize: '7.5rem', fontWeight: 900, color: '#fff', margin: '15px 0' }}>{currentNumber}</div>
-            <div style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: '25px', fontWeight: 800 }}>
+            <h3 style={{ fontSize: '1.2rem', color: 'var(--text-sub)', margin: 0 }}>현재 진행 숫자</h3>
+            <div style={{ fontSize: '5.5rem', fontWeight: 900, color: '#fff', margin: '8px 0' }}>{currentNumber}</div>
+            <div style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '18px', fontWeight: 800 }}>
               다음 외칠 숫자: <strong>{currentNumber + 1}</strong>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', margin: '20px 0' }}>
-              <div className="glass-card" style={{ padding: '18px', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.1)' }}>
-                <h4 style={{ color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800, marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', margin: '14px 0' }}>
+              <div className="glass-card" style={{ padding: '14px', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '12px' }}>
+                <h4 style={{ color: 'var(--success-color)', fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>
                   ✅ 통과 ({passed.length}명)
                 </h4>
-                <div style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {passed.map(id => {
                     const p = participants.find(part => part.id === id);
-                    return <div key={id} style={{ fontSize: '1rem', color: '#fff' }}>👑 {p?.name || id}</div>;
+                    return <div key={id} style={{ fontSize: '0.95rem', color: '#fff' }}>👑 {p?.name || id}</div>;
                   })}
                 </div>
               </div>
 
-              <div className="glass-card" style={{ padding: '18px', border: '1px solid var(--danger-color)', background: 'rgba(239, 68, 68, 0.1)' }}>
-                <h4 style={{ color: 'var(--danger-color)', fontSize: '1.2rem', fontWeight: 800, marginBottom: '10px' }}>
+              <div className="glass-card" style={{ padding: '14px', border: '1px solid var(--danger-color)', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px' }}>
+                <h4 style={{ color: 'var(--danger-color)', fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>
                   💀 탈락 ({eliminated.length}명)
                 </h4>
-                <div style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {eliminated.map((e, idx) => (
-                    <div key={idx} style={{ fontSize: '0.95rem', color: '#ff8080' }}>
-                      ❌ {e.name} <span style={{ fontSize: '0.8rem', color: '#aaa' }}>({e.reason})</span>
+                    <div key={e.id || idx} style={{ fontSize: '0.9rem', color: '#ff8080' }}>
+                      ❌ {e.name} <span style={{ fontSize: '0.75rem', color: '#aaa' }}>({e.reason})</span>
                     </div>
                   ))}
                 </div>

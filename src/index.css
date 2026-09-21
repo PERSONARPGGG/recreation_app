@@ -240,31 +240,22 @@ body {
 
 @media (max-width: 768px) {
   .app-container {
-    padding: 10px;
+    padding: 8px;
   }
   
   .glass-panel {
-    padding: 16px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
   }
 
-  /* Stack grids on mobile */
-  .grid-mobile-stack {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
+  /* Compact header during active gameplay */
+  .app-playing .glass-panel {
+    padding: 8px 12px !important;
   }
 
-  /* Force flex wrap on flex containers that might overflow */
-  div[style*="display: flex"] {
-    flex-wrap: wrap !important;
-  }
-
-  /* Make buttons larger on mobile */
   .btn-primary, .btn-secondary {
-    padding: 18px 24px !important;
-    font-size: 1.2rem !important;
-    width: 100%;
-    margin-bottom: 8px;
+    padding: 12px 18px;
+    font-size: 1rem;
   }
 
   .font-heading {

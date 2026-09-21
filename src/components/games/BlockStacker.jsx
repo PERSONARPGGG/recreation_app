@@ -3,58 +3,122 @@ import { useGame } from '../../context/GameContext';
 import { soundFx } from '../../utils/sound';
 import { Layers, Play, RotateCcw, Zap, Trophy, AlertCircle } from 'lucide-react';
 
+const GAME_DURATION = 10;
+
 export const BlockStacker = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby } = useGame();
+  const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
   const canvasRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0); // Height of tower
-  const [gameOver, setGameOver] = useState(false);
   const [isSettled, setIsSettled] = useState(false);
+  const [localGameOver, setLocalGameOver] = useState(false);
+
+  // Synced room state
+  const blockstackState = room.blockstackState || 'ready'; // 'ready' | 'playing' | 'finished'
+  const timeLeft = room.blockstackTimeLeft !== undefined ? room.blockstackTimeLeft : GAME_DURATION;
+
+  const timeLeftRef = useRef(GAME_DURATION);
+  const timerIntervalRef = useRef(null);
 
   // Game Engine State
   const gameStateRef = useRef({
     stack: [],
-    currentBlock: { x: 0, width: 140, dir: 1, speed: 3 },
-    blockHeight: 24,
-    canvasWidth: 360,
-    canvasHeight: 460
+    currentBlock: { x: 20, width: 140, dir: 1, speed: 3.5 },
+    blockHeight: 22,
+    canvasWidth: 320,
+    canvasHeight: 400
   });
 
   const animRef = useRef(null);
+  const isPlayingRef = useRef(false);
+
+  // Host runs the 10-second synchronized countdown timer
+  useEffect(() => {
+    if (userRole === 'host' && blockstackState === 'playing') {
+      timeLeftRef.current = GAME_DURATION;
+      timerIntervalRef.current = setInterval(() => {
+        timeLeftRef.current -= 1;
+        if (timeLeftRef.current <= 0) {
+          clearInterval(timerIntervalRef.current);
+          updateRoomState({ blockstackState: 'finished', blockstackTimeLeft: 0 });
+          soundFx.playSuccess();
+        } else {
+          updateRoomState({ blockstackTimeLeft: timeLeftRef.current });
+        }
+      }, 1000);
+
+      return () => {
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      };
+    }
+  }, [userRole, blockstackState]);
+
+  // Synchronized Game Engine Start / Stop based on room.blockstackState
+  useEffect(() => {
+    if (blockstackState === 'playing') {
+      initGameEngine();
+    } else if (blockstackState === 'finished') {
+      stopGameEngine();
+    } else if (blockstackState === 'ready') {
+      stopGameEngine();
+      setScore(0);
+      setLocalGameOver(false);
+    }
+  }, [blockstackState]);
 
   useEffect(() => {
     return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
+      stopGameEngine();
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
   }, []);
 
-  const startGame = () => {
-    setIsPlaying(true);
-    setGameOver(false);
-    setIsSettled(false);
+  const stopGameEngine = () => {
+    isPlayingRef.current = false;
+    if (animRef.current) {
+      cancelAnimationFrame(animRef.current);
+      animRef.current = null;
+    }
+  };
+
+  const initGameEngine = () => {
+    stopGameEngine();
     setScore(0);
+    setLocalGameOver(false);
+    setIsSettled(false);
+    isPlayingRef.current = true;
 
     const initialStack = [
-      { x: 110, width: 140, color: '#00f3ff' }
+      { x: 90, width: 140, color: '#00f3ff' }
     ];
 
     gameStateRef.current = {
       stack: initialStack,
       currentBlock: { x: 20, width: 140, dir: 1, speed: 3.5 },
-      blockHeight: 24,
-      canvasWidth: 360,
-      canvasHeight: 460
+      blockHeight: 22,
+      canvasWidth: 320,
+      canvasHeight: 400
     };
 
     soundFx.playCountdown(true);
-    loop();
+    // Slight delay to ensure canvas is mounted
+    setTimeout(() => {
+      if (isPlayingRef.current) {
+        loop();
+      }
+    }, 50);
   };
 
   const loop = () => {
+    if (!isPlayingRef.current) return;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      animRef.current = requestAnimationFrame(loop);
+      return;
+    }
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
     const { stack, currentBlock, blockHeight, canvasWidth, canvasHeight } = gameStateRef.current;
 
     // Move current block
@@ -67,13 +131,13 @@ export const BlockStacker = () => {
       currentBlock.dir = 1;
     }
 
-    // Render
+    // Clear
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Render background grid
+    // Background grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    for (let y = 0; y < canvasHeight; y += 24) {
+    for (let y = 0; y < canvasHeight; y += 22) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvasWidth, y);
@@ -81,12 +145,12 @@ export const BlockStacker = () => {
     }
 
     // Render Stacked Blocks
-    const startY = canvasHeight - 40;
+    const startY = canvasHeight - 35;
     stack.forEach((b, idx) => {
       const yPos = startY - idx * blockHeight;
       ctx.fillStyle = b.color || '#00f3ff';
       ctx.shadowColor = b.color || '#00f3ff';
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 8;
       ctx.fillRect(b.x, yPos, b.width, blockHeight - 2);
 
       // Inner highlight
@@ -98,7 +162,7 @@ export const BlockStacker = () => {
     const currentY = startY - stack.length * blockHeight;
     ctx.fillStyle = '#ff007a';
     ctx.shadowColor = '#ff007a';
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 12;
     ctx.fillRect(currentBlock.x, currentY, currentBlock.width, blockHeight - 2);
     ctx.shadowBlur = 0;
 
@@ -106,7 +170,7 @@ export const BlockStacker = () => {
   };
 
   const dropBlock = () => {
-    if (!isPlaying || gameOver) return;
+    if (!isPlayingRef.current || localGameOver || blockstackState !== 'playing') return;
 
     const { stack, currentBlock } = gameStateRef.current;
     const topStackBlock = stack[stack.length - 1];
@@ -116,15 +180,13 @@ export const BlockStacker = () => {
     const prevX = topStackBlock.x;
     const prevW = topStackBlock.width;
 
-    // Calculate Overhang
     const diff = currentX - prevX;
     let newWidth = currentW - Math.abs(diff);
 
     if (newWidth <= 0) {
-      // Missed completely! Game Over
-      cancelAnimationFrame(animRef.current);
-      setIsPlaying(false);
-      setGameOver(true);
+      // Missed - game over for this player
+      stopGameEngine();
+      setLocalGameOver(true);
       const finalHeight = stack.length - 1;
       setScore(finalHeight);
       submitPlayerInput(myPlayerId, { towerHeight: finalHeight });
@@ -132,13 +194,12 @@ export const BlockStacker = () => {
       return;
     }
 
-    // Trim block position and width
     let newX = currentX;
     if (diff < 0) {
       newX = prevX;
     }
 
-    // Perfect Drop Bonus!
+    // Perfect drop bonus
     if (Math.abs(diff) < 4) {
       newX = prevX;
       newWidth = prevW;
@@ -147,22 +208,31 @@ export const BlockStacker = () => {
       soundFx.playTick(500 + stack.length * 30);
     }
 
-    // Add to stack
     const colors = ['#00f3ff', '#ff007a', '#ffd700', '#00e676', '#a100ff', '#ff9500'];
     const newColor = colors[stack.length % colors.length];
 
     stack.push({ x: newX, width: newWidth, color: newColor });
+    const currentHeight = stack.length - 1;
+    setScore(currentHeight);
+    submitPlayerInput(myPlayerId, { towerHeight: currentHeight });
 
     // Speed up slightly
-    const nextSpeed = Math.min(8, 3.5 + stack.length * 0.25);
+    const nextSpeed = Math.min(7.5, 3.5 + stack.length * 0.25);
     gameStateRef.current.currentBlock = {
       x: 0,
       width: newWidth,
       dir: 1,
       speed: nextSpeed
     };
+  };
 
-    setScore(stack.length - 1);
+  const handleHostStartGame = () => {
+    resetAllPlayerInputs();
+    updateRoomState({
+      blockstackState: 'playing',
+      blockstackTimeLeft: GAME_DURATION
+    });
+    setIsSettled(false);
   };
 
   const handleSimulateBots = () => {
@@ -175,186 +245,225 @@ export const BlockStacker = () => {
     .sort((a, b) => b.lastInput.towerHeight - a.lastInput.towerHeight);
 
   const handleSettlePoints = () => {
-    if (isSettled || rankedParticipants.length === 0) return;
-    if (rankedParticipants.length > 0) {
-      rankedParticipants.slice(0, 3).forEach((p, rank) => {
-        const height = p.lastInput.towerHeight;
-        const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1;
-        awardPoints(room.mode === 'team' ? p.teamId : p.id, Math.max(100, height * multiplier), room.mode === 'team');
-      });
-    }
+    if (isSettled || blockstackState !== 'finished' || rankedParticipants.length === 0) return;
+    rankedParticipants.slice(0, 3).forEach((p, rank) => {
+      const height = p.lastInput.towerHeight;
+      const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1;
+      awardPoints(room.mode === 'team' ? p.teamId : p.id, Math.max(100, height * multiplier), room.mode === 'team');
+    });
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (rankedParticipants.length > 0 && !isSettled) {
+    if (blockstackState === 'finished' && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
   };
 
+  // Participant View
+  if (userRole === 'participant') {
+    return (
+      <div className="glass-panel" style={{ padding: '16px', textAlign: 'center', maxWidth: '400px', margin: '0 auto' }}>
+        
+        {/* Compact Header with 10s Timer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>
+            🧱 리듬 블록 타워
+          </div>
+          {blockstackState === 'playing' ? (
+            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : '#ffd700' }}>
+              ⏱️ {timeLeft}초
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)' }}>10초 타임어택</div>
+          )}
+        </div>
+
+        {blockstackState === 'ready' && (
+          <div style={{ padding: '30px 10px' }}>
+            <Layers size={50} color="var(--primary-color)" style={{ marginBottom: '15px' }} />
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>호스트의 시작을 기다리는 중...</h3>
+            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>
+              10초 동안 가장 높이 블록을 쌓으세요!
+            </p>
+          </div>
+        )}
+
+        {blockstackState === 'playing' && (
+          <div>
+            <div style={{ position: 'relative', width: '320px', height: '360px', margin: '0 auto', background: 'rgba(0,0,0,0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+              <canvas ref={canvasRef} width={320} height={360} style={{ display: 'block', width: '100%', height: '100%' }} />
+              
+              <div style={{ position: 'absolute', top: '10px', left: '12px', fontSize: '1.2rem', fontWeight: 900, color: '#fff' }}>
+                타워: <span style={{ color: '#00f3ff' }}>{score}층</span>
+              </div>
+            </div>
+
+            <button
+              onClick={dropBlock}
+              disabled={localGameOver}
+              className="btn-primary"
+              style={{
+                marginTop: '15px',
+                width: '100%',
+                padding: '24px 20px',
+                fontSize: '1.6rem',
+                fontWeight: 900,
+                borderRadius: '20px',
+                background: localGameOver ? '#444' : 'linear-gradient(135deg, #00f3ff 0%, #0066ff 100%)',
+                cursor: localGameOver ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {localGameOver ? '💥 타워 붕괴 (기록 완료)' : '⚡ 블록 떨어뜨리기 (터치!)'}
+            </button>
+          </div>
+        )}
+
+        {blockstackState === 'finished' && (
+          <div className="glass-card" style={{ padding: '25px', marginTop: '10px', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)' }}>
+            <Trophy size={45} color="#ffd700" style={{ marginBottom: '10px' }} />
+            <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ffd700' }}>⏱️ 10초 타임 종료!</h3>
+            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginTop: '8px' }}>
+              나의 최종 기록: <span style={{ color: 'var(--primary-color)', fontSize: '1.8rem' }}>{score}층</span>
+            </div>
+            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.9rem' }}>
+              사회자의 최종 순위 발표 및 포인트 정산을 확인하세요!
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Host View
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       
       {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="glass-panel" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>🧱</div>
+          <div style={{ fontSize: '1.5rem' }}>🧱</div>
           <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-              초정밀 리듬 블록 탑 쌓기 (Precision Stacker)
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.4rem', fontWeight: 900, margin: 0 }}>
+              초정밀 10초 리듬 블록 탑 쌓기
             </h2>
-            <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              완벽한 타이밍에 블록을 떨어뜨려 가장 높은 마천루를 건설하세요!
-            </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          {userRole === 'host' && (
-            <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 100인 탑 쌓기 결과 시뮬레이션
-              </button>
-              <button 
-                onClick={handleSettlePoints} 
-                disabled={isSettled || rankedParticipants.length === 0}
-                className="btn-primary" 
-                style={{ 
-                  background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
-                  cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1
+          <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '8px 14px', fontSize: '0.85rem' }}>
+            <Zap size={14} /> 100인 봇 시뮬레이션
+          </button>
+          <button 
+            onClick={handleSettlePoints} 
+            disabled={isSettled || blockstackState !== 'finished' || rankedParticipants.length === 0}
+            className="btn-primary" 
+            style={{ 
+              background: isSettled ? '#555' : blockstackState !== 'finished' ? '#333' : 'var(--success-color)', 
+              cursor: isSettled || blockstackState !== 'finished' ? 'not-allowed' : 'pointer',
+              opacity: (blockstackState !== 'finished' && !isSettled) ? 0.6 : 1,
+              padding: '8px 16px', fontSize: '0.9rem'
+            }}
+          >
+            {isSettled ? '✅ 정산 완료' : blockstackState !== 'finished' ? '⏳ 10초 종료 후 정산' : '🏆 포인트 정산하기'}
+          </button>
+          <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
+            🏠 로비로
+          </button>
+        </div>
+      </div>
+
+      {/* Main Game Stage */}
+      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '15px', alignItems: 'start' }}>
+        
+        {/* Left: Canvas Game Console */}
+        <div className="glass-panel glass-panel-glow" style={{ padding: '16px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>사회자 화면</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : '#ffd700' }}>
+              ⏱️ {timeLeft}초
+            </span>
+          </div>
+
+          <div style={{ position: 'relative', width: '308px', height: '350px', margin: '0 auto', background: 'rgba(0,0,0,0.5)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+            <canvas ref={canvasRef} width={308} height={350} style={{ display: 'block', width: '100%', height: '100%' }} />
+            <div style={{ position: 'absolute', top: '8px', left: '10px', fontSize: '1.1rem', fontWeight: 900, color: '#00f3ff' }}>
+              {score}층
+            </div>
+          </div>
+
+          {blockstackState === 'ready' && (
+            <button onClick={handleHostStartGame} className="btn-primary" style={{ marginTop: '12px', width: '100%', padding: '14px', fontSize: '1.2rem' }}>
+              <Play size={18} /> ▶️ 전 참가자 10초 동시 시작!
+            </button>
+          )}
+
+          {blockstackState === 'playing' && (
+            <button onClick={dropBlock} disabled={localGameOver} className="btn-primary" style={{ marginTop: '12px', width: '100%', padding: '14px', fontSize: '1.2rem', background: 'linear-gradient(135deg, #00f3ff 0%, #0066ff 100%)' }}>
+              ⚡ 블록 드롭 (스페이스바)
+            </button>
+          )}
+
+          {blockstackState === 'finished' && (
+            <button onClick={handleHostStartGame} className="btn-secondary" style={{ marginTop: '12px', width: '100%', padding: '12px' }}>
+              <RotateCcw size={16} /> 🔄 10초 재경기 시작
+            </button>
+          )}
+        </div>
+
+        {/* Right: Live Leaderboard below/beside game */}
+        <div className="glass-panel" style={{ padding: '16px', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Trophy size={18} color="#ffd700" /> 실시간 타워 순위 ({rankedParticipants.length}명 기록)
+            </h3>
+            {rankedParticipants.length > 0 && (
+              <span style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 700 }}>
+                최고: {rankedParticipants[0].lastInput.towerHeight}층 ({rankedParticipants[0].name})
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '350px', overflowY: 'auto' }}>
+            {rankedParticipants.slice(0, 15).map((p, idx) => (
+              <div 
+                key={p.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  background: idx === 0 ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                  border: idx === 0 ? '1px solid #ffd700' : '1px solid rgba(255, 255, 255, 0.06)'
                 }}
               >
-                {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 게임 기록 후 정산' : '🏆 포인트 정산하기'}
-              </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 900, color: idx === 0 ? '#ffd700' : idx === 1 ? '#c0c0c0' : idx === 2 ? '#cd7f32' : 'var(--text-sub)' }}>
+                    #{idx + 1}
+                  </span>
+                  <span style={{ fontWeight: 700 }}>{p.name}</span>
+                  {p.teamName && (
+                    <span style={{ fontSize: '0.75rem', color: p.teamColor || '#aaa' }}>[{p.teamName}]</span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 900, color: 'var(--primary-color)' }}>
+                  {p.lastInput.towerHeight}층
+                </div>
+              </div>
+            ))}
 
-      {/* Main Gameplay Screen */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '20px' }}>
-        
-        {/* Canvas Arcade Frame */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '360px', marginBottom: '10px', fontWeight: 800 }}>
-            <span>현재 탑 높이: <strong style={{ color: 'var(--primary-color)', fontSize: '1.3rem' }}>{score}층</strong></span>
-            {gameOver && <span style={{ color: 'var(--danger-color)' }}>GAME OVER</span>}
-          </div>
-
-          <canvas
-            ref={canvasRef}
-            width={360}
-            height={460}
-            style={{
-              background: '#040814',
-              borderRadius: '16px',
-              border: '2px solid var(--card-border)',
-              boxShadow: '0 0 25px rgba(0, 0, 0, 0.6)',
-              cursor: isPlaying ? 'pointer' : 'default'
-            }}
-            onClick={dropBlock}
-          />
-
-          <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
-            {!isPlaying && (
-              <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px' }}>
-                <Play size={20} /> {gameOver ? '다시 도전하기' : '탑 쌓기 게임 시작!'}
-              </button>
-            )}
-
-            {isPlaying && (
-              <button onClick={dropBlock} className="btn-primary" style={{ fontSize: '1.4rem', padding: '16px 50px', background: 'var(--button-gradient)' }}>
-                DROP! (블록 가동)
-              </button>
+            {rankedParticipants.length === 0 && (
+              <div style={{ textAlign: 'center', color: 'var(--text-sub)', marginTop: '40px' }}>
+                아직 완료된 기록이 없습니다. 게임을 시작하세요!
+              </div>
             )}
           </div>
-
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-sub)', marginTop: '10px' }}>
-            💡 스마트폰 탭 또는 클릭하여 블록을 멈추세요!
-          </p>
-
-        </div>
-
-        {/* Leaderboard */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <Trophy size={20} color="var(--primary-color)" />
-            실시간 탑 높이 랭킹 (완료: {rankedParticipants.length}/{participants.length}명)
-          </h3>
-
-          {rankedParticipants.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-sub)' }}>
-              <AlertCircle size={40} style={{ opacity: 0.5, marginBottom: '10px' }} />
-              <p>아직 쌓인 탑 기록이 없습니다.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '420px', overflowY: 'auto' }}>
-              {rankedParticipants.slice(0, 50).map((player, rank) => {
-                const height = player.lastInput.towerHeight;
-                const isTop3 = rank < 3;
-                return (
-                  <div
-                    key={player.id}
-                    className="glass-card"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 16px',
-                      borderColor: isTop3 ? 'var(--primary-color)' : 'rgba(255,255,255,0.08)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        background: rank === 0 ? '#ffd700' : rank === 1 ? '#c0c0c0' : rank === 2 ? '#cd7f32' : 'rgba(255,255,255,0.1)',
-                        color: rank < 3 ? '#000' : '#fff',
-                        fontWeight: 900,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        {rank + 1}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>{player.name}</div>
-                        {player.teamName && <span className={`team-badge ${player.teamColor}`} style={{ fontSize: '0.72rem' }}>{player.teamName}</span>}
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary-color)' }}>
-                        {height} 층
-                      </span>
-                      {userRole === 'host' && (
-                        <div>
-                          <button
-                            onClick={() => awardPoints(room.mode === 'team' ? player.teamId : player.id, height * 5, room.mode === 'team')}
-                            style={{ background: 'none', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', borderRadius: '6px', fontSize: '0.72rem', cursor: 'pointer', padding: '2px 6px' }}
-                          >
-                            +점수 지급
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
 
       </div>
-
     </div>
   );
 };

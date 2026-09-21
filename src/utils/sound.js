@@ -45,7 +45,7 @@ class SoundManager {
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
     } catch (e) {
-      console.warn('Audio play error:', e);
+      // Ignore autoplay audio restriction warnings before user gesture
     }
   }
 

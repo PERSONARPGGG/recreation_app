@@ -28,11 +28,11 @@ export const ParticipantMobileView = () => {
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
       {/* Compact Mobile Header Banner */}
-      <div className="glass-panel" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>
+      <div className="glass-panel" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.15rem', fontWeight: 900, margin: 0 }}>
           {room.title}
         </h2>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-sub)' }}>
@@ -42,19 +42,19 @@ export const ParticipantMobileView = () => {
 
       {/* Main Status Area - Prominent and at the top */}
       <div style={{
-        padding: '30px 20px', borderRadius: '16px', background: 'rgba(0, 243, 255, 0.08)',
+        padding: '20px 16px', borderRadius: '16px', background: 'rgba(0, 243, 255, 0.08)',
         border: '2px dashed var(--primary-color)', color: 'var(--text-sub)',
-        textAlign: 'center', fontSize: '1.1rem', lineHeight: '1.6',
+        textAlign: 'center', fontSize: '1rem', lineHeight: '1.5',
         boxShadow: 'inset 0 0 20px rgba(0, 243, 255, 0.1)',
-        display: 'flex', flexDirection: 'column', gap: '15px'
+        display: 'flex', flexDirection: 'column', gap: '10px'
       }}>
-        <div style={{ animation: 'spin 3s linear infinite', fontSize: '2rem' }}>⏳</div>
-        <strong style={{ color: '#fff', fontSize: '1.3rem', display: 'block' }}>
+        <div style={{ animation: 'spin 3s linear infinite', fontSize: '1.8rem' }}>⏳</div>
+        <strong style={{ color: '#fff', fontSize: '1.2rem', display: 'block' }}>
           진행자의 게임 시작을 대기 중입니다!
         </strong>
-        <p style={{ fontSize: '0.95rem' }}>
-          곧 게임이 시작되면 이 화면이 컨트롤러로 변합니다.<br/>
-          빔프로젝터 메인 화면을 주목해 주세요.
+        <p style={{ fontSize: '0.9rem', margin: 0 }}>
+          게임이 시작되면 즉시 모바일 컨트롤러로 변합니다.<br/>
+          메인 스크린을 주목해 주세요.
         </p>
       </div>
 

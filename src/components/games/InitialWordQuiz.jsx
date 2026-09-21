@@ -99,61 +99,67 @@ export const InitialWordQuiz = () => {
     const winnerRank = winners.findIndex(w => w.id === myPlayerId) + 1;
 
     return (
-      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '15px' }}>🅰️ 초성 텔레파시</h2>
+      <div className="glass-panel" style={{ padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary-color)' }}>🅰️ 초성 텔레파시</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-sub)' }}>
+            {gameState === 'playing' ? '정답 입력 중' : '대기'}
+          </span>
+        </div>
+
         {gameState === 'playing' ? (
           <div>
-            <div style={{ color: 'var(--text-sub)', marginBottom: '10px' }}>제시된 초성을 보고 정답을 입력하세요!</div>
-            <div style={{ fontSize: '4.5rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '8px', margin: '15px 0' }}>
+            <div style={{ color: 'var(--text-sub)', fontSize: '0.9rem', marginBottom: '6px' }}>제시된 초성을 보고 정답을 입력하세요!</div>
+            <div style={{ fontSize: '3.6rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '6px', margin: '8px 0' }}>
               {currentWord?.initial}
             </div>
 
             {hasSubmitted ? (
-              <div className="glass-card" style={{ padding: '24px', background: 'rgba(34, 197, 94, 0.12)', border: '2px solid var(--success-color)', borderRadius: '16px', maxWidth: '420px', margin: '20px auto' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>✅</div>
-                <h3 style={{ color: 'var(--success-color)', fontSize: '1.3rem', fontWeight: 800, marginBottom: '8px' }}>
+              <div className="glass-card" style={{ padding: '16px', background: 'rgba(34, 197, 94, 0.12)', border: '2px solid var(--success-color)', borderRadius: '14px', maxWidth: '380px', margin: '10px auto' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '4px' }}>✅</div>
+                <h3 style={{ color: 'var(--success-color)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '4px' }}>
                   입력을 완료하였습니다.
                 </h3>
-                <p style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>
-                  제출한 단어: <strong style={{ color: 'var(--primary-color)', fontSize: '1.3rem' }}>"{mySubmittedWord}"</strong>
+                <p style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>
+                  제출한 단어: <strong style={{ color: 'var(--primary-color)', fontSize: '1.2rem' }}>"{mySubmittedWord}"</strong>
                 </p>
-                <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '12px' }}>
+                <div style={{ color: 'var(--text-sub)', fontSize: '0.8rem', marginTop: '8px' }}>
                   정답 발표 및 다른 참가자들의 제출을 대기하고 있습니다...
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '360px', margin: '0 auto' }}>
                 <input
                   type="text"
                   value={myInput}
                   onChange={(e) => setMyInput(e.target.value)}
                   placeholder="정답 단어 입력"
                   autoFocus
-                  style={{ padding: '16px', borderRadius: '12px', fontSize: '1.3rem', textAlign: 'center', border: '2px solid var(--primary-color)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+                  style={{ padding: '14px', borderRadius: '12px', fontSize: '1.2rem', textAlign: 'center', border: '2px solid var(--primary-color)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.2rem' }}>
+                <button type="submit" className="btn-primary" style={{ padding: '14px', fontSize: '1.1rem' }}>
                   🚀 정답 제출!
                 </button>
               </form>
             )}
           </div>
         ) : gameState === 'finished' ? (
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ color: 'var(--success-color)', fontSize: '2rem', marginBottom: '10px' }}>
+          <div style={{ padding: '16px 10px' }}>
+            <h3 style={{ color: 'var(--success-color)', fontSize: '1.6rem', marginBottom: '6px' }}>
               🎉 정답: {currentWord?.answer}!
             </h3>
             {isWinner ? (
-              <div style={{ color: '#ffd700', fontSize: '1.4rem', fontWeight: 900, marginTop: '15px' }}>
+              <div style={{ color: '#ffd700', fontSize: '1.2rem', fontWeight: 900, marginTop: '10px' }}>
                 🏆 축하합니다! {winnerRank}등으로 정답을 맞히셨습니다!
               </div>
             ) : (
-              <p style={{ color: 'var(--text-sub)', marginTop: '10px', fontSize: '1.1rem' }}>
+              <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>
                 이번 라운드가 마감되었습니다. 다음 문제를 준비하세요!
               </p>
             )}
           </div>
         ) : (
-          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
+          <div style={{ padding: '24px 10px', color: 'var(--text-sub)', fontSize: '1.05rem' }}>
             호스트가 문제를 출제하고 있습니다. 잠시만 기다려주세요...
           </div>
         )}
@@ -185,12 +191,12 @@ export const InitialWordQuiz = () => {
   };
 
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
-          🅰️ 실시간 초성 텔레파시 (Initial Word Quiz)
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
+          🅰️ 실시간 초성 텔레파시
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
@@ -199,7 +205,8 @@ export const InitialWordQuiz = () => {
               style={{ 
                 background: isSettled ? '#555' : gameState !== 'finished' ? '#333' : 'var(--success-color)', 
                 cursor: isSettled || gameState !== 'finished' ? 'not-allowed' : 'pointer',
-                opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1
+                opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
               }}
             >
               {isSettled ? '✅ 정산 완료' : gameState !== 'finished' ? '⏳ 정답 확인 후 정산' : '🏆 포인트 정산하기'}

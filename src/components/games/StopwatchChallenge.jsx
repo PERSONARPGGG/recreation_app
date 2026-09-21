@@ -109,29 +109,24 @@ export const StopwatchChallenge = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
-      {/* Game Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ fontSize: '1.8rem' }}>⏱️</div>
-            <div>
-              <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-                0.000초 정밀 스톱워치 타겟 챌린지
-              </h2>
-              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-                정확히 <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}초</strong>에 맞춰 스톱 버튼을 누르세요! ({HIDE_TIME}초 이후 숫자가 가려집니다)
-              </p>
-            </div>
+      {/* Game Header Toolbar */}
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '1.4rem' }}>⏱️</div>
+          <div>
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+              0.000초 정밀 스톱워치 타겟 ({TARGET_TIME.toFixed(1)}s)
+            </h2>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 100인 봇 즉시 측정 시뮬레이션
+              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Zap size={14} /> 100인 봇 즉시 측정
               </button>
               <button 
                 onClick={handleSettlePoints} 
@@ -140,13 +135,14 @@ export const StopwatchChallenge = () => {
                 style={{ 
                   background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
                   cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1
+                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
+                  padding: '6px 14px', fontSize: '0.85rem'
                 }}
               >
                 {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 스톱 측정 후 정산' : '🏆 포인트 정산하기'}
               </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                🏠 로비로
               </button>
             </>
           )}
@@ -154,37 +150,37 @@ export const StopwatchChallenge = () => {
       </div>
 
       {/* Main Game Interface (Split Screen if Host / Large Display) */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
         
         {/* Stopwatch Controller Box */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '380px' }}>
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-sub)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>
-            TARGET TIME: {TARGET_TIME.toFixed(3)} SECONDS
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+            TARGET TIME: <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}s</strong> ({HIDE_TIME}초 후 블라인드)
           </div>
 
           {/* Large Digital Timer Display */}
           <div style={{
-            fontSize: '4.2rem',
+            fontSize: userRole === 'participant' ? '3.2rem' : '4rem',
             fontWeight: 900,
             fontFamily: 'monospace',
             color: isRunning && elapsed > HIDE_TIME ? 'var(--text-sub)' : 'var(--primary-color)',
             textShadow: isRunning && elapsed > HIDE_TIME ? 'none' : '0 0 20px var(--primary-glow)',
-            margin: '20px 0',
+            margin: '12px 0',
             background: 'rgba(0, 0, 0, 0.4)',
-            padding: '20px 40px',
-            borderRadius: '24px',
+            padding: '12px 28px',
+            borderRadius: '20px',
             border: '2px solid var(--card-border)',
             letterSpacing: '2px',
-            minWidth: '320px',
+            minWidth: '260px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px'
+            gap: '8px'
           }}>
             {isRunning && elapsed > HIDE_TIME ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '2.5rem', color: '#888' }}>
-                <EyeOff size={36} /> ??.???
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '2.2rem', color: '#888' }}>
+                <EyeOff size={30} /> ??.???
               </div>
             ) : (
               stoppedTime !== null ? stoppedTime.toFixed(3) : elapsed.toFixed(3)
@@ -194,11 +190,11 @@ export const StopwatchChallenge = () => {
           {/* Result Tag if stopped */}
           {stoppedTime !== null && (
             <div style={{
-              fontSize: '1.25rem',
+              fontSize: '1.1rem',
               fontWeight: 800,
-              padding: '8px 20px',
-              borderRadius: '20px',
-              marginBottom: '20px',
+              padding: '6px 16px',
+              borderRadius: '16px',
+              marginBottom: '14px',
               background: Math.abs(stoppedTime - TARGET_TIME) <= 0.05 ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 0, 85, 0.2)',
               color: Math.abs(stoppedTime - TARGET_TIME) <= 0.05 ? 'var(--success-color)' : 'var(--danger-color)',
               border: '1px solid currentColor'
@@ -208,17 +204,17 @@ export const StopwatchChallenge = () => {
           )}
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '14px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
             {userRole === 'host' ? (
               <>
                 {room.gameState === 'ready' && (
-                  <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px' }}>
-                    <Play size={24} /> 참가자 전체 시작!
+                  <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px' }}>
+                    <Play size={20} /> 참가자 전체 시작!
                   </button>
                 )}
                 {room.gameState !== 'ready' && (
-                  <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
-                    <RotateCcw size={20} /> 게임 초기화 (다시 시작)
+                  <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1rem', padding: '12px 24px' }}>
+                    <RotateCcw size={18} /> 게임 초기화 (다시 시작)
                   </button>
                 )}
               </>
@@ -226,17 +222,17 @@ export const StopwatchChallenge = () => {
               // Participant View
               <>
                 {room.gameState === 'ready' && (
-                  <div style={{ padding: '20px', color: 'var(--text-sub)', fontSize: '1.2rem', fontWeight: 800 }}>
+                  <div style={{ padding: '12px', color: 'var(--text-sub)', fontSize: '1.05rem', fontWeight: 800 }}>
                     ⏳ 진행자의 시작 신호를 기다리고 있습니다...
                   </div>
                 )}
                 {room.gameState === 'playing' && isRunning && (
-                  <button onClick={handleStop} className="btn-primary" style={{ fontSize: '1.4rem', padding: '20px 50px', background: 'linear-gradient(135deg, #ff0055 0%, #ff5e00 100%)', boxShadow: '0 0 30px rgba(255, 0, 85, 0.6)' }}>
+                  <button onClick={handleStop} className="btn-primary" style={{ fontSize: '1.6rem', padding: '18px 48px', borderRadius: '20px', background: 'linear-gradient(135deg, #ff0055 0%, #ff5e00 100%)', boxShadow: '0 0 30px rgba(255, 0, 85, 0.6)' }}>
                     STOP (멈춤!)
                   </button>
                 )}
                 {room.gameState === 'playing' && !isRunning && stoppedTime !== null && (
-                  <div style={{ padding: '20px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800 }}>
+                  <div style={{ padding: '12px', color: 'var(--success-color)', fontSize: '1.05rem', fontWeight: 800 }}>
                     ✅ 기록 제출 완료! 다른 참가자들의 종료를 기다려주세요.
                   </div>
                 )}

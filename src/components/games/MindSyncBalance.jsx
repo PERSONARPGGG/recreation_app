@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { soundFx } from '../../utils/sound';
 import { Scale, Zap, Eye, Trophy, RefreshCw } from 'lucide-react';
@@ -108,27 +108,24 @@ export const MindSyncBalance = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
-      {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>⚖️</div>
+      {/* Header Toolbar */}
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '1.4rem' }}>⚖️</div>
           <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-              심리 밸런스 & 황금비율 타겟 게임 (2/3 Average)
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+              심리 밸런스 황금비율 타겟 (2/3)
             </h2>
-            <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              1~100 중 하나의 숫자를 고르세요! 목표는 <strong>전체 평균의 2/3에 가장 가까운 숫자</strong>입니다.
-            </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 100인 수치 입력 시뮬레이션
+              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Zap size={14} /> 100인 수치 시뮬레이션
               </button>
               <button 
                 onClick={handleSettlePoints} 
@@ -137,13 +134,14 @@ export const MindSyncBalance = () => {
                 style={{ 
                   background: isSettled ? '#555' : !isRevealed ? '#333' : 'var(--success-color)', 
                   cursor: isSettled || !isRevealed ? 'not-allowed' : 'pointer',
-                  opacity: (!isRevealed && !isSettled) ? 0.6 : 1
+                  opacity: (!isRevealed && !isSettled) ? 0.6 : 1,
+                  padding: '6px 14px', fontSize: '0.85rem'
                 }}
               >
                 {isSettled ? '✅ 정산 완료' : !isRevealed ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
               </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                🏠 로비로
               </button>
             </>
           )}
@@ -151,13 +149,13 @@ export const MindSyncBalance = () => {
       </div>
 
       {/* Main Game Interface */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
         
         {/* Number Selector Dial */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: '30px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <div style={{ fontSize: '1.1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
-              내가 선택한 숫자
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ fontSize: '1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
+              내가 선택한 숫자 (1~100)
             </div>
             {timeLeft !== null && timeLeft > 0 && (
               <div style={{ color: 'var(--danger-color)', fontWeight: 900, fontSize: '1.2rem', animation: 'pulse 1s infinite' }}>

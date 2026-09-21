@@ -313,7 +313,8 @@ export const GameProvider = ({ children }) => {
       'oxQIndex', 'oxRevealed',
       'tugState', 'tugTimeLeft', 'tugRopePos',
       'sprintTimeLeft',
-      'rouletteRotation', 'rouletteState', 'rouletteResult', 'rouletteSelectedTeam'
+      'rouletteRotation', 'rouletteState', 'rouletteResult', 'rouletteSelectedTeam',
+      'blockstackState', 'blockstackTimeLeft'
     ];
     transientKeys.forEach(k => delete cleaned[k]);
     return cleaned;

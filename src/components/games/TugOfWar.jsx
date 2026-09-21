@@ -160,36 +160,38 @@ export const TugOfWar = () => {
   // Participant View
   if (userRole === 'participant') {
     return (
-      <div className="glass-panel" style={{ padding: '25px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>🪢 100인 영차영차 줄다리기</h2>
+      <div className="glass-panel" style={{ padding: '14px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary-color)' }}>🪢 줄다리기</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ffd700' }}>⏱️ {timeLeft}초</span>
+        </div>
         
-        {/* Matchup Header */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '15px 0' }}>
-          <span style={{ color: '#ff3b30', fontWeight: 800, fontSize: '1.1rem' }}>{leftLabel}</span>
+        {/* Matchup & Affiliation Tag */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
+          <span style={{ color: '#ff3b30', fontWeight: 800 }}>{leftLabel}</span>
           <span style={{ color: '#ffd700', fontWeight: 900 }}>VS</span>
-          <span style={{ color: '#007aff', fontWeight: 800, fontSize: '1.1rem' }}>{rightLabel}</span>
+          <span style={{ color: '#007aff', fontWeight: 800 }}>{rightLabel}</span>
         </div>
 
         {/* Player Team Affiliation Banner */}
-        <div className="glass-card" style={{ padding: '12px 20px', maxWidth: '400px', margin: '0 auto 20px auto', border: `2px solid ${mySideColor}`, background: `${mySideColor}20` }}>
-          <div style={{ fontSize: '1rem', color: 'var(--text-sub)' }}>나의 소속 진영</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: mySideColor, marginTop: '4px' }}>
-            {mySideLabel}
+        <div className="glass-card" style={{ padding: '8px 14px', maxWidth: '380px', margin: '0 auto', border: `2px solid ${mySideColor}`, background: `${mySideColor}20`, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>소속: </span>
+            <strong style={{ fontSize: '1.05rem', color: mySideColor }}>{mySideLabel}</strong>
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#fff', marginTop: '4px' }}>
-            나의 기여도: <strong>{myTaps}회 연타</strong>
+          <div style={{ fontSize: '0.85rem', color: '#fff' }}>
+            내 기여: <strong style={{ color: '#ffd700' }}>{myTaps}회</strong>
           </div>
         </div>
 
         {/* Rope Progress Bar */}
-        <div style={{ maxWidth: '450px', margin: '0 auto 25px auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 800, marginBottom: '6px' }}>
+        <div style={{ maxWidth: '420px', margin: '0 auto', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 800, marginBottom: '4px' }}>
             <span style={{ color: '#ff3b30' }}>🔴 홍군 {leftTaps}회</span>
-            <span style={{ color: '#ffd700', fontSize: '1.1rem' }}>⏱️ {timeLeft}초</span>
             <span style={{ color: '#007aff' }}>🔵 청군 {rightTaps}회</span>
           </div>
 
-          <div style={{ height: '24px', borderRadius: '12px', background: '#1a1a2e', position: 'relative', overflow: 'hidden', border: '2px solid #555' }}>
+          <div style={{ height: '20px', borderRadius: '10px', background: '#1a1a2e', position: 'relative', overflow: 'hidden', border: '2px solid #555' }}>
             {/* Center line marker */}
             <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', background: '#ffd700', zIndex: 2 }} />
             {/* Rope marker */}
@@ -199,7 +201,7 @@ export const TugOfWar = () => {
               bottom: '2px',
               left: `${100 - ropePosition}%`,
               transform: 'translateX(-50%)',
-              width: '20px',
+              width: '18px',
               borderRadius: '50%',
               background: '#fff',
               boxShadow: '0 0 10px #fff',
@@ -210,36 +212,39 @@ export const TugOfWar = () => {
         </div>
 
         {gameState === 'ready' ? (
-          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
-            🎮 호스트가 줄다리기 게임을 시작하기를 기다리고 있습니다...
+          <div style={{ padding: '20px 10px', color: 'var(--text-sub)', fontSize: '1.1rem' }}>
+            🎮 호스트의 게임 시작 신호를 기다리고 있습니다...
           </div>
         ) : gameState === 'playing' ? (
-          <div>
+          <div style={{ marginTop: '6px' }}>
             <button 
               onClick={handlePull} 
-              className="btn-primary" 
+              className="btn-primary animate-pulse-glow" 
               style={{ 
-                padding: '45px 30px', 
-                fontSize: '2.5rem', 
+                padding: '24px 20px', 
+                fontSize: '2rem', 
                 fontWeight: 900, 
-                borderRadius: '30px',
+                borderRadius: '24px',
                 width: '100%', 
-                maxWidth: '360px', 
+                maxWidth: '320px', 
                 background: mySideColor,
-                boxShadow: `0 0 35px ${mySideColor}80` 
+                boxShadow: `0 0 30px ${mySideColor}80`,
+                touchAction: 'manipulation',
+                userSelect: 'none',
+                WebkitUserSelect: 'none'
               }}
             >
               🔥 영차!! 당겨라!!
             </button>
-            <p style={{ marginTop: '20px', color: 'var(--text-sub)', fontSize: '1rem' }}>화면을 미친듯이 연타하세요!!</p>
+            <p style={{ marginTop: '8px', color: 'var(--text-sub)', fontSize: '0.85rem' }}>화면을 미친듯이 연타하세요!!</p>
           </div>
         ) : (
-          <div className="glass-card" style={{ padding: '25px', maxWidth: '400px', margin: '0 auto', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)' }}>
-            <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#ffd700' }}>🏆 경기 종료!</h3>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginTop: '10px' }}>
+          <div className="glass-card" style={{ padding: '16px', maxWidth: '380px', margin: '0 auto', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)', borderRadius: '14px' }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ffd700', margin: 0 }}>🏆 경기 종료!</h3>
+            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', marginTop: '6px' }}>
               {winnerTitle}
             </div>
-            <p style={{ color: 'var(--text-sub)', marginTop: '10px' }}>
+            <p style={{ color: 'var(--text-sub)', marginTop: '6px', fontSize: '0.85rem', margin: 0 }}>
               승리 팀 전원 +300점 지급 완료!
             </p>
           </div>
@@ -250,17 +255,17 @@ export const TugOfWar = () => {
 
   // Host View
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
           🪢 100인 영차영차 줄다리기
         </h2>
         
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <>
-              <button onClick={handleSimulateBots} disabled={gameState !== 'playing'} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 🤖 봇 연타 시뮬레이션
+              <button onClick={handleSimulateBots} disabled={gameState !== 'playing'} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Zap size={14} /> 봇 연타 시뮬레이션
               </button>
               <button 
                 onClick={handleSettlePoints} 
@@ -269,13 +274,14 @@ export const TugOfWar = () => {
                 style={{ 
                   background: isSettled ? '#555' : gameState !== 'finished' ? '#333' : 'var(--success-color)', 
                   cursor: isSettled || gameState !== 'finished' ? 'not-allowed' : 'pointer',
-                  opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1
+                  opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1,
+                  padding: '6px 14px', fontSize: '0.85rem'
                 }}
               >
                 {isSettled ? '✅ 정산 완료' : gameState !== 'finished' ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
               </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                🏠 로비로
               </button>
             </>
           )}

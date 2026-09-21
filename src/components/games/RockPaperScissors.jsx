@@ -188,35 +188,38 @@ export const RockPaperScissors = () => {
     }
 
     return (
-      <div className="glass-panel" style={{ padding: '25px', textAlign: 'center', minHeight: '55vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '15px' }}>✊✌️✋ 대규모 가위바위보 서바이벌</h2>
+      <div className="glass-panel" style={{ padding: '14px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary-color)' }}>✊✌️✋ 가위바위보</span>
+          <span style={{ fontSize: '0.85rem', color: '#ffd700', fontWeight: 800 }}>
+            ROUND {round} (생존 {survivors.length}명)
+          </span>
+        </div>
         
         {rpsState === 'ready' ? (
-          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
+          <div style={{ padding: '24px 10px', color: 'var(--text-sub)', fontSize: '1.1rem' }}>
             🎮 호스트가 서바이벌 게임을 준비 중입니다. 잠시만 기다려주세요!
           </div>
         ) : !isSurvivor ? (
           /* Strictly ELIMINATED participant screen - CANNOT CHOOSE AGAIN */
-          <div style={{ padding: '20px' }}>
-            <div style={{ color: 'var(--danger-color)', fontSize: '2.5rem', fontWeight: 900, marginBottom: '10px' }}>💀 탈락하셨습니다</div>
-            <div className="glass-card" style={{ maxWidth: '420px', margin: '20px auto', padding: '20px', border: '1px solid #ff3b30', background: 'rgba(255, 59, 48, 0.1)' }}>
-              <p style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+          <div style={{ padding: '16px 10px' }}>
+            <div style={{ color: 'var(--danger-color)', fontSize: '2rem', fontWeight: 900, marginBottom: '6px' }}>💀 탈락하셨습니다</div>
+            <div className="glass-card" style={{ maxWidth: '380px', margin: '10px auto', padding: '14px', border: '1px solid #ff3b30', background: 'rgba(255, 59, 48, 0.1)', borderRadius: '12px' }}>
+              <p style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
                 현재 생존자: <strong style={{ color: 'var(--primary-color)' }}>{survivors.length}명</strong>
               </p>
-              <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', marginTop: '10px', margin: '10px 0 0 0' }}>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '6px', margin: '6px 0 0 0' }}>
                 아쉽게도 탈락하셨습니다. 남은 생존자들의 치열한 서바이벌을 관전해주세요!
               </p>
             </div>
           </div>
         ) : rpsState === 'choosing' ? (
           <div>
-            <div style={{ display: 'inline-block', padding: '6px 18px', borderRadius: '20px', background: 'rgba(0, 243, 255, 0.15)', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '15px' }}>
-              ROUND {round} • 생존자 {survivors.length}명 진출 • 🎯 이번 라운드 승리 점수: +{getRoundPoints(round)}점!
+            <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '8px' }}>
+              🎯 승리 시 점수: +{getRoundPoints(round)}점 (비기거나 패배 시 탈락)
             </div>
-            <h3 style={{ marginBottom: '8px', fontSize: '1.6rem' }}>하나를 선택하세요!</h3>
-            <p style={{ color: 'var(--text-sub)', marginBottom: '25px' }}>호스트를 상대로 <strong>승리</strong>해야만 생존합니다! (비기거나 패배 시 즉시 탈락)</p>
             
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', maxWidth: '380px', margin: '0 auto' }}>
               {CHOICES.map(c => (
                 <button 
                   key={c} 
@@ -224,74 +227,77 @@ export const RockPaperScissors = () => {
                   onClick={() => handleSelect(c)}
                   className={chosenHand === c ? "btn-primary" : "btn-secondary"}
                   style={{
-                    fontSize: '2.5rem',
-                    padding: '20px 28px',
-                    borderRadius: '18px',
+                    fontSize: '2rem',
+                    padding: '16px 10px',
+                    borderRadius: '16px',
                     opacity: hasChosen && chosenHand !== c ? 0.35 : 1,
-                    transform: chosenHand === c ? 'scale(1.08)' : 'scale(1)',
+                    transform: chosenHand === c ? 'scale(1.05)' : 'scale(1)',
                     boxShadow: chosenHand === c ? '0 0 20px rgba(0, 243, 255, 0.6)' : 'none',
-                    cursor: hasChosen ? 'default' : 'pointer'
+                    cursor: hasChosen ? 'default' : 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px'
                   }}
                 >
                   <div>{EMOJIS[c]}</div>
-                  <div style={{ fontSize: '1.1rem', marginTop: '6px', fontWeight: 800 }}>{c}</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{c}</div>
                 </button>
               ))}
             </div>
 
             {hasChosen && (
-              <div className="glass-card" style={{ marginTop: '25px', padding: '15px 20px', maxWidth: '380px', margin: '25px auto 0', border: '2px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)' }}>
-                <div style={{ color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800 }}>
+              <div className="glass-card" style={{ padding: '10px 16px', maxWidth: '340px', margin: '14px auto 0', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)', borderRadius: '12px' }}>
+                <div style={{ color: 'var(--success-color)', fontSize: '1rem', fontWeight: 800 }}>
                   ✅ 선택 완료: [{EMOJIS[chosenHand]} {chosenHand}]
                 </div>
-                <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '6px' }}>
-                  호스트의 공정 1/3 랜덤 추첨을 기다리고 있습니다...
+                <div style={{ color: 'var(--text-sub)', fontSize: '0.8rem', marginTop: '3px' }}>
+                  호스트의 1/3 랜덤 추첨을 기다리고 있습니다...
                 </div>
               </div>
             )}
           </div>
         ) : rpsState === 'rolling' ? (
-          <div>
-            <h3 style={{ fontSize: '1.6rem', color: '#ffd700', marginBottom: '15px' }}>
-              🎰 호스트의 가위바위보 추첨 중! 🎰
+          <div style={{ padding: '16px 10px' }}>
+            <h3 style={{ fontSize: '1.2rem', color: '#ffd700', marginBottom: '8px' }}>
+              🎰 호스트 추첨 중! 🎰
             </h3>
-            <div style={{ fontSize: '6rem', margin: '20px 0', animation: 'slotRoll 0.2s infinite ease-in-out' }}>
+            <div style={{ fontSize: '4.5rem', margin: '10px 0', animation: 'slotRoll 0.2s infinite ease-in-out' }}>
               {EMOJIS[CHOICES[slotDisplayIndex]]}
             </div>
-            <p style={{ color: 'var(--text-sub)', fontSize: '1.1rem' }}>공정한 1/3 완전 무작위 셔플 중...</p>
+            <p style={{ color: 'var(--text-sub)', fontSize: '0.85rem' }}>완전 무작위 공정 셔플 중...</p>
           </div>
         ) : rpsState === 'result' ? (
-          <div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>라운드 {round} 결과 발표</h3>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px', margin: '25px 0' }}>
-              <div className="glass-card" style={{ padding: '15px 25px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1rem', color: 'var(--text-sub)', marginBottom: '5px' }}>호스트의 패</div>
-                <div style={{ fontSize: '4rem' }}>{EMOJIS[hostChoice]}</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{hostChoice}</div>
+          <div style={{ padding: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', margin: '12px 0' }}>
+              <div className="glass-card" style={{ padding: '10px 16px', textAlign: 'center', borderRadius: '12px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-sub)', marginBottom: '2px' }}>호스트</div>
+                <div style={{ fontSize: '2.8rem' }}>{EMOJIS[hostChoice]}</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{hostChoice}</div>
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--primary-color)' }}>VS</div>
-              <div className="glass-card" style={{ padding: '15px 25px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1rem', color: 'var(--text-sub)', marginBottom: '5px' }}>나의 패</div>
-                <div style={{ fontSize: '4rem' }}>{chosenHand ? EMOJIS[chosenHand] : '❓'}</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{chosenHand || '미제출'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary-color)' }}>VS</div>
+              <div className="glass-card" style={{ padding: '10px 16px', textAlign: 'center', borderRadius: '12px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-sub)', marginBottom: '2px' }}>나</div>
+                <div style={{ fontSize: '2.8rem' }}>{chosenHand ? EMOJIS[chosenHand] : '❓'}</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{chosenHand || '미제출'}</div>
               </div>
             </div>
 
             {didWinThisRound ? (
               <div>
-                <div style={{ color: 'var(--success-color)', fontSize: '1.6rem', fontWeight: 900 }}>
-                  🎉 승리! 다음 라운드로 진출합니다!
+                <div style={{ color: 'var(--success-color)', fontSize: '1.3rem', fontWeight: 900 }}>
+                  🎉 승리! 다음 라운드 진출!
                 </div>
-                <div className="glass-card" style={{ marginTop: '15px', padding: '12px 25px', display: 'inline-block', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.15)' }}>
-                  💰 라운드 {round} 생존 보너스: <strong style={{ color: '#ffd700', fontSize: '1.3rem' }}>+{lastRoundPoints}점</strong> 획득!
+                <div className="glass-card" style={{ marginTop: '8px', padding: '8px 18px', display: 'inline-block', border: '1px solid #ffd700', background: 'rgba(255, 215, 0, 0.15)', borderRadius: '10px' }}>
+                  💰 보너스: <strong style={{ color: '#ffd700', fontSize: '1.1rem' }}>+{lastRoundPoints}점</strong>
                 </div>
               </div>
             ) : (
               <div>
-                <div style={{ color: 'var(--danger-color)', fontSize: '1.6rem', fontWeight: 900 }}>
-                  💀 패배 / 무승부! 이번 라운드에서 탈락하셨습니다.
+                <div style={{ color: 'var(--danger-color)', fontSize: '1.3rem', fontWeight: 900 }}>
+                  💀 패배 / 무승부! 탈락하셨습니다.
                 </div>
-                <p style={{ color: 'var(--text-sub)', marginTop: '8px' }}>
+                <p style={{ color: 'var(--text-sub)', marginTop: '4px', fontSize: '0.85rem' }}>
                   남은 생존자: {survivors.length}명
                 </p>
               </div>
@@ -306,12 +312,12 @@ export const RockPaperScissors = () => {
 
   // Host View
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
           ✊✌️✋ 대규모 가위바위보 서바이벌
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
@@ -320,14 +326,15 @@ export const RockPaperScissors = () => {
               style={{ 
                 background: isSettled ? '#555' : rpsState !== 'result' ? '#333' : 'var(--success-color)', 
                 cursor: isSettled || rpsState !== 'result' ? 'not-allowed' : 'pointer',
-                opacity: (rpsState !== 'result' && !isSettled) ? 0.6 : 1
+                opacity: (rpsState !== 'result' && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
               }}
             >
               {isSettled ? '✅ 정산 완료' : rpsState !== 'result' ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={handleReturnToLobby} className="btn-secondary">
-            🏠 로비로 돌아가기
+          <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+            🏠 로비로
           </button>
         </div>
       </div>

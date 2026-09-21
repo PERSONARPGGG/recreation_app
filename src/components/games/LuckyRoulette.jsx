@@ -234,29 +234,23 @@ export const LuckyRoulette = () => {
   // Participant View
   if (userRole === 'participant') {
     return (
-      <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', minHeight: '65vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>🎡 럭키 룰렛 대박 뽑기</h2>
-        <div style={{ color: 'var(--text-sub)', marginBottom: '20px' }}>
-          {rouletteState === 'spinning' ? (
-            <span style={{ color: '#ffd700', fontWeight: 800, fontSize: '1.2rem', animation: 'pulse 1s infinite' }}>
-              ⚡ 룰렛이 회전하고 있습니다! 긴장되는 순간... ⚡
-            </span>
-          ) : result ? (
-            <span style={{ color: 'var(--success-color)', fontWeight: 800, fontSize: '1.2rem' }}>
-              🎉 룰렛 결과가 확정되었습니다!
-            </span>
-          ) : (
-            '호스트가 룰렛을 돌리기 직전입니다!'
-          )}
+      <div className="glass-panel" style={{ padding: '14px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary-color)' }}>🎡 럭키 룰렛</span>
+          <span style={{ fontSize: '0.85rem', color: rouletteState === 'spinning' ? '#ffd700' : 'var(--text-sub)' }}>
+            {rouletteState === 'spinning' ? '⚡ 회전 중...' : result ? '✅ 결과 확정' : '대기'}
+          </span>
         </div>
 
-        {renderWheel(300)}
+        <div style={{ margin: '8px 0' }}>
+          {renderWheel(260)}
+        </div>
 
         {result && (
-          <div className="glass-card" style={{ marginTop: '25px', padding: '20px', maxWidth: '380px', width: '100%', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.1)' }}>
-            <div style={{ fontSize: '2.5rem' }}>{result.icon}</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff', marginTop: '6px' }}>{result.label}</div>
-            <div style={{ fontSize: '1.1rem', color: targetTeamObj?.color || '#ffd700', marginTop: '8px', fontWeight: 700 }}>
+          <div className="glass-card" style={{ padding: '12px 16px', maxWidth: '340px', width: '100%', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.1)', borderRadius: '12px' }}>
+            <div style={{ fontSize: '2rem' }}>{result.icon}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', marginTop: '4px' }}>{result.label}</div>
+            <div style={{ fontSize: '1rem', color: targetTeamObj?.color || '#ffd700', marginTop: '4px', fontWeight: 700 }}>
               대상: [{targetTeamObj?.name || '팀'}]
             </div>
           </div>
@@ -267,12 +261,12 @@ export const LuckyRoulette = () => {
 
   // Host View
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
-          🎡 럭키 룰렛 대박 뽑기 (Lucky Roulette)
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
+          🎡 럭키 룰렛 대박 뽑기
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button 
             onClick={handleSettlePoints} 
             disabled={isSettled || !result}
@@ -280,13 +274,14 @@ export const LuckyRoulette = () => {
             style={{ 
               background: isSettled ? '#555' : !result ? '#333' : 'var(--success-color)', 
               cursor: isSettled || !result ? 'not-allowed' : 'pointer',
-              opacity: (!result && !isSettled) ? 0.6 : 1
+              opacity: (!result && !isSettled) ? 0.6 : 1,
+              padding: '6px 14px', fontSize: '0.85rem'
             }}
           >
-            {isSettled ? '✅ 정산 완료' : !result ? '⏳ 룰렛 결과 후 정산' : '🏆 포인트 정산하기'}
+            {isSettled ? '✅ 정산 완료' : !result ? '⏳ 룰렛 후 정산 가능' : '🏆 포인트 정산하기'}
           </button>
-          <button onClick={handleReturnToLobby} className="btn-secondary">
-            🏠 로비로 돌아가기
+          <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+            🏠 로비로
           </button>
         </div>
       </div>

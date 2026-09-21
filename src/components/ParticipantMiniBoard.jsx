@@ -9,8 +9,8 @@ export const ParticipantMiniBoard = () => {
 
   return (
     <div className="glass-panel" style={{ 
-      padding: '12px', marginTop: '20px', borderRadius: '12px',
-      display: 'flex', flexDirection: 'column', gap: '10px'
+      padding: '10px 14px', marginTop: '8px', borderRadius: '12px',
+      display: 'flex', flexDirection: 'column', gap: '8px'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h4 style={{ fontSize: '0.9rem', color: 'var(--text-sub)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>

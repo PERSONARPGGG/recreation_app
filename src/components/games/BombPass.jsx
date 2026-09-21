@@ -91,42 +91,48 @@ export const BombPass = () => {
     const isExplodedSurvivor = gameState === 'exploded' && bombHolder?.id !== myPlayerId;
 
     return (
-      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', minHeight: '50vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '20px' }}>💣 시한폭탄 돌리기</h2>
+      <div className="glass-panel" style={{ padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--danger-color)' }}>💣 시한폭탄 돌리기</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>
+            {gameState === 'playing' ? '⚠️ 폭탄 활성화' : '대기'}
+          </span>
+        </div>
+
         {gameState === 'ready' ? (
-          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>🎮 호스트가 게임을 준비 중입니다. 잠시만 기다려주세요...</div>
+          <div style={{ padding: '30px 10px', color: 'var(--text-sub)', fontSize: '1.1rem' }}>🎮 호스트가 게임을 준비 중입니다. 잠시만 기다려주세요...</div>
         ) : gameState === 'playing' ? (
           bombHolder?.id === myPlayerId ? (
-            <div>
-              <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>💣🔥</div>
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '8px' }}>💣🔥</div>
               <button 
                 onClick={handlePassBomb} 
-                className="btn-primary" 
-                style={{ padding: '36px 30px', fontSize: '2.2rem', fontWeight: 900, background: 'var(--danger-color)', animation: 'pulse 0.4s infinite', width: '100%', maxWidth: '340px' }}
+                className="btn-primary animate-pulse-glow" 
+                style={{ padding: '28px 24px', fontSize: '2rem', fontWeight: 900, background: 'var(--danger-color)', width: '100%', maxWidth: '320px', borderRadius: '24px' }}
               >
                 🔥 지금 넘겨!! (터치)
               </button>
             </div>
           ) : (
-            <div>
-              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🛡️</div>
-              <div style={{ fontSize: '1.3rem', color: 'var(--success-color)', fontWeight: 800, marginBottom: '10px' }}>
+            <div style={{ padding: '20px 10px' }}>
+              <div style={{ fontSize: '2.8rem', marginBottom: '10px' }}>🛡️</div>
+              <div style={{ fontSize: '1.2rem', color: 'var(--success-color)', fontWeight: 800, marginBottom: '6px' }}>
                 휴... 지금은 폭탄이 없습니다!
               </div>
-              <p style={{ color: 'var(--text-sub)' }}>언제 내게 넘어올지 모릅니다. 긴장하세요!</p>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem', margin: 0 }}>언제 내게 넘어올지 모릅니다. 긴장하세요!</p>
             </div>
           )
         ) : isExplodedHolder ? (
-          <div style={{ padding: '20px' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '10px' }}>💥💥💥</div>
-            <h3 style={{ color: 'var(--danger-color)', fontSize: '2.2rem', fontWeight: 900 }}>콰광!! 내 손에서 폭발했습니다!!</h3>
-            <p style={{ color: 'var(--text-sub)', marginTop: '10px', fontSize: '1.1rem' }}>아쉽게도 폭탄을 제때 넘기지 못했습니다. (-200점)</p>
+          <div style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '8px' }}>💥💥💥</div>
+            <h3 style={{ color: 'var(--danger-color)', fontSize: '1.8rem', fontWeight: 900, margin: 0 }}>콰광!! 내 손에서 폭발했습니다!!</h3>
+            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>아쉽게도 폭탄을 제때 넘기지 못했습니다. (-200점)</p>
           </div>
         ) : isExplodedSurvivor ? (
-          <div style={{ padding: '20px' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '10px' }}>🎉</div>
-            <h3 style={{ color: 'var(--success-color)', fontSize: '2rem', fontWeight: 900 }}>생존 성공! 보너스 점수 획득!</h3>
-            <p style={{ color: 'var(--text-sub)', marginTop: '10px', fontSize: '1.1rem' }}>
+          <div style={{ padding: '16px 10px' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '8px' }}>🎉</div>
+            <h3 style={{ color: 'var(--success-color)', fontSize: '1.8rem', fontWeight: 900, margin: 0 }}>생존 성공! 보너스 점수 획득!</h3>
+            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>
               [{bombHolder?.name || '참가자'}]님의 손에서 폭탄이 폭발했습니다!
             </p>
           </div>
@@ -138,12 +144,12 @@ export const BombPass = () => {
   }
 
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
           💣 시한폭탄 돌리기 (Bomb Pass)
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
@@ -152,25 +158,26 @@ export const BombPass = () => {
               style={{ 
                 background: isSettled ? '#555' : gameState !== 'exploded' ? '#333' : 'var(--success-color)', 
                 cursor: isSettled || gameState !== 'exploded' ? 'not-allowed' : 'pointer',
-                opacity: (gameState !== 'exploded' && !isSettled) ? 0.6 : 1
+                opacity: (gameState !== 'exploded' && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
               }}
             >
               {isSettled ? '✅ 정산 완료' : gameState !== 'exploded' ? '⏳ 폭발 후 정산 가능' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={handleReturnToLobby} className="btn-secondary">
-            🏠 로비로 돌아가기
+          <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+            🏠 로비로
           </button>
         </div>
       </div>
 
-      <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div className="glass-panel glass-panel-glow" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px 16px' }}>
         {gameState === 'ready' && (
           <div style={{ textAlign: 'center' }}>
-            <Flame size={80} color="var(--danger-color)" style={{ marginBottom: '20px' }} />
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>무작위 시간에 폭탄이 터집니다!</h3>
-            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}>
-              <Play size={20} /> 폭탄 타이머 시작
+            <Flame size={60} color="var(--danger-color)" style={{ marginBottom: '14px' }} />
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '14px' }}>무작위 시간에 폭탄이 터집니다!</h3>
+            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.1rem', padding: '12px 28px' }}>
+              <Play size={18} /> 폭탄 타이머 시작
             </button>
           </div>
         )}

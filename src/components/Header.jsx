@@ -6,7 +6,7 @@ import { soundFx } from '../utils/sound';
 import { Volume2, VolumeX, Monitor, Smartphone, Users, Sparkles, Award } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
-export const Header = () => {
+export const Header = ({ isCompact = false }) => {
   const { theme, switchTheme, userRole, setUserRole, room, participants } = useGame();
   const [muted, setMuted] = React.useState(soundFx.isMuted);
 
@@ -16,31 +16,33 @@ export const Header = () => {
   };
 
   return (
-    <header className="glass-panel" style={{ padding: '14px 24px', marginBottom: '20px', borderRadius: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+    <header className="glass-panel" style={{ padding: isCompact ? '6px 14px' : '14px 24px', marginBottom: isCompact ? '8px' : '20px', borderRadius: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
         
         {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '8px' : '12px' }}>
           <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
+            width: isCompact ? '32px' : '44px',
+            height: isCompact ? '32px' : '44px',
+            borderRadius: isCompact ? '8px' : '12px',
             background: 'var(--button-gradient)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.5rem',
-            boxShadow: '0 0 15px var(--primary-glow)'
+            fontSize: isCompact ? '1.1rem' : '1.5rem',
+            boxShadow: '0 0 10px var(--primary-glow)'
           }}>
             🎮
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.5px' }} className="font-heading">
+            <div style={{ fontSize: isCompact ? '1.05rem' : '1.25rem', fontWeight: 900, letterSpacing: '-0.5px' }} className="font-heading">
               RECREATION <span className="text-gradient">MASTER 100</span>
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 500 }}>
-              {room.title}
-            </div>
+            {!isCompact && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 500 }}>
+                {room.title}
+              </div>
+            )}
           </div>
         </div>
 

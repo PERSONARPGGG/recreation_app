@@ -241,7 +241,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.7 (OX퀴즈 이전입력 초기화 해결, 눈치게임 프리징 무한루프 원천제거, 전 게임 조기정산 가드, 가위바위보 라운드별 차등지급 & 완전탈락, 줄다리기 홍청 대항전 정산)
+          버전: v1.4.8 (모바일/사회자 한 화면 최적화, 제로 스크롤 레이아웃, 블럭쌓기 10초 동기화 타이머 & 콘솔 에러 정리)
         </div>
       </footer>
     </div>

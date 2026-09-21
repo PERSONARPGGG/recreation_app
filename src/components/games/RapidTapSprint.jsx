@@ -119,27 +119,24 @@ export const RapidTapSprint = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
-      {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>⚡</div>
+      {/* Header Toolbar */}
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '1.4rem' }}>⚡</div>
           <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-              100인 실시간 탭 대격돌 100m 파워 스프린트
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+              10초 파워 탭 스프린트
             </h2>
-            <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              10초 동안 미친 듯이 연타하여 승리를 쟁취하세요!
-            </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {userRole === 'host' && (
             <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
-                <Zap size={16} /> 100인 탭 시뮬레이션
+              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+                <Zap size={14} /> 100인 탭 시뮬레이션
               </button>
               <button 
                 onClick={handleSettlePoints} 
@@ -148,13 +145,14 @@ export const RapidTapSprint = () => {
                 style={{ 
                   background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
                   cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1
+                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
+                  padding: '6px 14px', fontSize: '0.85rem'
                 }}
               >
                 {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
               </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary">
-                🏠 로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                🏠 로비로
               </button>
             </>
           )}
@@ -162,40 +160,40 @@ export const RapidTapSprint = () => {
       </div>
 
       {/* Gameplay & Track */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
         
         {/* Sprint Controller / Mobile Tap Area */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           
-          <div style={{ fontSize: '1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
-            RACE TIMER
-          </div>
-          <div style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--primary-color)', margin: '10px 0' }}>
-            {timeLeft}s
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '300px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)', fontWeight: 800 }}>남은 시간</span>
+            <span style={{ fontSize: '1.8rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : 'var(--primary-color)' }}>
+              ⏱️ {timeLeft}s
+            </span>
           </div>
 
-          <div style={{ fontSize: '1.2rem', color: '#fff', marginBottom: '20px', fontWeight: 800 }}>
-            내 탭 횟수: <strong style={{ fontSize: '2.5rem', color: '#ff007a' }}>{tapCount}</strong> 회
+          <div style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '12px', fontWeight: 800 }}>
+            내 탭 횟수: <strong style={{ fontSize: '2.4rem', color: '#ff007a' }}>{tapCount}</strong> 회
           </div>
 
           {/* Action Buttons & Tap Button */}
           {userRole === 'host' ? (
-            <div style={{ display: 'flex', gap: '14px', marginTop: '20px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
               {room.gameState === 'ready' && (
-                <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px' }}>
-                  <Play size={24} /> 스프린트 레이스 시작!
+                <button onClick={handleHostStart} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px' }}>
+                  <Play size={22} /> 스프린트 레이스 시작!
                 </button>
               )}
               {room.gameState !== 'ready' && (
-                <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1.1rem', padding: '14px 28px' }}>
-                  <RotateCcw size={20} /> 레이스 초기화
+                <button onClick={handleHostReset} className="btn-secondary" style={{ fontSize: '1rem', padding: '12px 24px' }}>
+                  <RotateCcw size={18} /> 레이스 초기화
                 </button>
               )}
             </div>
           ) : (
             <>
               {room.gameState === 'ready' && (
-                <div style={{ padding: '20px', color: 'var(--text-sub)', fontSize: '1.2rem', fontWeight: 800 }}>
+                <div style={{ padding: '16px', color: 'var(--text-sub)', fontSize: '1.1rem', fontWeight: 800 }}>
                   ⏳ 대기 중... 사회자의 시작 신호를 기다려주세요!
                 </div>
               )}
@@ -204,15 +202,15 @@ export const RapidTapSprint = () => {
                   onPointerDown={handleTap}
                   className="btn-primary animate-pulse-glow"
                   style={{
-                    width: '220px',
-                    height: '220px',
+                    width: '200px',
+                    height: '200px',
                     borderRadius: '50%',
-                    fontSize: '2rem',
+                    fontSize: '1.8rem',
                     fontWeight: 900,
                     background: 'linear-gradient(135deg, #ff0055 0%, #ff00e5 100%)',
-                    boxShadow: '0 0 50px rgba(255, 0, 85, 0.8)',
+                    boxShadow: '0 0 45px rgba(255, 0, 85, 0.8)',
                     cursor: 'pointer',
-                    marginTop: '20px',
+                    margin: '10px 0',
                     touchAction: 'manipulation',
                     userSelect: 'none',
                     WebkitUserSelect: 'none'
@@ -222,13 +220,12 @@ export const RapidTapSprint = () => {
                 </button>
               )}
               {raceFinished && (
-                <div style={{ padding: '20px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800, marginTop: '20px' }}>
-                  🏁 레이스 종료! 당신의 기록: {tapCount}회
+                <div style={{ padding: '16px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800, marginTop: '10px' }}>
+                  🏁 레이스 종료! 최종 기록: {tapCount}회
                 </div>
               )}
             </>
           )}
-
         </div>
 
         {/* Live Race Track Visualizer */}

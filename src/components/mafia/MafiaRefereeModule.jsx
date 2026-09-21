@@ -79,7 +79,7 @@ export const MafiaRefereeModule = () => {
 
   const handleSettlePoints = () => {
     if (isSettled || !mafiaState.rolesAssigned) return;
-    const alivePlayers = mafiaState.players.filter(p => p.alive);
+    const alivePlayers = mafiaState.players.filter(p => p.isAlive !== false);
     if (alivePlayers.length > 0) {
       alivePlayers.forEach(p => {
         awardPoints(room?.mode === 'team' ? p.teamId : p.id, 300, room?.mode === 'team');
@@ -97,19 +97,16 @@ export const MafiaRefereeModule = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       
       {/* Header */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>🕵️‍♂️</div>
+      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '1.4rem' }}>🕵️‍♂️</div>
           <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-              마피아 스마트 사회자 헬퍼 모듈
+            <h2 className="font-heading text-gradient" style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0 }}>
+              마피아 스마트 사회자 헬퍼
             </h2>
-            <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              직업 분배, 야간 지목 안내, 사망자 자동 판정 및 브금 컨트롤 타워
-            </p>
           </div>
         </div>
 
