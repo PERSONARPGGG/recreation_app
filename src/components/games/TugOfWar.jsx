@@ -16,11 +16,6 @@ export const TugOfWar = () => {
         if (room.tugTimeLeft <= 1) {
           updateRoomState({ tugState: 'finished', tugTimeLeft: 0 });
           soundFx.playSuccess();
-          if (room.tugRopePos < 50) {
-            awardPoints('odd', 500, true);
-          } else if (room.tugRopePos > 50) {
-            awardPoints('even', 500, true);
-          }
         } else {
           updateRoomState({ tugTimeLeft: room.tugTimeLeft - 1 });
         }
@@ -64,6 +59,21 @@ export const TugOfWar = () => {
     submitPlayerInput(myPlayerId, { taps: currentTaps + 1 });
   };
 
+  const handleReturnToLobby = () => {
+    if (gameState === 'finished') {
+      if (ropePosition < 50) {
+        awardPoints('team-1', 500, true);
+        awardPoints('team-3', 500, true);
+        awardPoints('team-5', 500, true);
+      } else if (ropePosition > 50) {
+        awardPoints('team-2', 500, true);
+        awardPoints('team-4', 500, true);
+        awardPoints('team-6', 500, true);
+      }
+    }
+    returnToLobby();
+  };
+
   if (userRole === 'participant') {
     return (
       <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -85,7 +95,9 @@ export const TugOfWar = () => {
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🪢 영차영차! 100인 줄다리기</h2>
-        <button onClick={returnToLobby} className="btn-secondary">로비로 돌아가기</button>
+        <button onClick={handleReturnToLobby} className="btn-secondary">
+          {gameState === 'finished' ? '🏆 점수 정산 및 로비로 돌아가기' : '로비로 돌아가기'}
+        </button>
       </div>
 
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>

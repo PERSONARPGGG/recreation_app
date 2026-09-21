@@ -54,6 +54,13 @@ export const RockPaperScissors = () => {
     soundFx.playTick();
   };
 
+  const handleReturnToLobby = () => {
+    if (rpsState !== 'ready' && survivors.length > 0) {
+      survivors.forEach(s => awardPoints(s.id, 500, false));
+    }
+    returnToLobby();
+  };
+
   if (userRole === 'participant') {
     const myPlayer = participants.find(p => p.id === myPlayerId);
     const isSurvivor = survivors.some(s => s.id === myPlayerId);
@@ -99,7 +106,9 @@ export const RockPaperScissors = () => {
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           ✊✌️✋ 대규모 가위바위보 서바이벌
         </h2>
-        <button onClick={returnToLobby} className="btn-secondary">로비로 돌아가기</button>
+        <button onClick={handleReturnToLobby} className="btn-secondary">
+          {rpsState !== 'ready' ? '🏆 생존자 500점 정산 및 로비로 가기' : '로비로 돌아가기'}
+        </button>
       </div>
       
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

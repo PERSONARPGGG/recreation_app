@@ -172,6 +172,18 @@ export const BlockStacker = () => {
     .filter(p => p.lastInput && p.lastInput.towerHeight !== undefined)
     .sort((a, b) => b.lastInput.towerHeight - a.lastInput.towerHeight);
 
+  const handleReturnToLobby = () => {
+    if (rankedParticipants.length > 0) {
+      rankedParticipants.slice(0, 3).forEach((p, rank) => {
+        const height = p.lastInput.towerHeight;
+        const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1; // 1등 5배, 2등 3배, 3등 1배
+        awardPoints(room.mode === 'team' ? p.teamId : p.id, height * multiplier, room.mode === 'team');
+      });
+      soundFx.playSuccess();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -195,8 +207,8 @@ export const BlockStacker = () => {
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 탑 쌓기 결과 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
-                로비로 돌아가기
+              <button onClick={handleReturnToLobby} className="btn-secondary">
+                {rankedParticipants.length > 0 ? '🏆 상위 3명 점수 정산 및 로비로 가기' : '로비로 돌아가기'}
               </button>
             </>
           )}
