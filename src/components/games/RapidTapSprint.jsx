@@ -119,61 +119,68 @@ export const RapidTapSprint = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: userRole === 'participant' ? '6px' : '12px' }}>
       
-      {/* Header Toolbar */}
-      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ fontSize: '1.4rem' }}>⚡</div>
-          <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
-              10초 파워 탭 스프린트
-            </h2>
+      {/* Game Header Toolbar */}
+      {userRole === 'host' ? (
+        <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '1.4rem' }}>⚡</div>
+            <div>
+              <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+                10초 파워 탭 스프린트
+              </h2>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+              <Zap size={14} /> 100인 탭 시뮬레이션
+            </button>
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled || rankedParticipants.length === 0}
+              className="btn-primary" 
+              style={{ 
+                background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
+              }}
+            >
+              {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
+            </button>
+            <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              🏠 로비로
+            </button>
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {userRole === 'host' && (
-            <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
-                <Zap size={14} /> 100인 탭 시뮬레이션
-              </button>
-              <button 
-                onClick={handleSettlePoints} 
-                disabled={isSettled || rankedParticipants.length === 0}
-                className="btn-primary" 
-                style={{ 
-                  background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
-                  cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
-                  padding: '6px 14px', fontSize: '0.85rem'
-                }}
-              >
-                {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
-              </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                🏠 로비로
-              </button>
-            </>
-          )}
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 6px' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+            ⚡ 10초 파워 터치 달리기
+          </span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: timeLeft <= 3 ? 'var(--danger-color)' : '#ffd700' }}>
+            ⏱️ {timeLeft}초
+          </span>
         </div>
-      </div>
+      )}
 
       {/* Gameplay & Track */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '10px' }}>
         
         {/* Sprint Controller / Mobile Tap Area */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '12px 10px' : '20px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '300px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)', fontWeight: 800 }}>남은 시간</span>
-            <span style={{ fontSize: '1.8rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : 'var(--primary-color)' }}>
-              ⏱️ {timeLeft}s
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '300px', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-sub)', fontWeight: 800 }}>남은 시간</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : 'var(--primary-color)' }}>
+              ⏱️ {timeLeft}초
             </span>
           </div>
 
-          <div style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '12px', fontWeight: 800 }}>
-            내 탭 횟수: <strong style={{ fontSize: '2.4rem', color: '#ff007a' }}>{tapCount}</strong> 회
+          <div style={{ fontSize: '1rem', color: '#fff', marginBottom: '8px', fontWeight: 800 }}>
+            내 터치 횟수: <strong style={{ fontSize: '2.2rem', color: '#ff007a' }}>{tapCount}</strong> 회
           </div>
 
           {/* Action Buttons & Tap Button */}
@@ -193,7 +200,7 @@ export const RapidTapSprint = () => {
           ) : (
             <>
               {room.gameState === 'ready' && (
-                <div style={{ padding: '16px', color: 'var(--text-sub)', fontSize: '1.1rem', fontWeight: 800 }}>
+                <div style={{ padding: '16px', color: 'var(--text-sub)', fontSize: '1.05rem', fontWeight: 800 }}>
                   ⏳ 대기 중... 사회자의 시작 신호를 기다려주세요!
                 </div>
               )}
@@ -202,21 +209,21 @@ export const RapidTapSprint = () => {
                   onPointerDown={handleTap}
                   className="btn-primary animate-pulse-glow"
                   style={{
-                    width: '200px',
-                    height: '200px',
+                    width: '190px',
+                    height: '190px',
                     borderRadius: '50%',
-                    fontSize: '1.8rem',
+                    fontSize: '1.7rem',
                     fontWeight: 900,
                     background: 'linear-gradient(135deg, #ff0055 0%, #ff00e5 100%)',
                     boxShadow: '0 0 45px rgba(255, 0, 85, 0.8)',
                     cursor: 'pointer',
-                    margin: '10px 0',
+                    margin: '8px 0',
                     touchAction: 'manipulation',
                     userSelect: 'none',
                     WebkitUserSelect: 'none'
                   }}
                 >
-                  🔥 TAP! (연타)
+                  🔥 터치! (연타!)
                 </button>
               )}
               {raceFinished && (

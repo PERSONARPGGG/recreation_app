@@ -15,31 +15,43 @@ export const Header = ({ isCompact = false }) => {
     setMuted(isMute);
   };
 
+  const cycleTheme = () => {
+    const themeList = Object.values(THEMES);
+    const nextIdx = (themeList.indexOf(theme) + 1) % themeList.length;
+    switchTheme(themeList[nextIdx]);
+    soundFx.playTick();
+  };
+
   return (
-    <header className="glass-panel" style={{ padding: isCompact ? '6px 14px' : '14px 24px', marginBottom: isCompact ? '8px' : '20px', borderRadius: '14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+    <header className="glass-panel" style={{ padding: isCompact ? '4px 10px' : '12px 20px', marginBottom: isCompact ? '6px' : '16px', borderRadius: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
         
         {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '8px' : '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '6px' : '12px' }}>
           <div style={{
-            width: isCompact ? '32px' : '44px',
-            height: isCompact ? '32px' : '44px',
-            borderRadius: isCompact ? '8px' : '12px',
+            width: isCompact ? '28px' : '40px',
+            height: isCompact ? '28px' : '40px',
+            borderRadius: isCompact ? '6px' : '10px',
             background: 'var(--button-gradient)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: isCompact ? '1.1rem' : '1.5rem',
-            boxShadow: '0 0 10px var(--primary-glow)'
+            fontSize: isCompact ? '0.95rem' : '1.35rem',
+            boxShadow: '0 0 10px var(--primary-glow)',
+            flexShrink: 0
           }}>
             🎮
           </div>
           <div>
-            <div style={{ fontSize: isCompact ? '1.05rem' : '1.25rem', fontWeight: 900, letterSpacing: '-0.5px' }} className="font-heading">
-              RECREATION <span className="text-gradient">MASTER 100</span>
+            <div style={{ fontSize: isCompact ? '0.95rem' : '1.2rem', fontWeight: 900, letterSpacing: '-0.5px' }} className="font-heading">
+              {isCompact ? (
+                <>RM <span className="text-gradient">100</span></>
+              ) : (
+                <>RECREATION <span className="text-gradient">MASTER 100</span></>
+              )}
             </div>
             {!isCompact && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 500 }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
                 {room.title}
               </div>
             )}
@@ -47,23 +59,24 @@ export const Header = ({ isCompact = false }) => {
         </div>
 
         {/* Dynamic Controls Group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '6px' : '10px' }}>
           
           {/* Participant Count Badge */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.07)',
-            padding: '6px 14px',
+            padding: isCompact ? '4px 8px' : '6px 12px',
             borderRadius: '20px',
             border: '1px solid var(--card-border)',
-            fontSize: '0.85rem',
+            fontSize: isCompact ? '0.75rem' : '0.82rem',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            color: 'var(--primary-color)'
+            gap: '5px',
+            color: 'var(--primary-color)',
+            whiteSpace: 'nowrap'
           }}>
-            <Users size={16} />
-            <span>{participants.length}명 참여 중</span>
+            <Users size={isCompact ? 13 : 15} />
+            <span>{participants.length}명</span>
           </div>
 
           {/* Room Code Badge (Host Only) */}
@@ -73,21 +86,21 @@ export const Header = ({ isCompact = false }) => {
                 onClick={() => document.getElementById('qr-modal').style.display = 'flex'}
                 style={{
                   background: 'var(--button-gradient)',
-                  padding: '6px 16px',
+                  padding: isCompact ? '4px 10px' : '6px 14px',
                   borderRadius: '20px',
                   color: '#000',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
+                  gap: '8px',
                   boxShadow: '0 0 15px var(--primary-glow)',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}>
-                <div style={{ background: '#fff', padding: '4px', borderRadius: '8px', display: 'flex' }}>
-                  <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={40} />
+                <div style={{ background: '#fff', padding: '2px', borderRadius: '6px', display: 'flex' }}>
+                  <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={isCompact ? 22 : 32} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.5px' }}>크게 보기 🔍</span>
-                  <span style={{ fontSize: '1.2rem', fontWeight: 900, letterSpacing: '2px' }}>{room.code}</span>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 800 }}>{room.code}</span>
                 </div>
               </div>
 
@@ -103,13 +116,13 @@ export const Header = ({ isCompact = false }) => {
                     background: 'rgba(0,0,0,0.95)', zIndex: 999999,
                     alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
                   }}>
-                  <div style={{ background: '#fff', padding: '60px', borderRadius: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 0 50px rgba(0,243,255,0.3)' }}>
-                    <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={Math.min(window.innerWidth * 0.8, window.innerHeight * 0.6, 600)} />
-                    <h2 style={{ color: '#000', marginTop: '30px', fontSize: '4rem', fontWeight: 900, letterSpacing: '5px' }}>{room.code}</h2>
-                    <p style={{ color: '#444', fontSize: '1.5rem', fontWeight: 800 }}>카메라로 스캔하여 즉시 접속하세요!</p>
+                  <div style={{ background: '#fff', padding: '40px 30px', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 0 50px rgba(0,243,255,0.3)', maxWidth: '90vw' }}>
+                    <QRCodeSVG value={`${window.location.origin}?code=${room.code}`} size={Math.min(window.innerWidth * 0.75, window.innerHeight * 0.5, 450)} />
+                    <h2 style={{ color: '#000', marginTop: '20px', fontSize: '2.8rem', fontWeight: 900, letterSpacing: '4px' }}>{room.code}</h2>
+                    <p style={{ color: '#444', fontSize: '1.1rem', fontWeight: 800 }}>스마트폰 카메라로 스캔하여 즉시 입장하세요!</p>
                     <button 
                       onClick={() => document.getElementById('qr-modal').style.display = 'none'}
-                      className="btn-primary" style={{ marginTop: '30px', padding: '15px 50px', fontSize: '1.5rem' }}>
+                      className="btn-primary" style={{ marginTop: '20px', padding: '12px 40px', fontSize: '1.2rem' }}>
                       닫기
                     </button>
                   </div>
@@ -119,53 +132,35 @@ export const Header = ({ isCompact = false }) => {
             </>
           )}
 
-          {/* Theme Switcher 3-Buttons */}
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.25)',
-            borderRadius: '12px',
-            padding: '4px',
-            display: 'flex',
-            gap: '4px',
-            border: '1px solid rgba(255, 255, 255, 0.08)'
-          }}>
-            {Object.values(THEMES).map(tId => {
-              const info = THEME_DETAILS[tId];
-              const isActive = theme === tId;
-              return (
-                <button
-                  key={tId}
-                  onClick={() => switchTheme(tId)}
-                  title={info.name}
-                  style={{
-                    background: isActive ? 'var(--button-gradient)' : 'transparent',
-                    color: isActive ? 'var(--button-text)' : 'var(--text-sub)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '6px 10px',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <span>{info.icon}</span>
-                  <span style={{ display: isActive ? 'inline' : 'none' }}>{info.id.toUpperCase()}</span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Compact Single Theme Cycle Button - Never Wraps or Breaks */}
+          <button
+            onClick={cycleTheme}
+            className="btn-secondary"
+            title={`테마 전환 (현재: ${THEME_DETAILS[theme].name} - 클릭 시 전환)`}
+            style={{
+              padding: isCompact ? '4px 8px' : '6px 12px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span>{THEME_DETAILS[theme].icon}</span>
+            <span style={{ fontSize: '0.72rem' }}>{THEME_DETAILS[theme].name}</span>
+          </button>
 
           {/* Sound Toggle */}
           <button
             onClick={handleSoundToggle}
             className="btn-secondary"
-            style={{ padding: '8px 12px', borderRadius: '12px', fontSize: '0.85rem' }}
+            style={{ padding: isCompact ? '4px 8px' : '6px 12px', borderRadius: '10px', fontSize: '0.85rem' }}
             title="효과음 켜기/끄기"
           >
-            {muted ? <VolumeX size={18} color="var(--danger-color)" /> : <Volume2 size={18} color="var(--primary-color)" />}
+            {muted ? <VolumeX size={isCompact ? 15 : 17} color="var(--danger-color)" /> : <Volume2 size={isCompact ? 15 : 17} color="var(--primary-color)" />}
           </button>
 
         </div>

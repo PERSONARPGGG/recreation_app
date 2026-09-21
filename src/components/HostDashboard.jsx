@@ -118,43 +118,41 @@ export const HostDashboard = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Host Banner & Room Control Bar */}
-      <div className="glass-panel glass-panel-glow" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="glass-panel glass-panel-glow" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ background: 'var(--primary-color)', color: '#000', padding: '4px 12px', borderRadius: '20px', fontWeight: 900, fontSize: '0.8rem' }}>
-              MAIN PROJECTOR HOST
-            </span>
-            <span style={{ color: 'var(--text-sub)', fontSize: '0.85rem' }}>접속 방 코드: <strong style={{ color: '#fff', fontSize: '1.1rem' }}>{room.code}</strong></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ background: '#fff', padding: '8px', borderRadius: '12px', flexShrink: 0 }}>
+            <QRCodeSVG value={`${window.location.origin}/?code=${room.code}`} size={90} />
           </div>
-
-          <h1 className="font-heading text-gradient" style={{ fontSize: '2rem', fontWeight: 900, marginTop: '6px' }}>
-            {room.title}
-          </h1>
-          
-          <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(255,255,255,0.05)', padding: '16px 24px', borderRadius: '16px' }}>
-            <div style={{ background: '#fff', padding: '12px', borderRadius: '12px' }}>
-              <QRCodeSVG value={`${window.location.origin}/?code=${room.code}`} size={120} />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ background: 'var(--primary-color)', color: '#000', padding: '3px 10px', borderRadius: '20px', fontWeight: 900, fontSize: '0.75rem' }}>
+                MAIN PROJECTOR HOST
+              </span>
+              <span style={{ color: 'var(--text-sub)', fontSize: '0.82rem' }}>접속 방 코드: <strong style={{ color: '#fff', fontSize: '1.05rem' }}>{room.code}</strong></span>
             </div>
-            <div>
-              <div style={{ fontSize: '1rem', color: 'var(--text-sub)', marginBottom: '8px' }}>스마트폰 카메라로 스캔하여 즉시 입장하세요!</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-color)' }}>대규모 라이브 서버 접속용 QR</div>
-              <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>참여자는 이 QR을 통해 자동 로그인됩니다.</div>
+
+            <h1 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900, marginTop: '4px', marginBottom: '4px' }}>
+              {room.title}
+            </h1>
+            
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-sub)' }}>
+              스마트폰 카메라로 QR을 스캔하여 즉시 입장할 수 있습니다.
             </div>
           </div>
         </div>
 
         {/* Quick Room Setup Controls */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           
-          <div style={{ display: 'flex', gap: '6px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
             <button
               onClick={() => {
                 setRoom({ ...room, mode: 'team' });
                 broadcast('CONFIG_CHANGE');
               }}
               className={room.mode === 'team' ? 'btn-primary' : 'btn-secondary'}
-              style={{ padding: '8px 14px', fontSize: '0.82rem' }}
+              style={{ padding: '8px 12px', fontSize: '0.82rem' }}
             >
               🏆 팀전 ({room.teamCount}팀)
             </button>
@@ -164,7 +162,7 @@ export const HostDashboard = () => {
                 broadcast('CONFIG_CHANGE');
               }}
               className={room.mode === 'solo' ? 'btn-primary' : 'btn-secondary'}
-              style={{ padding: '8px 14px', fontSize: '0.82rem' }}
+              style={{ padding: '8px 12px', fontSize: '0.82rem' }}
             >
               👤 개인전
             </button>
@@ -174,17 +172,17 @@ export const HostDashboard = () => {
           <button
             onClick={() => populateBots(100)}
             className="btn-primary"
-            style={{ fontSize: '0.9rem', padding: '10px 18px', background: 'linear-gradient(135deg, #00f3ff 0%, #0077ff 100%)' }}
+            style={{ fontSize: '0.85rem', padding: '8px 16px', background: 'linear-gradient(135deg, #00f3ff 0%, #0077ff 100%)' }}
           >
-            <Zap size={16} /> 100인 시뮬레이션 봇 참여!
+            <Zap size={15} /> 100인 시뮬레이션 봇 참여!
           </button>
 
           <button
             onClick={clearBots}
             className="btn-secondary"
-            style={{ padding: '10px 14px', fontSize: '0.85rem' }}
+            style={{ padding: '8px 12px', fontSize: '0.82rem' }}
           >
-            <RefreshCw size={16} /> 초기화
+            <RefreshCw size={15} /> 초기화
           </button>
 
         </div>
@@ -193,53 +191,70 @@ export const HostDashboard = () => {
 
       {/* Team Score Leaderboard Banner (if Team Mode) */}
       {room.mode === 'team' && (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(180px, 1fr))`, gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(160px, 1fr))`, gap: '10px' }}>
           {teamRankings.map((team, idx) => (
             <div
               key={team.id}
               className="glass-panel"
               style={{
-                padding: '16px 20px',
+                padding: '12px 16px',
                 borderColor: team.color,
                 background: `linear-gradient(135deg, ${team.color}15 0%, rgba(0,0,0,0.4) 100%)`,
                 position: 'relative'
               }}
             >
               {idx === 0 && (
-                <div style={{ position: 'absolute', top: '-10px', right: '12px', background: '#ffd700', color: '#000', fontSize: '0.7rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px' }}>
+                <div style={{ position: 'absolute', top: '-8px', right: '10px', background: '#ffd700', color: '#000', fontSize: '0.65rem', fontWeight: 900, padding: '2px 6px', borderRadius: '8px' }}>
                   👑 1위 선두
                 </div>
               )}
-              <div style={{ fontSize: '0.85rem', color: team.color, fontWeight: 800 }}>
+              <div style={{ fontSize: '0.82rem', color: team.color, fontWeight: 800 }}>
                 {team.name} ({team.memberCount}명)
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, marginTop: '4px', color: '#fff' }}>
-                {team.totalScore} <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>PTS</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, marginTop: '2px', color: '#fff' }}>
+                {team.totalScore}<span style={{ fontSize: '0.8rem', color: 'var(--text-sub)' }}>점</span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Active Users Lobby List */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h2 className="font-heading" style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Users size={20} color="var(--primary-color)" /> 현재 접속 중인 참가자 ({participants.length}명)
+      {/* Active Users Lobby List - Clean Grouping in Team Mode */}
+      <div className="glass-panel" style={{ padding: '16px 20px' }}>
+        <h2 className="font-heading" style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Users size={18} color="var(--primary-color)" /> 현재 접속 중인 참가자 ({participants.length}명)
         </h2>
         {participants.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-sub)' }}>
+          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-sub)', fontSize: '0.9rem' }}>
             아직 접속한 참가자가 없습니다. 메인 화면의 QR 코드를 스캔하도록 안내해 주세요.
           </div>
+        ) : room.mode === 'team' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+            {activeTeams.map(team => {
+              const members = participants.filter(p => p.teamId === team.id);
+              return (
+                <div key={team.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '10px', border: `1px solid ${team.color}40` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ color: team.color, fontWeight: 800, fontSize: '0.85rem' }}>{team.name}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>{members.length}명</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '80px', overflowY: 'auto', paddingRight: '2px' }}>
+                    {members.map(m => (
+                      <span key={m.id} style={{ background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', color: '#fff' }}>
+                        {m.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '6px' }}>
             {participants.map(p => (
-              <div key={p.id} className="glass-card" style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                {room.mode === 'team' && (
-                  <span style={{ fontSize: '0.75rem', color: p.teamColor, fontWeight: 700 }}>
-                    {p.teamName}
-                  </span>
-                )}
+              <div key={p.id} className="glass-card" style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--primary-color)' }}>{p.score}점</span>
               </div>
             ))}
           </div>

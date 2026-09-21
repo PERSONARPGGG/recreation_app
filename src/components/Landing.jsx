@@ -138,33 +138,33 @@ export const Landing = () => {
 
   if (view === 'guest_team_select') {
     return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeInUp 0.5s ease' }}>
-          <h2 className="font-heading text-gradient" style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>입장 준비</h2>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+        <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeInUp 0.5s ease' }}>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', textAlign: 'center', marginBottom: '4px' }}>입장 준비</h2>
           
           {room.status === 'setup' ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ textAlign: 'center', padding: '30px 20px' }}>
               <Monitor size={60} color="var(--primary-color)" style={{ marginBottom: '20px', animation: 'pulse 2s infinite' }} />
               <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>진행자가 방을 설정 중입니다</h3>
               <p style={{ color: 'var(--text-sub)' }}>설정이 완료될 때까지 잠시 대기해 주세요...</p>
             </div>
           ) : (
-            <form onSubmit={handleJoinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form onSubmit={handleJoinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {room.mode === 'team' && (
                 <div>
-                  <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '15px' }}>소속 팀을 선택하세요</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <label style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>소속 팀을 선택하세요 ({activeTeams.length}개 팀)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                     {activeTeams.map(t => (
                       <button
                         key={t.id}
                         type="button"
                         onClick={() => setSelectedTeam(t.id)}
                         style={{
-                          padding: '16px', borderRadius: '12px',
+                          padding: '12px 8px', borderRadius: '10px',
                           border: selectedTeam === t.id ? `3px solid ${t.color}` : '2px solid rgba(255,255,255,0.1)',
                           background: selectedTeam === t.id ? `${t.color}30` : 'rgba(255,255,255,0.05)',
-                          color: t.color, fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer',
-                          transition: 'all 0.2s ease'
+                          color: t.color, fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+                          transition: 'all 0.2s ease', textAlign: 'center'
                         }}
                       >
                         {t.name}
@@ -175,14 +175,14 @@ export const Landing = () => {
               )}
 
               {room.mode === 'solo' && (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <User size={60} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
-                  <h3 style={{ fontSize: '1.5rem' }}>개인전 모드입니다</h3>
-                  <p style={{ color: 'var(--text-sub)' }}>준비되셨다면 입장하기 버튼을 눌러주세요!</p>
+                <div style={{ textAlign: 'center', padding: '16px' }}>
+                  <User size={50} color="var(--primary-color)" style={{ marginBottom: '12px' }} />
+                  <h3 style={{ fontSize: '1.3rem' }}>개인전 모드입니다</h3>
+                  <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>준비되셨다면 입장하기 버튼을 눌러주세요!</p>
                 </div>
               )}
 
-              <button type="submit" className="btn-primary" style={{ marginTop: '20px', padding: '20px', fontSize: '1.8rem', fontWeight: 900 }}>
+              <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '16px', fontSize: '1.4rem', fontWeight: 900 }}>
                 🚀 방 입장하기
               </button>
             </form>
@@ -194,14 +194,16 @@ export const Landing = () => {
 
   // view === 'main'
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
       
       <h1 className="font-heading text-gradient" style={{ fontSize: '3rem', marginBottom: '10px' }}>RECREATION MASTER 100</h1>
       <p style={{ fontSize: '1.2rem', color: 'var(--text-sub)', marginBottom: '60px' }}>세상에서 가장 즐거운 100인 대규모 레크레이션 플랫폼</p>
 
-      <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* Mode Selector Card Grid */}
+      <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
         
-        <button 
+        {/* Host Mode Button */}
+        <button
           onClick={handleHostClick}
           className="glass-panel glass-panel-glow"
           style={{ 
@@ -212,11 +214,12 @@ export const Landing = () => {
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
           <Monitor size={80} color="var(--primary-color)" style={{ marginBottom: '30px' }} />
-          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px' }}>사회자</h2>
-          <div className="btn-primary" style={{ padding: '15px 30px', fontSize: '1.2rem' }}>방 만들기</div>
+          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px' }}>사회자/호스트</h2>
+          <div className="btn-primary" style={{ fontSize: '1.2rem' }}>새 방 만들기</div>
         </button>
 
-        <button 
+        {/* Guest Mode Button */}
+        <button
           onClick={handleGuestClick}
           className="glass-panel glass-panel-glow"
           style={{ 
@@ -241,7 +244,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.8 (모바일/사회자 한 화면 최적화, 제로 스크롤 레이아웃, 블럭쌓기 10초 동기화 타이머 & 콘솔 에러 정리)
+          버전: v1.4.9 (테마/팀 폼 최적화, 제로 스크롤 상단 배치, 10팀 프리셋 & 사회자 대규모 데이터 유입 안정화)
         </div>
       </footer>
     </div>

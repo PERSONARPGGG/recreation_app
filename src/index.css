@@ -225,8 +225,12 @@ body {
 .team-blue { background: rgba(0, 122, 255, 0.25); color: #54a0ff; border: 1px solid #007aff; }
 .team-green { background: rgba(52, 199, 89, 0.25); color: #1dd1a1; border: 1px solid #34c759; }
 .team-yellow { background: rgba(255, 204, 0, 0.25); color: #feca57; border: 1px solid #ffcc00; }
-.team-purple { background: rgba(175, 82, 222, 0.25); color: #5f27cd; border: 1px solid #af52de; }
+.team-purple { background: rgba(175, 82, 222, 0.25); color: #af52de; border: 1px solid #af52de; }
 .team-orange { background: rgba(255, 149, 0, 0.25); color: #ff9f43; border: 1px solid #ff9500; }
+.team-cyan { background: rgba(0, 243, 255, 0.25); color: #00f3ff; border: 1px solid #00f3ff; }
+.team-pink { background: rgba(255, 45, 85, 0.25); color: #ff2d55; border: 1px solid #ff2d55; }
+.team-emerald { background: rgba(48, 209, 88, 0.25); color: #30d158; border: 1px solid #30d158; }
+.team-gold { background: rgba(255, 215, 0, 0.25); color: #ffd700; border: 1px solid #ffd700; }
 
 /* Responsive Container */
 .app-container {

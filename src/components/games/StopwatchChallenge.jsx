@@ -109,78 +109,85 @@ export const StopwatchChallenge = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: userRole === 'participant' ? '6px' : '12px' }}>
       
-      {/* Game Header Toolbar */}
-      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ fontSize: '1.4rem' }}>⏱️</div>
-          <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
-              0.000초 정밀 스톱워치 타겟 ({TARGET_TIME.toFixed(1)}s)
-            </h2>
+      {/* Game Header Toolbar (Host has full controls, Participant has sleek minimal tag) */}
+      {userRole === 'host' ? (
+        <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '1.4rem' }}>⏱️</div>
+            <div>
+              <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+                0.000초 칼타이밍 스톱워치 타겟 ({TARGET_TIME.toFixed(1)}초)
+              </h2>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+              <Zap size={14} /> 100인 봇 즉시 측정
+            </button>
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled || rankedParticipants.length === 0}
+              className="btn-primary" 
+              style={{ 
+                background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
+              }}
+            >
+              {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 스톱 측정 후 정산' : '🏆 포인트 정산하기'}
+            </button>
+            <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              🏠 로비로
+            </button>
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {userRole === 'host' && (
-            <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
-                <Zap size={14} /> 100인 봇 즉시 측정
-              </button>
-              <button 
-                onClick={handleSettlePoints} 
-                disabled={isSettled || rankedParticipants.length === 0}
-                className="btn-primary" 
-                style={{ 
-                  background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
-                  cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1,
-                  padding: '6px 14px', fontSize: '0.85rem'
-                }}
-              >
-                {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 스톱 측정 후 정산' : '🏆 포인트 정산하기'}
-              </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                🏠 로비로
-              </button>
-            </>
-          )}
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 6px' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+            ⏱️ 10초 스톱워치
+          </span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-sub)' }}>
+            목표: <strong>{TARGET_TIME.toFixed(3)}초</strong> (5초 뒤 숨김)
+          </span>
         </div>
-      </div>
+      )}
 
       {/* Main Game Interface (Split Screen if Host / Large Display) */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '10px' }}>
         
         {/* Stopwatch Controller Box */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '12px 10px' : '20px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-            TARGET TIME: <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}s</strong> ({HIDE_TIME}초 후 블라인드)
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)', marginBottom: '4px', fontWeight: 700 }}>
+            목표 시간: <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}초</strong> (5초 후 타이머 숨김)
           </div>
 
           {/* Large Digital Timer Display */}
           <div style={{
-            fontSize: userRole === 'participant' ? '3.2rem' : '4rem',
+            fontSize: userRole === 'participant' ? '3rem' : '4rem',
             fontWeight: 900,
             fontFamily: 'monospace',
             color: isRunning && elapsed > HIDE_TIME ? 'var(--text-sub)' : 'var(--primary-color)',
             textShadow: isRunning && elapsed > HIDE_TIME ? 'none' : '0 0 20px var(--primary-glow)',
-            margin: '12px 0',
+            margin: userRole === 'participant' ? '8px 0' : '12px 0',
             background: 'rgba(0, 0, 0, 0.4)',
-            padding: '12px 28px',
-            borderRadius: '20px',
+            padding: userRole === 'participant' ? '8px 20px' : '12px 28px',
+            borderRadius: '16px',
             border: '2px solid var(--card-border)',
             letterSpacing: '2px',
-            minWidth: '260px',
+            minWidth: '240px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px'
           }}>
             {isRunning && elapsed > HIDE_TIME ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '2.2rem', color: '#888' }}>
-                <EyeOff size={30} /> ??.???
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '2rem', color: '#888' }}>
+                <EyeOff size={26} /> ??.???
               </div>
             ) : (
               stoppedTime !== null ? stoppedTime.toFixed(3) : elapsed.toFixed(3)
@@ -190,21 +197,21 @@ export const StopwatchChallenge = () => {
           {/* Result Tag if stopped */}
           {stoppedTime !== null && (
             <div style={{
-              fontSize: '1.1rem',
+              fontSize: '1rem',
               fontWeight: 800,
-              padding: '6px 16px',
-              borderRadius: '16px',
-              marginBottom: '14px',
+              padding: '4px 14px',
+              borderRadius: '12px',
+              marginBottom: '10px',
               background: Math.abs(stoppedTime - TARGET_TIME) <= 0.05 ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 0, 85, 0.2)',
               color: Math.abs(stoppedTime - TARGET_TIME) <= 0.05 ? 'var(--success-color)' : 'var(--danger-color)',
               border: '1px solid currentColor'
             }}>
-              오차: {stoppedTime >= TARGET_TIME ? '+' : ''}{(stoppedTime - TARGET_TIME).toFixed(3)}초 (차이: {Math.abs(stoppedTime - TARGET_TIME).toFixed(3)}s)
+              오차: {stoppedTime >= TARGET_TIME ? '+' : ''}{(stoppedTime - TARGET_TIME).toFixed(3)}초 (차이: {Math.abs(stoppedTime - TARGET_TIME).toFixed(3)}초)
             </div>
           )}
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
             {userRole === 'host' ? (
               <>
                 {room.gameState === 'ready' && (

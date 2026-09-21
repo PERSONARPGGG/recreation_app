@@ -31,7 +31,8 @@ export const TugOfWar = () => {
     }
     // Alliance mode: Odd teams or odd index = Left, Even teams or even index = Right
     if (p.teamId) {
-      return p.teamId === 'team-1' || p.teamId === 'team-3' || p.teamId === 'team-5';
+      const teamNum = parseInt(p.teamId.replace('team-', ''), 10);
+      if (!isNaN(teamNum)) return teamNum % 2 !== 0;
     }
     const numId = parseInt(p.id.replace(/\D/g, '') || index, 10);
     return numId % 2 !== 0;

@@ -187,9 +187,14 @@ export const GameProvider = ({ children }) => {
   // 100-Bot Simulation Engine
   const populateBots = (count = 100) => {
     const newBots = [];
+    const teamCount = activeTeams.length || 1;
+    const botsPerTeam = Math.ceil(count / teamCount);
+
     for (let i = 1; i <= count; i++) {
       const nameIndex = (i - 1) % BOT_NICKNAMES.length;
-      const teamObj = activeTeams[(i - 1) % activeTeams.length];
+      // In team mode, group bots sequentially by team so teams are not scrambled
+      const teamIndex = room.mode === 'team' ? Math.floor((i - 1) / botsPerTeam) % teamCount : 0;
+      const teamObj = activeTeams[teamIndex] || activeTeams[0];
       newBots.push({
         id: `bot-${i}`,
         name: `${BOT_NICKNAMES[nameIndex]} #${i}`,
@@ -203,7 +208,7 @@ export const GameProvider = ({ children }) => {
     }
 
     // Add host/my player
-    const myTeam = activeTeams[0];
+    const myTeam = activeTeams.find(t => t.id === myTeamId) || activeTeams[0];
     const me = {
       id: myPlayerId,
       name: myPlayerName,

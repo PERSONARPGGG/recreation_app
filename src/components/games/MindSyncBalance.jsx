@@ -108,51 +108,60 @@ export const MindSyncBalance = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: userRole === 'participant' ? '6px' : '12px' }}>
       
       {/* Header Toolbar */}
-      <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ fontSize: '1.4rem' }}>⚖️</div>
-          <div>
-            <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
-              심리 밸런스 황금비율 타겟 (2/3)
-            </h2>
+      {userRole === 'host' ? (
+        <div className="glass-panel" style={{ padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '1.4rem' }}>⚖️</div>
+            <div>
+              <h2 className="font-heading text-gradient" style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>
+                심리 밸런스 황금비율 타겟 (2/3)
+              </h2>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
+              <Zap size={14} /> 100인 수치 시뮬레이션
+            </button>
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled || !isRevealed}
+              className="btn-primary" 
+              style={{ 
+                background: isSettled ? '#555' : !isRevealed ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || !isRevealed ? 'not-allowed' : 'pointer',
+                opacity: (!isRevealed && !isSettled) ? 0.6 : 1,
+                padding: '6px 14px', fontSize: '0.85rem'
+              }}
+            >
+              {isSettled ? '✅ 정산 완료' : !isRevealed ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
+            </button>
+            <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              🏠 로비로
+            </button>
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {userRole === 'host' && (
-            <>
-              <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
-                <Zap size={14} /> 100인 수치 시뮬레이션
-              </button>
-              <button 
-                onClick={handleSettlePoints} 
-                disabled={isSettled || !isRevealed}
-                className="btn-primary" 
-                style={{ 
-                  background: isSettled ? '#555' : !isRevealed ? '#333' : 'var(--success-color)', 
-                  cursor: isSettled || !isRevealed ? 'not-allowed' : 'pointer',
-                  opacity: (!isRevealed && !isSettled) ? 0.6 : 1,
-                  padding: '6px 14px', fontSize: '0.85rem'
-                }}
-              >
-                {isSettled ? '✅ 정산 완료' : !isRevealed ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
-              </button>
-              <button onClick={handleReturnToLobby} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                🏠 로비로
-              </button>
-            </>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 6px' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+            ⚖️ 심리 밸런스 2/3 맞추기
+          </span>
+          {timeLeft !== null && timeLeft > 0 && !isLocked && (
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--danger-color)' }}>
+              ⏱️ {timeLeft}초 남음
+            </span>
           )}
         </div>
-      </div>
+      )}
 
       {/* Main Game Interface */}
-      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: userRole === 'host' ? '1fr 1fr' : '1fr', gap: '10px' }}>
         
         {/* Number Selector Dial */}
-        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '16px 12px' : '24px 16px', textAlign: 'center' }}>
+        <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '12px 10px' : '24px 16px', textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <div style={{ fontSize: '1rem', color: 'var(--text-sub)', fontWeight: 800 }}>
               내가 선택한 숫자 (1~100)

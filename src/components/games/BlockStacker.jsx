@@ -119,7 +119,12 @@ export const BlockStacker = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { stack, currentBlock, blockHeight, canvasWidth, canvasHeight } = gameStateRef.current;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    gameStateRef.current.canvasWidth = canvasWidth;
+    gameStateRef.current.canvasHeight = canvasHeight;
+
+    const { stack, currentBlock, blockHeight } = gameStateRef.current;
 
     // Move current block
     currentBlock.x += currentBlock.speed * currentBlock.dir;
@@ -293,10 +298,10 @@ export const BlockStacker = () => {
 
         {blockstackState === 'playing' && (
           <div>
-            <div style={{ position: 'relative', width: '320px', height: '360px', margin: '0 auto', background: 'rgba(0,0,0,0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-              <canvas ref={canvasRef} width={320} height={360} style={{ display: 'block', width: '100%', height: '100%' }} />
+            <div style={{ position: 'relative', width: '300px', height: '260px', margin: '0 auto', background: 'rgba(0,0,0,0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+              <canvas ref={canvasRef} width={300} height={260} style={{ display: 'block', width: '100%', height: '100%' }} />
               
-              <div style={{ position: 'absolute', top: '10px', left: '12px', fontSize: '1.2rem', fontWeight: 900, color: '#fff' }}>
+              <div style={{ position: 'absolute', top: '8px', left: '10px', fontSize: '1.1rem', fontWeight: 900, color: '#fff' }}>
                 타워: <span style={{ color: '#00f3ff' }}>{score}층</span>
               </div>
             </div>
@@ -306,12 +311,13 @@ export const BlockStacker = () => {
               disabled={localGameOver}
               className="btn-primary"
               style={{
-                marginTop: '15px',
+                marginTop: '10px',
                 width: '100%',
-                padding: '24px 20px',
-                fontSize: '1.6rem',
+                maxWidth: '300px',
+                padding: '16px 20px',
+                fontSize: '1.4rem',
                 fontWeight: 900,
-                borderRadius: '20px',
+                borderRadius: '16px',
                 background: localGameOver ? '#444' : 'linear-gradient(135deg, #00f3ff 0%, #0066ff 100%)',
                 cursor: localGameOver ? 'not-allowed' : 'pointer'
               }}
