@@ -19,6 +19,7 @@ export const SurvivalOxQuiz = () => {
   const [customAnswer, setCustomAnswer] = useState('O');
   const [myChoice, setMyChoice] = useState(null);
   const [revealed, setRevealed] = useState(false);
+  const [isSettled, setIsSettled] = useState(false);
 
   const questionObj = OX_QUESTION_BANK[currentQIndex];
 
@@ -32,21 +33,19 @@ export const SurvivalOxQuiz = () => {
     soundFx.playDrumroll(1.5);
     setTimeout(() => {
       setRevealed(true);
+      setIsSettled(false);
       soundFx.playSuccess();
-      
-      // Auto-award points to survivors
-      const currentSurvivors = participants.filter(p => p.lastInput?.choice === questionObj.a);
-      currentSurvivors.forEach(s => {
-        awardPoints(s.id, 100, false);
-      });
     }, 1500);
   };
 
+
   const handleNextQuestion = () => {
     setRevealed(false);
+    setIsSettled(false);
     setMyChoice(null);
     setCurrentQIndex((prev) => (prev + 1) % OX_QUESTION_BANK.length);
   };
+
 
   const handleSimulateBots = () => {
     simulateBotGameInputs('oxquiz');
@@ -62,6 +61,15 @@ export const SurvivalOxQuiz = () => {
 
   // Survivors
   const survivors = participants.filter(p => p.lastInput?.choice === questionObj.a);
+
+  const handleSettlePoints = () => {
+    if (isSettled || !revealed) return;
+    survivors.forEach(s => {
+      awardPoints(s.id, 100, false);
+    });
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -83,11 +91,16 @@ export const SurvivalOxQuiz = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
             <>
+              {revealed && !isSettled && (
+                <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
+                  🏆 정답자 일괄 정산하기
+                </button>
+              )}
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 투표 시뮬레이션
               </button>
               <button onClick={returnToLobby} className="btn-secondary">
-                로비로 돌아가기
+                🏠 로비로 돌아가기
               </button>
             </>
           )}

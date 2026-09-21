@@ -15,12 +15,14 @@ export const RapidTapSprint = () => {
   const [isRacing, setIsRacing] = useState(false);
   const [tapCount, setTapCount] = useState(hasSubmitted ? myPlayer.lastInput.tapCount : 0);
   const [raceFinished, setRaceFinished] = useState(hasSubmitted);
+  const [isSettled, setIsSettled] = useState(false);
 
   const timerRef = useRef(null);
 
   const startRace = () => {
     setIsRacing(true);
     setRaceFinished(false);
+    setIsSettled(false);
     setTapCount(0);
     setTimeLeft(GAME_DURATION);
     soundFx.playCountdown(true);
@@ -46,6 +48,7 @@ export const RapidTapSprint = () => {
     } else if (room.gameState === 'ready') {
       setIsRacing(false);
       setRaceFinished(false);
+      setIsSettled(false);
       setTapCount(0);
       setTimeLeft(GAME_DURATION);
       clearInterval(timerRef.current);
@@ -85,6 +88,25 @@ export const RapidTapSprint = () => {
     return { ...t, totalTaps };
   }).sort((a, b) => b.totalTaps - a.totalTaps);
 
+  const handleSettlePoints = () => {
+    if (isSettled || !raceFinished) return;
+    if (room.mode === 'team') {
+      // Award top 3 teams
+      teamScores.slice(0, 3).forEach((t, idx) => {
+        const points = idx === 0 ? 1000 : idx === 1 ? 500 : 300;
+        awardPoints(t.id, points, true);
+      });
+    } else {
+      // Award top 10 players
+      rankedParticipants.slice(0, 10).forEach((p, idx) => {
+        const points = idx === 0 ? 500 : idx < 3 ? 300 : 100;
+        awardPoints(p.id, points, false);
+      });
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -105,11 +127,16 @@ export const RapidTapSprint = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
             <>
+              {raceFinished && !isSettled && (
+                <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
+                  🏆 일괄 정산하기
+                </button>
+              )}
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 탭 시뮬레이션
               </button>
               <button onClick={returnToLobby} className="btn-secondary">
-                로비로 돌아가기
+                🏠 로비로 돌아가기
               </button>
             </>
           )}

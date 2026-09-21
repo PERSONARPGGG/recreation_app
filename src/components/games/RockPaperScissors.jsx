@@ -7,8 +7,10 @@ const CHOICES = ['가위', '바위', '보'];
 const EMOJIS = { '가위': '✌️', '바위': '✊', '보': '✋' };
 
 export const RockPaperScissors = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState, awardPoints } = useGame();
   
+  const [isSettled, setIsSettled] = useState(false);
+
   // Use room state instead of local state for sync
   const rpsState = room.rpsState || 'ready';
   const round = room.rpsRound || 1;
@@ -17,6 +19,7 @@ export const RockPaperScissors = () => {
 
   const startGame = () => {
     updateRoomState({ rpsState: 'choosing', rpsHostChoice: null, rpsRound: 1, rpsSurvivors: participants });
+    setIsSettled(false);
     soundFx.playTick();
   };
 
@@ -54,11 +57,11 @@ export const RockPaperScissors = () => {
     soundFx.playTick();
   };
 
-  const handleReturnToLobby = () => {
-    if (rpsState !== 'ready' && survivors.length > 0) {
-      survivors.forEach(s => awardPoints(s.id, 500, false));
-    }
-    returnToLobby();
+  const handleSettlePoints = () => {
+    if (isSettled || rpsState === 'ready' || survivors.length === 0) return;
+    survivors.forEach(s => awardPoints(s.id, 500, false));
+    setIsSettled(true);
+    soundFx.playSuccess();
   };
 
   if (userRole === 'participant') {
@@ -106,9 +109,16 @@ export const RockPaperScissors = () => {
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           ✊✌️✋ 대규모 가위바위보 서바이벌
         </h2>
-        <button onClick={handleReturnToLobby} className="btn-secondary">
-          {rpsState !== 'ready' ? '🏆 생존자 500점 정산 및 로비로 가기' : '로비로 돌아가기'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && rpsState !== 'ready' && !isSettled && (
+            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
+              🏆 생존자 500점 정산
+            </button>
+          )}
+          <button onClick={returnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
       
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

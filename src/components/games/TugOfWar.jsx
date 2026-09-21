@@ -3,11 +3,15 @@ import { useGame } from '../../context/GameContext';
 import { Activity, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
+const GAME_DURATION = 10;
+
 export const TugOfWar = () => {
   const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
   
+  const [isSettled, setIsSettled] = useState(false);
+
   const gameState = room.tugState || 'ready';
-  const timeLeft = room.tugTimeLeft || 10;
+  const timeLeft = room.tugTimeLeft || GAME_DURATION;
   const ropePosition = room.tugRopePos || 50;
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export const TugOfWar = () => {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [userRole, gameState, ropePosition, awardPoints]);
+  }, [userRole, gameState, ropePosition, awardPoints, room.tugTimeLeft, updateRoomState]);
 
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
@@ -46,11 +50,12 @@ export const TugOfWar = () => {
       
       updateRoomState({ tugRopePos: newPos });
     }
-  }, [participants, userRole, gameState]);
+  }, [participants, userRole, gameState, updateRoomState]);
 
-  const startGame = () => {
-    updateRoomState({ tugTimeLeft: 10, tugRopePos: 50, tugState: 'playing' });
-    soundFx.playTick();
+  const startGameLogic = () => {
+    updateRoomState({ tugState: 'playing', tugTimeLeft: GAME_DURATION, tugRopePos: 50 });
+    setIsSettled(false);
+    soundFx.playSpookyNight();
   };
 
   const handlePull = () => {
@@ -59,19 +64,19 @@ export const TugOfWar = () => {
     submitPlayerInput(myPlayerId, { taps: currentTaps + 1 });
   };
 
-  const handleReturnToLobby = () => {
-    if (gameState === 'finished') {
-      if (ropePosition < 50) {
-        awardPoints('team-1', 500, true);
-        awardPoints('team-3', 500, true);
-        awardPoints('team-5', 500, true);
-      } else if (ropePosition > 50) {
-        awardPoints('team-2', 500, true);
-        awardPoints('team-4', 500, true);
-        awardPoints('team-6', 500, true);
-      }
+  const handleSettlePoints = () => {
+    if (isSettled || gameState !== 'finished') return;
+    if (ropePosition < 50) {
+      awardPoints('team-1', 500, true);
+      awardPoints('team-3', 500, true);
+      awardPoints('team-5', 500, true);
+    } else if (ropePosition > 50) {
+      awardPoints('team-2', 500, true);
+      awardPoints('team-4', 500, true);
+      awardPoints('team-6', 500, true);
     }
-    returnToLobby();
+    setIsSettled(true);
+    soundFx.playSuccess();
   };
 
   if (userRole === 'participant') {
@@ -105,18 +110,25 @@ export const TugOfWar = () => {
 
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🪢 영차영차! 100인 줄다리기</h2>
-        <button onClick={handleReturnToLobby} className="btn-secondary">
-          {gameState === 'finished' ? '🏆 점수 정산 및 로비로 돌아가기' : '로비로 돌아가기'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && gameState === 'finished' && !isSettled && (
+            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
+              🏆 100인 일괄 정산하기
+            </button>
+          )}
+          <button onClick={returnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
         {gameState === 'ready' && (
           <div style={{ textAlign: 'center' }}>
             <Activity size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
-            <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}><Play size={20} /> 경기 시작</button>
+            <button onClick={startGameLogic} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}><Play size={20} /> 경기 시작</button>
           </div>
         )}
 

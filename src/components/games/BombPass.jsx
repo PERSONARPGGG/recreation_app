@@ -9,6 +9,7 @@ export const BombPass = () => {
   const gameState = room.bombState || 'ready';
   const timeLeft = room.bombTimeLeft || 0;
   const bombHolder = room.bombHolder || null;
+  const [isSettled, setIsSettled] = useState(false);
 
   // Host simulation for bomb passing
   useEffect(() => {
@@ -54,6 +55,7 @@ export const BombPass = () => {
       initialHolder = participants[Math.floor(Math.random() * participants.length)];
     }
     updateRoomState({ bombState: 'playing', bombTimeLeft: explosionTime, bombHolder: initialHolder });
+    setIsSettled(false);
     soundFx.playSpookyNight();
   };
 
@@ -62,13 +64,12 @@ export const BombPass = () => {
     soundFx.playTick();
   };
 
-  const handleReturnToLobby = () => {
-    if (gameState === 'exploded') {
-      const survivors = participants.filter(p => p.id !== bombHolder?.id);
-      survivors.forEach(s => awardPoints(s.id, 300, false));
-      soundFx.playSuccess();
-    }
-    returnToLobby();
+  const handleSettlePoints = () => {
+    if (isSettled || gameState !== 'exploded') return;
+    const survivors = participants.filter(p => p.id !== bombHolder?.id);
+    survivors.forEach(s => awardPoints(s.id, 300, false));
+    setIsSettled(true);
+    soundFx.playSuccess();
   };
 
   if (userRole === 'participant') {
@@ -98,9 +99,16 @@ export const BombPass = () => {
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           💣 시한폭탄 돌리기 (Bomb Pass)
         </h2>
-        <button onClick={handleReturnToLobby} className="btn-secondary">
-          {gameState === 'exploded' ? '🏆 생존자 정산 및 로비로 돌아가기' : '로비로 돌아가기'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && gameState === 'exploded' && !isSettled && (
+            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
+              🏆 생존자 정산하기
+            </button>
+          )}
+          <button onClick={returnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>

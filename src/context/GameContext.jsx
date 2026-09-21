@@ -230,10 +230,10 @@ export const GameProvider = ({ children }) => {
   };
 
   // Join as real participant
-  const joinAsPlayer = (name, selectedTeamId) => {
+  const joinAsPlayer = (name, selectedTeamId, forceId = null) => {
     const teamObj = activeTeams.find(t => t.id === selectedTeamId) || activeTeams[0];
     const newPlayer = {
-      id: `player-${Date.now()}`,
+      id: forceId || `player-${Date.now()}`,
       name,
       isBot: false,
       teamId: room.mode === 'team' ? teamObj.id : null,
@@ -247,12 +247,30 @@ export const GameProvider = ({ children }) => {
     setMyPlayerName(name);
     setMyTeamId(newPlayer.teamId);
 
+    // Save to session to prevent team switching on refresh
+    sessionStorage.setItem('rec_myPlayerId', newPlayer.id);
+    sessionStorage.setItem('rec_myPlayerName', name);
+    sessionStorage.setItem('rec_myTeamId', teamObj.id);
+
     setParticipants(prev => {
       const filtered = prev.filter(p => p.id !== newPlayer.id);
       const updated = [...filtered, newPlayer];
       broadcast('PLAYER_JOIN', newPlayer);
       return updated;
     });
+  };
+
+  const rejoinFromSession = () => {
+    const savedId = sessionStorage.getItem('rec_myPlayerId');
+    const savedName = sessionStorage.getItem('rec_myPlayerName');
+    const savedTeamId = sessionStorage.getItem('rec_myTeamId');
+
+    if (savedId && savedName) {
+      joinAsPlayer(savedName, savedTeamId, savedId);
+      setUserRole('participant');
+      return true;
+    }
+    return false;
   };
 
   // Host creates a room
@@ -502,6 +520,7 @@ export const GameProvider = ({ children }) => {
         confirmRoomSetup,
         requestSync,
         joinAsPlayer,
+        rejoinFromSession,
         startGame,
         updateRoomState,
         startRound,
