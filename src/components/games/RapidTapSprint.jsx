@@ -156,7 +156,7 @@ export const RapidTapSprint = () => {
               )}
               {room.gameState === 'playing' && isRacing && (
                 <button
-                  onClick={handleTap}
+                  onPointerDown={handleTap}
                   className="btn-primary animate-pulse-glow"
                   style={{
                     width: '220px',
@@ -167,7 +167,10 @@ export const RapidTapSprint = () => {
                     background: 'linear-gradient(135deg, #ff0055 0%, #ff00e5 100%)',
                     boxShadow: '0 0 50px rgba(255, 0, 85, 0.8)',
                     cursor: 'pointer',
-                    marginTop: '20px'
+                    marginTop: '20px',
+                    touchAction: 'manipulation',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none'
                   }}
                 >
                   🔥 TAP! (연타)

@@ -33,6 +33,12 @@ export const SurvivalOxQuiz = () => {
     setTimeout(() => {
       setRevealed(true);
       soundFx.playSuccess();
+      
+      // Auto-award points to survivors
+      const currentSurvivors = participants.filter(p => p.lastInput?.choice === questionObj.a);
+      currentSurvivors.forEach(s => {
+        awardPoints(s.id, 100, false);
+      });
     }, 1500);
   };
 

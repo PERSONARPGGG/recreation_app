@@ -31,7 +31,7 @@ const MainAppContent = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.1 (게임 종료 시 점수 정산 및 버그 픽스)
+          버전: v1.4.2 (모바일 터치 최적화 및 퀴즈/폭탄 점수 정산 추가)
         </div>
       </footer>
     </div>

@@ -79,7 +79,19 @@ export const TugOfWar = () => {
       <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🪢 100인 줄다리기</h2>
         {gameState === 'playing' ? (
-          <button onClick={handlePull} className="btn-primary" style={{ padding: '50px 20px', fontSize: '2rem', background: 'var(--primary-color)', color: '#000' }}>
+          <button 
+            onPointerDown={handlePull} 
+            className="btn-primary" 
+            style={{ 
+              padding: '50px 20px', 
+              fontSize: '2rem', 
+              background: 'var(--primary-color)', 
+              color: '#000',
+              touchAction: 'manipulation',
+              userSelect: 'none',
+              WebkitUserSelect: 'none'
+            }}
+          >
             당겨!! (터치 연타)
           </button>
         ) : gameState === 'finished' ? (

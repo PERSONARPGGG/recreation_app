@@ -17,6 +17,9 @@ export const BombPass = () => {
         if (room.bombTimeLeft <= 1) {
           updateRoomState({ bombState: 'exploded', bombTimeLeft: 0 });
           soundFx.playError();
+          if (room.bombHolder) {
+            awardPoints(room.bombHolder.id, -100, false);
+          }
         } else {
           updateRoomState({ bombTimeLeft: room.bombTimeLeft - 1 });
         }
@@ -59,6 +62,15 @@ export const BombPass = () => {
     soundFx.playTick();
   };
 
+  const handleReturnToLobby = () => {
+    if (gameState === 'exploded') {
+      const survivors = participants.filter(p => p.id !== bombHolder?.id);
+      survivors.forEach(s => awardPoints(s.id, 300, false));
+      soundFx.playSuccess();
+    }
+    returnToLobby();
+  };
+
   if (userRole === 'participant') {
     return (
       <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -86,8 +98,8 @@ export const BombPass = () => {
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           💣 시한폭탄 돌리기 (Bomb Pass)
         </h2>
-        <button onClick={returnToLobby} className="btn-secondary">
-          로비로 돌아가기
+        <button onClick={handleReturnToLobby} className="btn-secondary">
+          {gameState === 'exploded' ? '🏆 생존자 정산 및 로비로 돌아가기' : '로비로 돌아가기'}
         </button>
       </div>
 
