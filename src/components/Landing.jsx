@@ -241,7 +241,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.5 (타이머/결과 마감 후 입력 차단 및 전 게임 재진입·새로고침 상태 동기화)
+          버전: v1.4.6 (눈치게임·줄다리기 무한루프/프리징 해결, 초성퀴즈 입력단일잠금, 럭키룰렛 물리엔진 & 가위바위보 공정 1/3 랜덤 슬롯)
         </div>
       </footer>
     </div>

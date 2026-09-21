@@ -39,14 +39,16 @@ export const InitialWordQuiz = () => {
       
       const allWinners = [...activeSubmissions, ...botSubmissions];
       
-        if (allWinners.length >= 3) {
-          // Top 3 found
-          const top3 = allWinners.slice(0, 3);
-          updateRoomState({ quizWinners: top3, quizState: 'finished' });
-          soundFx.playSuccess();
+      // Check if winners found or all active participants answered
+      const targetCount = Math.min(Math.max(participants.length, 1), 3);
+      if (allWinners.length >= targetCount || (participants.length > 0 && activeSubmissions.length >= participants.length)) {
+        // Winners found
+        const topWinners = allWinners.slice(0, 3);
+        updateRoomState({ quizWinners: topWinners, quizState: 'finished' });
+        soundFx.playSuccess();
         
         // Award points
-        top3.forEach((w, idx) => {
+        topWinners.forEach((w, idx) => {
           const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
           awardPoints(w.id, points, false);
           if (w.teamId) awardPoints(w.teamId, points, true);
@@ -69,17 +71,30 @@ export const InitialWordQuiz = () => {
     soundFx.playTick();
   };
 
+  const handleEndRoundManually = () => {
+    // Find who got it right so far
+    if (!currentWord) return;
+    const rightSubmissions = participants.filter(p => {
+      const pWord = p.lastInput?.word?.trim().toLowerCase();
+      const ansWord = currentWord.answer.trim().toLowerCase();
+      return pWord === ansWord;
+    });
+    updateRoomState({ quizWinners: rightSubmissions.slice(0, 3), quizState: 'finished' });
+    soundFx.playSuccess();
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!myInput.trim() || gameState !== 'playing') return;
     submitPlayerInput(myPlayerId, { word: myInput.trim() });
     setMyInput('');
-    soundFx.playTick();
+    soundFx.playSuccess();
   };
 
   if (userRole === 'participant') {
     const myPlayer = participants.find(p => p.id === myPlayerId);
     const mySubmittedWord = myPlayer?.lastInput?.word;
+    const hasSubmitted = !!mySubmittedWord;
     const isWinner = winners.some(w => w.id === myPlayerId);
     const winnerRank = winners.findIndex(w => w.id === myPlayerId) + 1;
 
@@ -92,22 +107,34 @@ export const InitialWordQuiz = () => {
             <div style={{ fontSize: '4.5rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '8px', margin: '15px 0' }}>
               {currentWord?.initial}
             </div>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
-              <input
-                type="text"
-                value={myInput}
-                onChange={(e) => setMyInput(e.target.value)}
-                placeholder="정답 단어 입력"
-                style={{ padding: '16px', borderRadius: '12px', fontSize: '1.3rem', textAlign: 'center', border: '2px solid var(--primary-color)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
-              />
-              <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.2rem' }}>
-                🚀 정답 제출!
-              </button>
-            </form>
-            {mySubmittedWord && (
-              <div style={{ marginTop: '16px', color: 'var(--text-sub)', fontSize: '1rem' }}>
-                최근 제출: <strong style={{ color: '#fff' }}>"{mySubmittedWord}"</strong>
+
+            {hasSubmitted ? (
+              <div className="glass-card" style={{ padding: '24px', background: 'rgba(34, 197, 94, 0.12)', border: '2px solid var(--success-color)', borderRadius: '16px', maxWidth: '420px', margin: '20px auto' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>✅</div>
+                <h3 style={{ color: 'var(--success-color)', fontSize: '1.3rem', fontWeight: 800, marginBottom: '8px' }}>
+                  입력을 완료하였습니다.
+                </h3>
+                <p style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>
+                  제출한 단어: <strong style={{ color: 'var(--primary-color)', fontSize: '1.3rem' }}>"{mySubmittedWord}"</strong>
+                </p>
+                <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '12px' }}>
+                  정답 발표 및 다른 참가자들의 제출을 대기하고 있습니다...
+                </div>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
+                <input
+                  type="text"
+                  value={myInput}
+                  onChange={(e) => setMyInput(e.target.value)}
+                  placeholder="정답 단어 입력"
+                  autoFocus
+                  style={{ padding: '16px', borderRadius: '12px', fontSize: '1.3rem', textAlign: 'center', border: '2px solid var(--primary-color)', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.2rem' }}>
+                  🚀 정답 제출!
+                </button>
+              </form>
             )}
           </div>
         ) : gameState === 'finished' ? (
@@ -217,12 +244,51 @@ export const InitialWordQuiz = () => {
         )}
 
         {gameState === 'playing' && (
-          <div style={{ textAlign: 'center' }}>
-            <h3 style={{ fontSize: '1.5rem', color: 'var(--text-sub)' }}>가장 먼저 정답을 맞혀라!</h3>
-            <div style={{ fontSize: '6rem', fontWeight: 900, color: '#fff', letterSpacing: '10px', margin: '20px 0' }}>
+          <div style={{ textAlign: 'center', width: '100%', maxWidth: '600px' }}>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-sub)' }}>가장 먼저 정답을 맞혀라!</h3>
+            <div style={{ fontSize: '5.5rem', fontWeight: 900, color: '#fff', letterSpacing: '10px', margin: '15px 0' }}>
               {currentWord?.initial}
             </div>
-            <div className="spinner" style={{ margin: '0 auto' }}></div>
+            <div style={{ color: 'var(--primary-color)', fontSize: '1.2rem', marginBottom: '20px' }}>
+              (사회자 참고 정답: <strong>{currentWord?.answer}</strong>)
+            </div>
+
+            {/* Live Submissions */}
+            <div className="glass-card" style={{ padding: '16px', marginBottom: '20px', textAlign: 'left', maxHeight: '180px', overflowY: 'auto' }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-sub)', marginBottom: '8px' }}>
+                실시간 참가자 입력 현황 ({participants.filter(p => p.lastInput?.word).length}/{participants.length}명 완료):
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {participants.map(p => {
+                  const hasSub = !!p.lastInput?.word;
+                  return (
+                    <span 
+                      key={p.id} 
+                      style={{ 
+                        padding: '4px 10px', 
+                        borderRadius: '20px', 
+                        fontSize: '0.85rem',
+                        background: hasSub ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                        border: hasSub ? '1px solid var(--success-color)' : '1px solid #444',
+                        color: hasSub ? '#4ade80' : '#888'
+                      }}
+                    >
+                      {p.name}: {hasSub ? `"${p.lastInput.word}"` : '대기중...'}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+              <button 
+                onClick={handleEndRoundManually} 
+                className="btn-secondary" 
+                style={{ padding: '10px 24px', borderColor: 'var(--warning-color)', color: 'var(--warning-color)' }}
+              >
+                ⏹️ 라운드 마감 & 정답 확인
+              </button>
+            </div>
           </div>
         )}
 

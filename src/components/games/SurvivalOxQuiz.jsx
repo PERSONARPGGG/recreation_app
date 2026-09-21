@@ -25,7 +25,7 @@ export const SurvivalOxQuiz = () => {
   const questionObj = OX_QUESTION_BANK[currentQIndex] || OX_QUESTION_BANK[0];
 
   const handleSelectAnswer = (choice) => {
-    if (revealed) return; // Disallow picking after reveal
+    if (revealed || hasChosen) return; // Disallow picking after reveal or once chosen
     submitPlayerInput(myPlayerId, { choice });
     soundFx.playTick();
   };
@@ -65,7 +65,7 @@ export const SurvivalOxQuiz = () => {
 
   const handleSettlePoints = () => {
     if (isSettled) return;
-    setRevealed(true);
+    updateRoomState({ oxRevealed: true });
     if (survivors.length > 0) {
       survivors.forEach(s => {
         awardPoints(s.id, 100, false);
@@ -141,7 +141,7 @@ export const SurvivalOxQuiz = () => {
           
           <button
             onClick={() => handleSelectAnswer('O')}
-            disabled={revealed}
+            disabled={revealed || (userRole === 'participant' && hasChosen)}
             style={{
               background: myChoice === 'O' ? 'rgba(0, 243, 255, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'O' ? '3px solid var(--primary-color)' : '2px solid rgba(255, 255, 255, 0.1)',
@@ -150,8 +150,8 @@ export const SurvivalOxQuiz = () => {
               color: 'var(--primary-color)',
               fontSize: '4.5rem',
               fontWeight: 900,
-              cursor: revealed ? 'not-allowed' : 'pointer',
-              opacity: revealed && myChoice !== 'O' ? 0.35 : 1,
+              cursor: (revealed || (userRole === 'participant' && hasChosen)) ? 'not-allowed' : 'pointer',
+              opacity: (revealed || hasChosen) && myChoice !== 'O' ? 0.35 : 1,
               boxShadow: myChoice === 'O' ? '0 0 30px var(--primary-glow)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
@@ -166,7 +166,7 @@ export const SurvivalOxQuiz = () => {
 
           <button
             onClick={() => handleSelectAnswer('X')}
-            disabled={revealed}
+            disabled={revealed || (userRole === 'participant' && hasChosen)}
             style={{
               background: myChoice === 'X' ? 'rgba(255, 0, 122, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: myChoice === 'X' ? '3px solid #ff007a' : '2px solid rgba(255, 255, 255, 0.1)',
@@ -175,8 +175,8 @@ export const SurvivalOxQuiz = () => {
               color: '#ff007a',
               fontSize: '4.5rem',
               fontWeight: 900,
-              cursor: revealed ? 'not-allowed' : 'pointer',
-              opacity: revealed && myChoice !== 'X' ? 0.35 : 1,
+              cursor: (revealed || (userRole === 'participant' && hasChosen)) ? 'not-allowed' : 'pointer',
+              opacity: (revealed || hasChosen) && myChoice !== 'X' ? 0.35 : 1,
               boxShadow: myChoice === 'X' ? '0 0 30px rgba(255,0,122,0.6)' : 'none',
               transition: 'all 0.2s ease',
               display: 'flex',
@@ -190,6 +190,17 @@ export const SurvivalOxQuiz = () => {
           </button>
 
         </div>
+
+        {userRole === 'participant' && hasChosen && !revealed && (
+          <div className="glass-card" style={{ maxWidth: '400px', margin: '-10px auto 25px auto', padding: '12px 20px', textAlign: 'center', border: '1px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)' }}>
+            <div style={{ color: 'var(--success-color)', fontWeight: 800 }}>
+              ✅ 입력을 완료하였습니다. (선택: {myChoice === 'O' ? '⭕ O (참)' : '❌ X (거짓)'})
+            </div>
+            <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '4px' }}>
+              사회자의 정답 공개를 기다리는 중입니다...
+            </div>
+          </div>
+        )}
 
         {/* Live Voting Distribution Bar */}
         <div style={{ maxWidth: '700px', margin: '0 auto 30px auto' }}>

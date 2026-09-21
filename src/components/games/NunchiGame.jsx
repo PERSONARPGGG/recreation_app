@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Eye, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
@@ -12,40 +12,58 @@ export const NunchiGame = () => {
   const eliminated = room.nunchiEliminated || [];
   const passed = room.nunchiPassed || [];
 
+  const processedSubmissionsRef = useRef(new Set());
+
   useEffect(() => {
-    if (userRole === 'host' && gameState === 'playing') {
-      const allSubmissions = participants.map(p => ({
+    if (gameState === 'ready') {
+      processedSubmissionsRef.current.clear();
+    }
+  }, [gameState]);
+
+  useEffect(() => {
+    if (userRole !== 'host' || gameState !== 'playing') return;
+
+    // Collect pending new submissions
+    const pending = participants
+      .filter(p => p.lastInput?.nunchiNum && !processedSubmissionsRef.current.has(`${p.id}-${p.lastInput.time}`))
+      .map(p => ({
         id: p.id,
         name: p.name,
-        num: p.lastInput?.nunchiNum,
-        time: p.lastInput?.time
-      })).filter(p => p.num && !eliminated.some(e => e.id === p.id) && !passed.includes(p.id));
+        num: p.lastInput.nunchiNum,
+        time: p.lastInput.time || Date.now()
+      }))
+      .filter(p => !eliminated.some(e => e.id === p.id) && !passed.includes(p.id));
 
-      // Sort by time
-      allSubmissions.sort((a, b) => a.time - b.time);
+    if (pending.length === 0) return;
 
-      if (allSubmissions.length > 0) {
-        // Check for duplicates
-        const nums = allSubmissions.map(s => s.num);
-        const duplicates = nums.filter((item, index) => nums.indexOf(item) !== index);
-        
-          if (duplicates.length > 0) {
-            // Anyone who picked a duplicate is eliminated
-            const newlyEliminated = allSubmissions.filter(s => duplicates.includes(s.num));
-            updateRoomState({ nunchiEliminated: [...eliminated, ...newlyEliminated] });
-            soundFx.playError();
-          } else {
-            // Valid sequence
-            const latest = allSubmissions[allSubmissions.length - 1];
-            if (latest.num === currentNumber + 1) {
-              updateRoomState({ nunchiNumber: latest.num, nunchiPassed: [...passed, latest.id] });
-              submitPlayerInput(latest.id, null);
-              soundFx.playSuccess();
-            }
-          }
+    // Mark as processed immediately
+    pending.forEach(p => processedSubmissionsRef.current.add(`${p.id}-${p.time}`));
+
+    // Sort by time
+    pending.sort((a, b) => a.time - b.time);
+
+    const nums = pending.map(s => s.num);
+    const duplicates = nums.filter((item, index) => nums.indexOf(item) !== index);
+
+    if (duplicates.length > 0) {
+      // Duplicate clash
+      const clashPlayers = pending.filter(s => duplicates.includes(s.num));
+      updateRoomState({ nunchiEliminated: [...eliminated, ...clashPlayers] });
+      soundFx.playError();
+    } else {
+      // Check sequential
+      for (const item of pending) {
+        if (item.num === currentNumber + 1) {
+          updateRoomState({ nunchiNumber: item.num, nunchiPassed: [...passed, item.id] });
+          soundFx.playSuccess();
+        } else {
+          // Wrong number out of order -> eliminated
+          updateRoomState({ nunchiEliminated: [...eliminated, item] });
+          soundFx.playError();
         }
       }
-  }, [participants, userRole, gameState, currentNumber, eliminated, room]);
+    }
+  }, [participants, userRole, gameState, currentNumber, eliminated, passed, updateRoomState]);
 
   const startGame = () => {
     // Clear all player inputs for fresh round

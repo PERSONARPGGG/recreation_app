@@ -305,14 +305,15 @@ export const GameProvider = ({ children }) => {
   const cleanTransientGameStates = (baseRoom) => {
     const cleaned = { ...baseRoom };
     const transientKeys = [
-      'rpsState', 'rpsRound', 'rpsHostChoice', 'rpsSurvivors',
+      'rpsState', 'rpsRound', 'rpsHostChoice', 'rpsSurvivors', 'rpsRoundOutcome',
       'nunchiState', 'nunchiNumber', 'nunchiEliminated', 'nunchiPassed',
       'bombState', 'bombTimeLeft', 'bombHolder',
       'quizCurrentWord', 'quizWinners', 'quizState',
       'mindsyncRevealed', 'mindsyncLocked', 'mindsyncTimeLeft',
       'oxQIndex', 'oxRevealed',
       'tugState', 'tugTimeLeft', 'tugRopePos',
-      'sprintTimeLeft'
+      'sprintTimeLeft',
+      'rouletteRotation', 'rouletteState', 'rouletteResult', 'rouletteSelectedTeam'
     ];
     transientKeys.forEach(k => delete cleaned[k]);
     return cleaned;
@@ -550,6 +551,10 @@ export const GameProvider = ({ children }) => {
         } else if (gameType === 'mindsync') {
           const choiceNum = Math.floor(Math.random() * 95) + 5; // 5-100
           botInput = { choiceNum };
+        } else if (gameType === 'tug') {
+          const currentTaps = p.lastInput?.taps || 0;
+          const added = Math.floor(Math.random() * 8) + 2;
+          botInput = { taps: currentTaps + added };
         }
 
         return { ...p, lastInput: botInput };

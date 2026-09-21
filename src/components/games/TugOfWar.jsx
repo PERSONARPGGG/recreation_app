@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Activity, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
@@ -6,7 +6,7 @@ import { soundFx } from '../../utils/sound';
 const GAME_DURATION = 10;
 
 export const TugOfWar = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState, simulateBotGameInputs } = useGame();
   
   const [isSettled, setIsSettled] = useState(false);
 
@@ -14,54 +14,81 @@ export const TugOfWar = () => {
   const timeLeft = room.tugTimeLeft || GAME_DURATION;
   const ropePosition = room.tugRopePos || 50;
 
+  const timeLeftRef = useRef(GAME_DURATION);
+
+  // Independent 1s Countdown Timer for Host
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
+      timeLeftRef.current = GAME_DURATION;
       const interval = setInterval(() => {
-        if (room.tugTimeLeft <= 1) {
+        timeLeftRef.current -= 1;
+        if (timeLeftRef.current <= 0) {
+          clearInterval(interval);
           updateRoomState({ tugState: 'finished', tugTimeLeft: 0 });
           soundFx.playSuccess();
         } else {
-          updateRoomState({ tugTimeLeft: room.tugTimeLeft - 1 });
+          updateRoomState({ tugTimeLeft: timeLeftRef.current });
         }
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [userRole, gameState, ropePosition, awardPoints, room.tugTimeLeft, updateRoomState]);
+  }, [userRole, gameState]); // DO NOT include ropePosition or room.tugTimeLeft
 
+  // Rope Position Calculation based on Real & Bot Taps
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
-      // Calculate taps for left vs right
-      // Odd team index = left, Even = right. Simple simulation for now.
-      const leftForce = participants.reduce((acc, p) => acc + (p.teamId?.includes('1') || p.teamId?.includes('3') || p.teamId?.includes('5') ? (p.lastInput?.taps || 0) : 0), 0);
-      const rightForce = participants.reduce((acc, p) => acc + (p.teamId?.includes('2') || p.teamId?.includes('4') || p.teamId?.includes('6') ? (p.lastInput?.taps || 0) : 0), 0);
-      
-      // Simulate bots tapping
-      const botLeftForce = participants.filter(p => p.isBot && (p.teamId?.includes('1') || p.teamId?.includes('3') || p.teamId?.includes('5'))).length * Math.random() * 2;
-      const botRightForce = participants.filter(p => p.isBot && (p.teamId?.includes('2') || p.teamId?.includes('4') || p.teamId?.includes('6'))).length * Math.random() * 2;
+      // Determine side for each player: Odd teams/IDs = Left (Red), Even teams/IDs = Right (Blue)
+      let leftTaps = 0;
+      let rightTaps = 0;
 
-      const totalLeft = leftForce + botLeftForce;
-      const totalRight = rightForce + botRightForce;
+      participants.forEach((p, index) => {
+        const taps = p.lastInput?.taps || 0;
+        let isLeft = false;
+        if (p.teamId) {
+          isLeft = p.teamId === 'team-1' || p.teamId === 'team-3' || p.teamId === 'team-5';
+        } else {
+          // Solo mode: assign by index/id
+          const numId = parseInt(p.id.replace(/\D/g, '') || index, 10);
+          isLeft = numId % 2 !== 0;
+        }
 
-      const diff = totalLeft - totalRight;
-      // move rope position based on diff
-      let newPos = 50 - (diff * 0.1);
-      if (newPos < 0) newPos = 0;
-      if (newPos > 100) newPos = 100;
+        if (isLeft) {
+          leftTaps += taps;
+        } else {
+          rightTaps += taps;
+        }
+      });
+
+      const diff = leftTaps - rightTaps;
+      // Each net tap moves rope by 1.8%, capped between 5% and 95%
+      const newPos = Math.min(95, Math.max(5, 50 - (diff * 1.8)));
       
-      updateRoomState({ tugRopePos: newPos });
+      if (Math.abs(newPos - ropePosition) >= 0.5) {
+        updateRoomState({ tugRopePos: Math.round(newPos) });
+      }
     }
-  }, [participants, userRole, gameState, updateRoomState]);
+  }, [participants, userRole, gameState, ropePosition, updateRoomState]);
 
   const startGameLogic = () => {
+    // Reset all participants taps
+    participants.forEach(p => submitPlayerInput(p.id, { taps: 0 }));
+    timeLeftRef.current = GAME_DURATION;
     updateRoomState({ tugState: 'playing', tugTimeLeft: GAME_DURATION, tugRopePos: 50 });
     setIsSettled(false);
     soundFx.playSpookyNight();
   };
 
+  const handleSimulateBots = () => {
+    simulateBotGameInputs('tug');
+    soundFx.playTick(700);
+  };
+
   const handlePull = () => {
+    if (gameState !== 'playing') return;
     const myPlayer = participants.find(p => p.id === myPlayerId);
     const currentTaps = myPlayer?.lastInput?.taps || 0;
-    submitPlayerInput(myPlayerId, { taps: currentTaps + 1 });
+    submitPlayerInput(myPlayerId, { taps: currentTaps + 1, lastTapTime: Date.now() });
+    soundFx.playTick(500 + ((currentTaps % 10) * 40));
   };
 
   const handleSettlePoints = () => {
