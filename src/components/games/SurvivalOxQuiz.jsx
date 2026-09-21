@@ -12,21 +12,22 @@ const OX_QUESTION_BANK = [
 ];
 
 export const SurvivalOxQuiz = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
+  const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
   const currentQIndex = room.oxQIndex || 0;
   const revealed = !!room.oxRevealed;
   const [isSettled, setIsSettled] = useState(false);
 
   const myPlayer = participants.find(p => p.id === myPlayerId);
-  const myChoice = myPlayer?.lastInput?.choice || null;
+  // Match by question index so previous question input never locks the new question!
+  const myChoice = (myPlayer?.lastInput?.qIndex === currentQIndex) ? myPlayer.lastInput.choice : null;
   const hasChosen = !!myChoice;
 
   const questionObj = OX_QUESTION_BANK[currentQIndex] || OX_QUESTION_BANK[0];
 
   const handleSelectAnswer = (choice) => {
     if (revealed || hasChosen) return; // Disallow picking after reveal or once chosen
-    submitPlayerInput(myPlayerId, { choice });
+    submitPlayerInput(myPlayerId, { choice, qIndex: currentQIndex });
     soundFx.playTick();
   };
 
@@ -40,8 +41,8 @@ export const SurvivalOxQuiz = () => {
   };
 
   const handleNextQuestion = () => {
-    // Clear player inputs for the new question
-    participants.forEach(p => submitPlayerInput(p.id, null));
+    // Clear all player inputs atomically across all participants
+    resetAllPlayerInputs();
     const nextIdx = (currentQIndex + 1) % OX_QUESTION_BANK.length;
     updateRoomState({ oxQIndex: nextIdx, oxRevealed: false });
     setIsSettled(false);
@@ -53,26 +54,24 @@ export const SurvivalOxQuiz = () => {
     soundFx.playSuccess();
   };
 
-  // Vote counting
-  const oCount = participants.filter(p => p.lastInput?.choice === 'O').length;
-  const xCount = participants.filter(p => p.lastInput?.choice === 'X').length;
+  // Vote counting (only count current question votes)
+  const oCount = participants.filter(p => p.lastInput?.qIndex === currentQIndex && p.lastInput?.choice === 'O').length;
+  const xCount = participants.filter(p => p.lastInput?.qIndex === currentQIndex && p.lastInput?.choice === 'X').length;
   const totalVotes = oCount + xCount || 1;
   const oPercent = Math.round((oCount / totalVotes) * 100);
   const xPercent = Math.round((xCount / totalVotes) * 100);
 
   // Survivors
-  const survivors = participants.filter(p => p.lastInput?.choice === questionObj.a);
+  const survivors = participants.filter(p => p.lastInput?.qIndex === currentQIndex && p.lastInput?.choice === questionObj.a);
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
-    updateRoomState({ oxRevealed: true });
+    if (isSettled || !revealed) return;
     if (survivors.length > 0) {
       survivors.forEach(s => {
         awardPoints(s.id, 100, false);
         if (s.teamId) awardPoints(s.teamId, 100, true);
       });
     } else {
-      // 정답자가 없거나 시작 전 정산 시 참가자 전원에게 50점 분배
       participants.forEach(p => awardPoints(p.id, 50, false));
     }
     setIsSettled(true);
@@ -80,7 +79,7 @@ export const SurvivalOxQuiz = () => {
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (revealed && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -111,11 +110,15 @@ export const SurvivalOxQuiz = () => {
               </button>
               <button 
                 onClick={handleSettlePoints} 
-                disabled={isSettled}
+                disabled={isSettled || !revealed}
                 className="btn-primary" 
-                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+                style={{ 
+                  background: isSettled ? '#555' : !revealed ? '#333' : 'var(--success-color)', 
+                  cursor: isSettled || !revealed ? 'not-allowed' : 'pointer',
+                  opacity: (!revealed && !isSettled) ? 0.6 : 1
+                }}
               >
-                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+                {isSettled ? '✅ 정산 완료' : !revealed ? '⏳ 정답 공개 후 정산' : '🏆 포인트 정산하기'}
               </button>
               <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기

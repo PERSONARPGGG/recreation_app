@@ -175,23 +175,20 @@ export const BlockStacker = () => {
     .sort((a, b) => b.lastInput.towerHeight - a.lastInput.towerHeight);
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || rankedParticipants.length === 0) return;
     if (rankedParticipants.length > 0) {
       rankedParticipants.slice(0, 3).forEach((p, rank) => {
         const height = p.lastInput.towerHeight;
         const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1;
         awardPoints(room.mode === 'team' ? p.teamId : p.id, Math.max(100, height * multiplier), room.mode === 'team');
       });
-    } else {
-      // 기록이 없을 때는 참가자 전체에게 100점 분배
-      participants.forEach(p => awardPoints(room.mode === 'team' ? p.teamId : p.id, 100, room.mode === 'team'));
     }
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (rankedParticipants.length > 0 && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -222,11 +219,15 @@ export const BlockStacker = () => {
               </button>
               <button 
                 onClick={handleSettlePoints} 
-                disabled={isSettled}
+                disabled={isSettled || rankedParticipants.length === 0}
                 className="btn-primary" 
-                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+                style={{ 
+                  background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
+                  cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1
+                }}
               >
-                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+                {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 게임 기록 후 정산' : '🏆 포인트 정산하기'}
               </button>
               <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기

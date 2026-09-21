@@ -78,21 +78,19 @@ export const MafiaRefereeModule = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || !mafiaState.rolesAssigned) return;
     const alivePlayers = mafiaState.players.filter(p => p.alive);
     if (alivePlayers.length > 0) {
       alivePlayers.forEach(p => {
         awardPoints(room?.mode === 'team' ? p.teamId : p.id, 300, room?.mode === 'team');
       });
-    } else {
-      participants.forEach(p => awardPoints(room?.mode === 'team' ? p.teamId : p.id, 100, room?.mode === 'team'));
     }
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (mafiaState.rolesAssigned && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -104,13 +102,13 @@ export const MafiaRefereeModule = () => {
       {/* Header */}
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '1.8rem' }}>🕵️</div>
+          <div style={{ fontSize: '1.8rem' }}>🕵️‍♂️</div>
           <div>
             <h2 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900 }}>
-              보너스 모드: 마피아 AI 심판 & 사회자 진행 보조
+              마피아 스마트 사회자 헬퍼 모듈
             </h2>
             <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>
-              사회자의 완벽한 진행을 돕는 직업 배분, 스크립트 가이드, 무드 BGM 자동 플레이어
+              직업 분배, 야간 지목 안내, 사망자 자동 판정 및 브금 컨트롤 타워
             </p>
           </div>
         </div>
@@ -119,11 +117,15 @@ export const MafiaRefereeModule = () => {
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
-              disabled={isSettled}
+              disabled={isSettled || !mafiaState.rolesAssigned}
               className="btn-primary" 
-              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              style={{ 
+                background: isSettled ? '#555' : !mafiaState.rolesAssigned ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || !mafiaState.rolesAssigned ? 'not-allowed' : 'pointer',
+                opacity: (!mafiaState.rolesAssigned && !isSettled) ? 0.6 : 1
+              }}
             >
-              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              {isSettled ? '✅ 정산 완료' : !mafiaState.rolesAssigned ? '⏳ 게임 시작 후 정산' : '🏆 포인트 정산하기'}
             </button>
           )}
           <button onClick={handleReturnToLobby} className="btn-secondary">

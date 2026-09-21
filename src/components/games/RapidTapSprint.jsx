@@ -89,26 +89,22 @@ export const RapidTapSprint = () => {
   }).sort((a, b) => b.totalTaps - a.totalTaps);
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || rankedParticipants.length === 0) return;
     if (room.mode === 'team') {
-      // 상위 3팀 정산 (기록 없으면 전 팀 200점)
+      // 상위 3팀 정산
       if (teamScores.some(t => t.totalTaps > 0)) {
         teamScores.slice(0, 3).forEach((t, idx) => {
           const points = idx === 0 ? 1000 : idx === 1 ? 500 : 300;
           awardPoints(t.id, points, true);
         });
-      } else {
-        activeTeams.forEach(t => awardPoints(t.id, 200, true));
       }
     } else {
-      // 개인전 상위 10명 (기록 없으면 참가자 전원 100점)
+      // 개인전 상위 10명
       if (rankedParticipants.length > 0) {
         rankedParticipants.slice(0, 10).forEach((p, idx) => {
           const points = idx === 0 ? 500 : idx < 3 ? 300 : 100;
           awardPoints(p.id, points, false);
         });
-      } else {
-        participants.forEach(p => awardPoints(p.id, 100, false));
       }
     }
     setIsSettled(true);
@@ -116,7 +112,7 @@ export const RapidTapSprint = () => {
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (rankedParticipants.length > 0 && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -147,11 +143,15 @@ export const RapidTapSprint = () => {
               </button>
               <button 
                 onClick={handleSettlePoints} 
-                disabled={isSettled}
+                disabled={isSettled || rankedParticipants.length === 0}
                 className="btn-primary" 
-                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+                style={{ 
+                  background: isSettled ? '#555' : rankedParticipants.length === 0 ? '#333' : 'var(--success-color)', 
+                  cursor: isSettled || rankedParticipants.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: (rankedParticipants.length === 0 && !isSettled) ? 0.6 : 1
+                }}
               >
-                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+                {isSettled ? '✅ 정산 완료' : rankedParticipants.length === 0 ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
               </button>
               <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Hand, Play, Users, Shuffle, RotateCcw } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
@@ -6,8 +6,17 @@ import { soundFx } from '../../utils/sound';
 const CHOICES = ['가위', '바위', '보'];
 const EMOJIS = { '가위': '✌️', '바위': '✊', '보': '✋' };
 
+// Differentiated points awarded per round survived
+const getRoundPoints = (roundNum) => {
+  if (roundNum === 1) return 100;
+  if (roundNum === 2) return 200;
+  if (roundNum === 3) return 300;
+  if (roundNum === 4) return 400;
+  return 500;
+};
+
 export const RockPaperScissors = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState, awardPoints } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, returnToLobby, room, updateRoomState, awardPoints } = useGame();
   
   const [isSettled, setIsSettled] = useState(false);
   const [slotDisplayIndex, setSlotDisplayIndex] = useState(0);
@@ -17,7 +26,8 @@ export const RockPaperScissors = () => {
   const round = room.rpsRound || 1;
   const hostChoice = room.rpsHostChoice || null;
   const survivors = room.rpsSurvivors || [];
-  const roundOutcome = room.rpsRoundOutcome || null; // 'survived' | 'draw_replay'
+  const eliminatedPlayers = room.rpsEliminated || [];
+  const lastRoundPoints = room.rpsLastPoints || 100;
 
   // Slot machine roll effect
   useEffect(() => {
@@ -33,7 +43,7 @@ export const RockPaperScissors = () => {
     };
   }, [rpsState]);
 
-  // Calculate live player choices
+  // Calculate live player choices for CURRENT round survivors
   const choiceStats = {
     '가위': 0,
     '바위': 0,
@@ -41,12 +51,11 @@ export const RockPaperScissors = () => {
     '미제출': 0,
   };
 
-  participants.forEach(p => {
-    // Only count active survivors
-    const isSurv = survivors.some(s => s.id === p.id);
-    if (!isSurv && rpsState !== 'ready') return;
+  const activeSurvivorList = rpsState === 'ready' ? participants : survivors;
 
-    const choice = p.lastInput?.rps;
+  activeSurvivorList.forEach(s => {
+    const participantObj = participants.find(p => p.id === s.id);
+    const choice = participantObj?.lastInput?.rps;
     if (choice && choiceStats[choice] !== undefined) {
       choiceStats[choice]++;
     } else {
@@ -54,18 +63,17 @@ export const RockPaperScissors = () => {
     }
   });
 
-  const activeSurvivorCount = rpsState === 'ready' ? participants.length : survivors.length;
-
   const startGame = () => {
     // Reset all current participants to alive survivors
-    const allSurvivors = participants.map(p => ({ id: p.id, name: p.name, teamId: p.teamId }));
-    participants.forEach(p => submitPlayerInput(p.id, null));
+    const allSurvivors = participants.map(p => ({ id: p.id, name: p.name, teamId: p.teamId, isBot: !!p.isBot }));
+    resetAllPlayerInputs();
     updateRoomState({
       rpsState: 'choosing',
       rpsHostChoice: null,
       rpsRound: 1,
       rpsSurvivors: allSurvivors,
-      rpsRoundOutcome: null,
+      rpsEliminated: [],
+      rpsLastPoints: 100,
     });
     setIsSettled(false);
     soundFx.playTick();
@@ -81,52 +89,56 @@ export const RockPaperScissors = () => {
     updateRoomState({
       rpsState: 'rolling',
       rpsHostChoice: null,
-      rpsRoundOutcome: null,
     });
 
     // 2.2-second high-tension slot shuffle before reveal
     setTimeout(() => {
-      // Determine survivors against honestAiChoice
-      let newSurvivors = survivors.filter(p => {
-        const participantObj = participants.find(part => part.id === p.id);
+      const currentPoints = getRoundPoints(round);
+      const newlyEliminated = [];
+      const newSurvivors = [];
+
+      survivors.forEach(s => {
+        const participantObj = participants.find(part => part.id === s.id);
         let playerChoice = participantObj?.lastInput?.rps;
-        if (p.isBot) {
+        if (s.isBot || participantObj?.isBot) {
           playerChoice = CHOICES[Math.floor(Math.random() * 3)];
         }
-        if (!playerChoice) return false;
 
-        // Player wins against host
-        if (playerChoice === '가위' && honestAiChoice === '보') return true;
-        if (playerChoice === '바위' && honestAiChoice === '가위') return true;
-        if (playerChoice === '보' && honestAiChoice === '바위') return true;
+        // Win check against host
+        const isWin = (
+          (playerChoice === '가위' && honestAiChoice === '보') ||
+          (playerChoice === '바위' && honestAiChoice === '가위') ||
+          (playerChoice === '보' && honestAiChoice === '바위')
+        );
 
-        return false;
+        if (isWin) {
+          newSurvivors.push(s);
+          // Award round points to this survivor immediately!
+          awardPoints(s.id, currentPoints, false);
+          if (s.teamId) awardPoints(s.teamId, currentPoints, true);
+        } else {
+          newlyEliminated.push({ ...s, roundEliminated: round, choice: playerChoice || '미제출' });
+        }
       });
-
-      let outcome = 'survived';
-      // If nobody won (e.g. all lost or tied), give everyone a re-match so it doesn't abruptly wipe out 100 people!
-      if (newSurvivors.length === 0 && survivors.length > 0) {
-        newSurvivors = survivors; // Keep existing survivors for draw replay
-        outcome = 'draw_replay';
-      }
 
       soundFx.playSuccess();
       updateRoomState({
         rpsState: 'result',
         rpsHostChoice: honestAiChoice,
         rpsSurvivors: newSurvivors,
-        rpsRoundOutcome: outcome,
+        rpsEliminated: [...eliminatedPlayers, ...newlyEliminated],
+        rpsLastPoints: currentPoints,
       });
     }, 2200);
   };
 
   const nextRound = () => {
-    participants.forEach(p => submitPlayerInput(p.id, null));
+    if (survivors.length === 0) return;
+    resetAllPlayerInputs();
     updateRoomState({
       rpsRound: round + 1,
       rpsState: 'choosing',
       rpsHostChoice: null,
-      rpsRoundOutcome: null,
     });
     soundFx.playTick();
   };
@@ -137,21 +149,20 @@ export const RockPaperScissors = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || rpsState !== 'result') return;
+    // Final settlement bonus for survivors
     if (survivors.length > 0) {
       survivors.forEach(s => {
-        awardPoints(s.id, 500, false);
-        if (s.teamId) awardPoints(s.teamId, 500, true);
+        awardPoints(s.id, 300, false);
+        if (s.teamId) awardPoints(s.teamId, 300, true);
       });
-    } else {
-      participants.forEach(p => awardPoints(p.id, 100, false));
     }
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (rpsState === 'result' && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -164,15 +175,15 @@ export const RockPaperScissors = () => {
     const chosenHand = myPlayer?.lastInput?.rps;
     const hasChosen = !!chosenHand;
 
-    // Check if player won this round
-    let didWinRound = false;
+    // Check if player won this specific round
+    let didWinThisRound = false;
     if (rpsState === 'result' && hostChoice && chosenHand) {
       if (
         (chosenHand === '가위' && hostChoice === '보') ||
         (chosenHand === '바위' && hostChoice === '가위') ||
         (chosenHand === '보' && hostChoice === '바위')
       ) {
-        didWinRound = true;
+        didWinThisRound = true;
       }
     }
 
@@ -185,17 +196,25 @@ export const RockPaperScissors = () => {
             🎮 호스트가 서바이벌 게임을 준비 중입니다. 잠시만 기다려주세요!
           </div>
         ) : !isSurvivor ? (
+          /* Strictly ELIMINATED participant screen - CANNOT CHOOSE AGAIN */
           <div style={{ padding: '20px' }}>
-            <div style={{ color: 'var(--danger-color)', fontSize: '2.4rem', fontWeight: 900, marginBottom: '10px' }}>💀 탈락!</div>
-            <p style={{ color: 'var(--text-sub)', fontSize: '1.1rem' }}>아쉽게도 이번 서바이벌에서 탈락하셨습니다.<br />남은 생존자들의 대결을 관전하세요!</p>
+            <div style={{ color: 'var(--danger-color)', fontSize: '2.5rem', fontWeight: 900, marginBottom: '10px' }}>💀 탈락하셨습니다</div>
+            <div className="glass-card" style={{ maxWidth: '420px', margin: '20px auto', padding: '20px', border: '1px solid #ff3b30', background: 'rgba(255, 59, 48, 0.1)' }}>
+              <p style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                현재 생존자: <strong style={{ color: 'var(--primary-color)' }}>{survivors.length}명</strong>
+              </p>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', marginTop: '10px', margin: '10px 0 0 0' }}>
+                아쉽게도 탈락하셨습니다. 남은 생존자들의 치열한 서바이벌을 관전해주세요!
+              </p>
+            </div>
           </div>
         ) : rpsState === 'choosing' ? (
           <div>
-            <div style={{ display: 'inline-block', padding: '6px 16px', borderRadius: '20px', background: 'rgba(0, 243, 255, 0.15)', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '15px' }}>
-              ROUND {round} • 생존자 {survivors.length}명
+            <div style={{ display: 'inline-block', padding: '6px 18px', borderRadius: '20px', background: 'rgba(0, 243, 255, 0.15)', color: 'var(--primary-color)', fontWeight: 800, marginBottom: '15px' }}>
+              ROUND {round} • 생존자 {survivors.length}명 진출 • 🎯 이번 라운드 승리 점수: +{getRoundPoints(round)}점!
             </div>
             <h3 style={{ marginBottom: '8px', fontSize: '1.6rem' }}>하나를 선택하세요!</h3>
-            <p style={{ color: 'var(--text-sub)', marginBottom: '25px' }}>호스트를 상대로 <strong>승리</strong>해야만 살아남습니다!</p>
+            <p style={{ color: 'var(--text-sub)', marginBottom: '25px' }}>호스트를 상대로 <strong>승리</strong>해야만 생존합니다! (비기거나 패배 시 즉시 탈락)</p>
             
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
               {CHOICES.map(c => (
@@ -226,7 +245,7 @@ export const RockPaperScissors = () => {
                   ✅ 선택 완료: [{EMOJIS[chosenHand]} {chosenHand}]
                 </div>
                 <div style={{ color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '6px' }}>
-                  호스트의 랜덤 추첨을 기다리고 있습니다...
+                  호스트의 공정 1/3 랜덤 추첨을 기다리고 있습니다...
                 </div>
               </div>
             )}
@@ -239,11 +258,11 @@ export const RockPaperScissors = () => {
             <div style={{ fontSize: '6rem', margin: '20px 0', animation: 'slotRoll 0.2s infinite ease-in-out' }}>
               {EMOJIS[CHOICES[slotDisplayIndex]]}
             </div>
-            <p style={{ color: 'var(--text-sub)', fontSize: '1.1rem' }}>과연 무엇이 나올까요?!</p>
+            <p style={{ color: 'var(--text-sub)', fontSize: '1.1rem' }}>공정한 1/3 완전 무작위 셔플 중...</p>
           </div>
         ) : rpsState === 'result' ? (
           <div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>결과 발표</h3>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>라운드 {round} 결과 발표</h3>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px', margin: '25px 0' }}>
               <div className="glass-card" style={{ padding: '15px 25px', textAlign: 'center' }}>
                 <div style={{ fontSize: '1rem', color: 'var(--text-sub)', marginBottom: '5px' }}>호스트의 패</div>
@@ -258,18 +277,23 @@ export const RockPaperScissors = () => {
               </div>
             </div>
 
-            {roundOutcome === 'draw_replay' ? (
-              <div style={{ padding: '15px', background: 'rgba(234, 179, 8, 0.15)', border: '2px solid #eab308', borderRadius: '12px', maxWidth: '400px', margin: '0 auto' }}>
-                <div style={{ color: '#facc15', fontSize: '1.4rem', fontWeight: 900 }}>⚠️ 무승부 / 전원 패배!</div>
-                <div style={{ color: '#fff', fontSize: '1rem', marginTop: '4px' }}>호스트를 이긴 사람이 없어 전원 생존으로 재경기합니다!</div>
-              </div>
-            ) : didWinRound ? (
-              <div style={{ color: 'var(--success-color)', fontSize: '1.5rem', fontWeight: 900 }}>
-                🎉 승리! 다음 라운드로 진출합니다!
+            {didWinThisRound ? (
+              <div>
+                <div style={{ color: 'var(--success-color)', fontSize: '1.6rem', fontWeight: 900 }}>
+                  🎉 승리! 다음 라운드로 진출합니다!
+                </div>
+                <div className="glass-card" style={{ marginTop: '15px', padding: '12px 25px', display: 'inline-block', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.15)' }}>
+                  💰 라운드 {round} 생존 보너스: <strong style={{ color: '#ffd700', fontSize: '1.3rem' }}>+{lastRoundPoints}점</strong> 획득!
+                </div>
               </div>
             ) : (
-              <div style={{ color: 'var(--danger-color)', fontSize: '1.5rem', fontWeight: 900 }}>
-                💀 패배! 이번 라운드에서 탈락하셨습니다.
+              <div>
+                <div style={{ color: 'var(--danger-color)', fontSize: '1.6rem', fontWeight: 900 }}>
+                  💀 패배 / 무승부! 이번 라운드에서 탈락하셨습니다.
+                </div>
+                <p style={{ color: 'var(--text-sub)', marginTop: '8px' }}>
+                  남은 생존자: {survivors.length}명
+                </p>
               </div>
             )}
           </div>
@@ -288,14 +312,20 @@ export const RockPaperScissors = () => {
           ✊✌️✋ 대규모 가위바위보 서바이벌
         </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={handleSettlePoints} 
-            disabled={isSettled}
-            className="btn-primary" 
-            style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
-          >
-            {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
-          </button>
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled || rpsState !== 'result'}
+              className="btn-primary" 
+              style={{ 
+                background: isSettled ? '#555' : rpsState !== 'result' ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || rpsState !== 'result' ? 'not-allowed' : 'pointer',
+                opacity: (rpsState !== 'result' && !isSettled) ? 0.6 : 1
+              }}
+            >
+              {isSettled ? '✅ 정산 완료' : rpsState !== 'result' ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
+            </button>
+          )}
           <button onClick={handleReturnToLobby} className="btn-secondary">
             🏠 로비로 돌아가기
           </button>
@@ -307,12 +337,18 @@ export const RockPaperScissors = () => {
           <div style={{ textAlign: 'center' }}>
             <Hand size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
             <h3 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>공정 100% 랜덤 가위바위보 서바이벌</h3>
-            <p style={{ color: 'var(--text-sub)', marginBottom: '30px', maxWidth: '500px' }}>
-              참가자 투표와 무관하게 <strong>순수 1/3 수학적 완전 무작위 룰렛</strong>으로 호스트의 패가 결정됩니다.<br />
-              현재 참가자: {participants.length}명
+            <p style={{ color: 'var(--text-sub)', marginBottom: '15px', maxWidth: '500px' }}>
+              조작 없는 <strong>순수 1/3 수학적 완전 무작위 룰렛</strong>으로 호스트의 패가 결정됩니다.<br />
+              라운드를 승리할 때마다 차등 보너스 점수가 즉시 지급됩니다!
             </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '25px', flexWrap: 'wrap' }}>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>1R: +100점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>2R: +200점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>3R: +300점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>4R+: +400점~</span>
+            </div>
             <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px', borderRadius: '50px' }}>
-              <Play size={22} /> 서바이벌 시작하기
+              <Play size={22} /> 서바이벌 시작하기 (참가자 {participants.length}명)
             </button>
           </div>
         )}
@@ -320,10 +356,10 @@ export const RockPaperScissors = () => {
         {rpsState === 'choosing' && (
           <div style={{ textAlign: 'center', width: '100%', maxWidth: '700px' }}>
             <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: '25px', background: 'rgba(0, 243, 255, 0.15)', color: 'var(--primary-color)', fontWeight: 800, fontSize: '1.2rem', marginBottom: '15px' }}>
-              ROUND {round} • 생존자 {survivors.length}명
+              ROUND {round} • 생존자 {survivors.length}명 • 💰 생존 시 +{getRoundPoints(round)}점 지급
             </div>
             
-            <h3 style={{ fontSize: '1.6rem', marginBottom: '15px' }}>실시간 참가자 선택 현황 (투명 공개)</h3>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '15px' }}>실시간 참가자 선택 현황 (투명 공개)</h3>
             
             {/* Live Distribution Card */}
             <div className="glass-card" style={{ padding: '20px', marginBottom: '30px' }}>
@@ -380,18 +416,15 @@ export const RockPaperScissors = () => {
             <div style={{ fontSize: '1.2rem', color: 'var(--text-sub)' }}>호스트 추첨 결과</div>
             <div style={{ fontSize: '6rem', margin: '15px 0' }}>{EMOJIS[hostChoice]} {hostChoice}</div>
 
-            {roundOutcome === 'draw_replay' ? (
-              <div className="glass-card" style={{ padding: '18px', background: 'rgba(234, 179, 8, 0.15)', border: '2px solid #eab308', borderRadius: '16px', margin: '20px auto' }}>
-                <h4 style={{ color: '#facc15', fontSize: '1.4rem', fontWeight: 900 }}>⚠️ 아무도 이기지 못했습니다!</h4>
-                <p style={{ color: '#fff', fontSize: '1rem', marginTop: '6px', margin: 0 }}>
-                  생존자 전원 부활하여 같은 인원으로 재경기를 치릅니다! (생존: {survivors.length}명)
-                </p>
-              </div>
-            ) : (
-              <div className="glass-card" style={{ padding: '18px', border: '2px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)', margin: '20px auto' }}>
-                <h4 style={{ color: 'var(--success-color)', fontSize: '1.4rem', fontWeight: 900 }}>
-                  🎉 생존자: {survivors.length}명 / 탈락: {activeSurvivorCount - survivors.length}명
-                </h4>
+            <div className="glass-card" style={{ padding: '18px', border: '2px solid var(--success-color)', background: 'rgba(34, 197, 94, 0.12)', margin: '20px auto' }}>
+              <h4 style={{ color: 'var(--success-color)', fontSize: '1.4rem', fontWeight: 900 }}>
+                🎉 생존자: {survivors.length}명 (각 +{lastRoundPoints}점 자동 지급 완료)
+              </h4>
+              {survivors.length === 0 ? (
+                <div style={{ color: 'var(--danger-color)', fontSize: '1.2rem', fontWeight: 800, marginTop: '10px' }}>
+                  💀 모든 생존자가 탈락하여 게임이 종료되었습니다.
+                </div>
+              ) : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginTop: '10px', maxHeight: '120px', overflowY: 'auto' }}>
                   {survivors.map(s => (
                     <span key={s.id} style={{ padding: '4px 10px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '0.9rem', color: '#fff' }}>
@@ -399,17 +432,17 @@ export const RockPaperScissors = () => {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div style={{ marginTop: '25px', display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {survivors.length > 0 && (
                 <button onClick={nextRound} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 32px' }}>
-                  <Play size={20} /> 다음 라운드 진행 (남은 생존자)
+                  <Play size={20} /> 라운드 {round + 1} 진행 ({survivors.length}명)
                 </button>
               )}
               <button onClick={startGame} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '14px 28px' }}>
-                <RotateCcw size={20} /> 🔄 전원 부활 새 게임
+                <RotateCcw size={20} /> 🔄 처음부터 다시 시작 (전원 부활)
               </button>
             </div>
           </div>

@@ -1,20 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
-import { Activity, Play } from 'lucide-react';
+import { Activity, Play, Swords, RotateCcw, Zap } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 const GAME_DURATION = 10;
 
 export const TugOfWar = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState, simulateBotGameInputs } = useGame();
+  const { userRole, activeTeams, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, awardPoints, returnToLobby, room, updateRoomState, simulateBotGameInputs } = useGame();
   
   const [isSettled, setIsSettled] = useState(false);
 
-  const gameState = room.tugState || 'ready';
-  const timeLeft = room.tugTimeLeft || GAME_DURATION;
-  const ropePosition = room.tugRopePos || 50;
+  const gameState = room.tugState || 'ready'; // 'ready' | 'playing' | 'finished'
+  const timeLeft = room.tugTimeLeft !== undefined ? room.tugTimeLeft : GAME_DURATION;
+  const ropePosition = room.tugRopePos !== undefined ? room.tugRopePos : 50;
+
+  // Selected teams for the matchup (default: Team 1 vs Team 2, or Red Alliance vs Blue Alliance)
+  const leftTeamId = room.tugLeftTeamId || activeTeams[0]?.id || 'team-1';
+  const rightTeamId = room.tugRightTeamId || activeTeams[1]?.id || 'team-2';
+  const matchupMode = room.tugMatchupMode || 'alliance'; // 'alliance' (홍군 연합 vs 청군 연합) or 'direct' (특정 2팀 1:1)
+
+  const leftTeamObj = activeTeams.find(t => t.id === leftTeamId) || activeTeams[0] || { name: '홍군 연합', color: '#ff3b30' };
+  const rightTeamObj = activeTeams.find(t => t.id === rightTeamId) || activeTeams[1] || { name: '청군 연합', color: '#007aff' };
 
   const timeLeftRef = useRef(GAME_DURATION);
+
+  // Helper to determine if a player belongs to the Left side
+  const isPlayerOnLeftSide = (p, index = 0) => {
+    if (matchupMode === 'direct') {
+      return p.teamId === leftTeamId;
+    }
+    // Alliance mode: Odd teams or odd index = Left, Even teams or even index = Right
+    if (p.teamId) {
+      return p.teamId === 'team-1' || p.teamId === 'team-3' || p.teamId === 'team-5';
+    }
+    const numId = parseInt(p.id.replace(/\D/g, '') || index, 10);
+    return numId % 2 !== 0;
+  };
+
+  // Calculate live tap stats
+  let leftTaps = 0;
+  let rightTaps = 0;
+  let leftCount = 0;
+  let rightCount = 0;
+
+  participants.forEach((p, index) => {
+    const isLeft = isPlayerOnLeftSide(p, index);
+    const taps = p.lastInput?.taps || 0;
+    if (isLeft) {
+      leftCount++;
+      leftTaps += taps;
+    } else {
+      rightCount++;
+      rightTaps += taps;
+    }
+  });
 
   // Independent 1s Countdown Timer for Host
   useEffect(() => {
@@ -32,48 +71,39 @@ export const TugOfWar = () => {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [userRole, gameState]); // DO NOT include ropePosition or room.tugTimeLeft
+  }, [userRole, gameState]);
 
   // Rope Position Calculation based on Real & Bot Taps
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
-      // Determine side for each player: Odd teams/IDs = Left (Red), Even teams/IDs = Right (Blue)
-      let leftTaps = 0;
-      let rightTaps = 0;
-
-      participants.forEach((p, index) => {
-        const taps = p.lastInput?.taps || 0;
-        let isLeft = false;
-        if (p.teamId) {
-          isLeft = p.teamId === 'team-1' || p.teamId === 'team-3' || p.teamId === 'team-5';
-        } else {
-          // Solo mode: assign by index/id
-          const numId = parseInt(p.id.replace(/\D/g, '') || index, 10);
-          isLeft = numId % 2 !== 0;
-        }
-
-        if (isLeft) {
-          leftTaps += taps;
-        } else {
-          rightTaps += taps;
-        }
-      });
-
       const diff = leftTaps - rightTaps;
-      // Each net tap moves rope by 1.8%, capped between 5% and 95%
+      // Each net tap pulls rope by 1.8%, capped between 5% and 95%
       const newPos = Math.min(95, Math.max(5, 50 - (diff * 1.8)));
-      
+
+      // Early Knockout win if pulled to end zones
+      if (newPos <= 10 || newPos >= 90) {
+        updateRoomState({ tugRopePos: Math.round(newPos), tugState: 'finished', tugTimeLeft: 0 });
+        soundFx.playSuccess();
+        return;
+      }
+
       if (Math.abs(newPos - ropePosition) >= 0.5) {
         updateRoomState({ tugRopePos: Math.round(newPos) });
       }
     }
-  }, [participants, userRole, gameState, ropePosition, updateRoomState]);
+  }, [participants, userRole, gameState, ropePosition, leftTaps, rightTaps]);
 
   const startGameLogic = () => {
-    // Reset all participants taps
-    participants.forEach(p => submitPlayerInput(p.id, { taps: 0 }));
+    resetAllPlayerInputs();
     timeLeftRef.current = GAME_DURATION;
-    updateRoomState({ tugState: 'playing', tugTimeLeft: GAME_DURATION, tugRopePos: 50 });
+    updateRoomState({
+      tugState: 'playing',
+      tugTimeLeft: GAME_DURATION,
+      tugRopePos: 50,
+      tugLeftTeamId: leftTeamId,
+      tugRightTeamId: rightTeamId,
+      tugMatchupMode: matchupMode,
+    });
     setIsSettled(false);
     soundFx.playSpookyNight();
   };
@@ -91,117 +121,262 @@ export const TugOfWar = () => {
     soundFx.playTick(500 + ((currentTaps % 10) * 40));
   };
 
+  // Determine winner
+  const winnerSide = ropePosition < 50 ? 'left' : ropePosition > 50 ? 'right' : 'draw';
+  const leftLabel = matchupMode === 'direct' ? leftTeamObj.name : '🔴 홍군 연합 (1·3·5팀)';
+  const rightLabel = matchupMode === 'direct' ? rightTeamObj.name : '🔵 청군 연합 (2·4·6팀)';
+  const winnerTitle = winnerSide === 'left' ? `${leftLabel} 승리!` : winnerSide === 'right' ? `${rightLabel} 승리!` : '무승부 (DRAW)!';
+
   const handleSettlePoints = () => {
-    if (isSettled) return;
-    if (ropePosition < 50) {
-      awardPoints('team-1', 500, true);
-      awardPoints('team-3', 500, true);
-      awardPoints('team-5', 500, true);
-    } else if (ropePosition > 50) {
-      awardPoints('team-2', 500, true);
-      awardPoints('team-4', 500, true);
-      awardPoints('team-6', 500, true);
-    } else {
-      // 무승부 또는 경기 전 강제 정산: 참가한 전 팀에 200점 지급
-      activeTeams.forEach(t => awardPoints(t.id, 200, true));
-    }
+    if (isSettled || gameState !== 'finished') return;
+
+    participants.forEach((p, idx) => {
+      const isLeft = isPlayerOnLeftSide(p, idx);
+      const isWin = (winnerSide === 'left' && isLeft) || (winnerSide === 'right' && !isLeft);
+      const points = isWin ? 300 : winnerSide === 'draw' ? 150 : 50;
+
+      awardPoints(p.id, points, false);
+      if (p.teamId) awardPoints(p.teamId, points, true);
+    });
+
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (gameState === 'finished' && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
   };
 
+  const myPlayer = participants.find(p => p.id === myPlayerId);
+  const myIndex = participants.findIndex(p => p.id === myPlayerId);
+  const myIsLeft = isPlayerOnLeftSide(myPlayer || {}, myIndex >= 0 ? myIndex : 0);
+  const mySideLabel = myIsLeft ? leftLabel : rightLabel;
+  const mySideColor = myIsLeft ? '#ff3b30' : '#007aff';
+  const myTaps = myPlayer?.lastInput?.taps || 0;
+
+  // Participant View
   if (userRole === 'participant') {
     return (
-      <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', minHeight: '40vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>🪢 100인 줄다리기</h2>
-        {gameState === 'playing' ? (
-          <button 
-            onPointerDown={handlePull} 
-            className="btn-primary" 
-            style={{ 
-              padding: '50px 20px', 
-              fontSize: '2rem', 
-              background: 'var(--primary-color)', 
-              color: '#000',
-              touchAction: 'manipulation',
-              userSelect: 'none',
-              WebkitUserSelect: 'none'
-            }}
-          >
-            당겨!! (터치 연타)
-          </button>
-        ) : gameState === 'finished' ? (
-          <div><h3 style={{ color: 'var(--success-color)' }}>게임 종료!</h3><p>화면에서 결과를 확인하세요.</p></div>
+      <div className="glass-panel" style={{ padding: '25px', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>🪢 100인 영차영차 줄다리기</h2>
+        
+        {/* Matchup Header */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', margin: '15px 0' }}>
+          <span style={{ color: '#ff3b30', fontWeight: 800, fontSize: '1.1rem' }}>{leftLabel}</span>
+          <span style={{ color: '#ffd700', fontWeight: 900 }}>VS</span>
+          <span style={{ color: '#007aff', fontWeight: 800, fontSize: '1.1rem' }}>{rightLabel}</span>
+        </div>
+
+        {/* Player Team Affiliation Banner */}
+        <div className="glass-card" style={{ padding: '12px 20px', maxWidth: '400px', margin: '0 auto 20px auto', border: `2px solid ${mySideColor}`, background: `${mySideColor}20` }}>
+          <div style={{ fontSize: '1rem', color: 'var(--text-sub)' }}>나의 소속 진영</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: mySideColor, marginTop: '4px' }}>
+            {mySideLabel}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#fff', marginTop: '4px' }}>
+            나의 기여도: <strong>{myTaps}회 연타</strong>
+          </div>
+        </div>
+
+        {/* Rope Progress Bar */}
+        <div style={{ maxWidth: '450px', margin: '0 auto 25px auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 800, marginBottom: '6px' }}>
+            <span style={{ color: '#ff3b30' }}>🔴 홍군 {leftTaps}회</span>
+            <span style={{ color: '#ffd700', fontSize: '1.1rem' }}>⏱️ {timeLeft}초</span>
+            <span style={{ color: '#007aff' }}>🔵 청군 {rightTaps}회</span>
+          </div>
+
+          <div style={{ height: '24px', borderRadius: '12px', background: '#1a1a2e', position: 'relative', overflow: 'hidden', border: '2px solid #555' }}>
+            {/* Center line marker */}
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', background: '#ffd700', zIndex: 2 }} />
+            {/* Rope marker */}
+            <div style={{
+              position: 'absolute',
+              top: '2px',
+              bottom: '2px',
+              left: `${100 - ropePosition}%`,
+              transform: 'translateX(-50%)',
+              width: '20px',
+              borderRadius: '50%',
+              background: '#fff',
+              boxShadow: '0 0 10px #fff',
+              zIndex: 3,
+              transition: 'left 0.15s ease-out'
+            }} />
+          </div>
+        </div>
+
+        {gameState === 'ready' ? (
+          <div style={{ color: 'var(--text-sub)', fontSize: '1.2rem' }}>
+            🎮 호스트가 줄다리기 게임을 시작하기를 기다리고 있습니다...
+          </div>
+        ) : gameState === 'playing' ? (
+          <div>
+            <button 
+              onClick={handlePull} 
+              className="btn-primary" 
+              style={{ 
+                padding: '45px 30px', 
+                fontSize: '2.5rem', 
+                fontWeight: 900, 
+                borderRadius: '30px',
+                width: '100%', 
+                maxWidth: '360px', 
+                background: mySideColor,
+                boxShadow: `0 0 35px ${mySideColor}80` 
+              }}
+            >
+              🔥 영차!! 당겨라!!
+            </button>
+            <p style={{ marginTop: '20px', color: 'var(--text-sub)', fontSize: '1rem' }}>화면을 미친듯이 연타하세요!!</p>
+          </div>
         ) : (
-          <div style={{ color: 'var(--text-sub)' }}>준비...</div>
+          <div className="glass-card" style={{ padding: '25px', maxWidth: '400px', margin: '0 auto', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)' }}>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#ffd700' }}>🏆 경기 종료!</h3>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginTop: '10px' }}>
+              {winnerTitle}
+            </div>
+            <p style={{ color: 'var(--text-sub)', marginTop: '10px' }}>
+              승리 팀 전원 +300점 지급 완료!
+            </p>
+          </div>
         )}
       </div>
     );
   }
 
+  // Host View
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🪢 영차영차! 100인 줄다리기</h2>
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+        <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
+          🪢 100인 영차영차 줄다리기
+        </h2>
+        
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
-            <button 
-              onClick={handleSettlePoints} 
-              disabled={isSettled}
-              className="btn-primary" 
-              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
-            >
-              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
-            </button>
+            <>
+              <button onClick={handleSimulateBots} disabled={gameState !== 'playing'} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
+                <Zap size={16} /> 🤖 봇 연타 시뮬레이션
+              </button>
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled || gameState !== 'finished'}
+                className="btn-primary" 
+                style={{ 
+                  background: isSettled ? '#555' : gameState !== 'finished' ? '#333' : 'var(--success-color)', 
+                  cursor: isSettled || gameState !== 'finished' ? 'not-allowed' : 'pointer',
+                  opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1
+                }}
+              >
+                {isSettled ? '✅ 정산 완료' : gameState !== 'finished' ? '⏳ 경기 종료 후 정산' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
+                🏠 로비로 돌아가기
+              </button>
+            </>
           )}
-          <button onClick={handleReturnToLobby} className="btn-secondary">
-            🏠 로비로 돌아가기
-          </button>
         </div>
       </div>
 
-      <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-        {gameState === 'ready' && (
-          <div style={{ textAlign: 'center' }}>
-            <Activity size={80} color="var(--primary-color)" style={{ marginBottom: '20px' }} />
-            <button onClick={startGameLogic} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 30px' }}><Play size={20} /> 경기 시작</button>
+      <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '30px' }}>
+        
+        {/* Matchup Selection / Info Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '800px', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+          
+          {/* Left Team Card */}
+          <div className="glass-card" style={{ flex: 1, minWidth: '220px', padding: '16px', border: '2px solid #ff3b30', background: 'rgba(255, 59, 48, 0.1)', textAlign: 'center' }}>
+            <div style={{ color: '#ff8080', fontSize: '0.9rem', fontWeight: 700 }}>좌측 진영 (RED)</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ff3b30', marginTop: '4px' }}>{leftLabel}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '10px', fontSize: '0.95rem' }}>
+              <span>참가: <strong>{leftCount}명</strong></span>
+              <span>누적 연타: <strong style={{ color: '#ffd700' }}>{leftTaps}회</strong></span>
+            </div>
           </div>
+
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ffd700', padding: '0 10px' }}>VS</div>
+
+          {/* Right Team Card */}
+          <div className="glass-card" style={{ flex: 1, minWidth: '220px', padding: '16px', border: '2px solid #007aff', background: 'rgba(0, 122, 255, 0.1)', textAlign: 'center' }}>
+            <div style={{ color: '#80bfff', fontSize: '0.9rem', fontWeight: 700 }}>우측 진영 (BLUE)</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#007aff', marginTop: '4px' }}>{rightLabel}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '10px', fontSize: '0.95rem' }}>
+              <span>참가: <strong>{rightCount}명</strong></span>
+              <span>누적 연타: <strong style={{ color: '#ffd700' }}>{rightTaps}회</strong></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rope Stadium Display */}
+        <div style={{ width: '100%', maxWidth: '800px', margin: '20px 0', textAlign: 'center' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ color: '#ff3b30', fontWeight: 800 }}>◀ 🔴 홍군 구역</span>
+            <span style={{ fontSize: '2.5rem', fontWeight: 900, color: timeLeft <= 3 ? 'var(--danger-color)' : '#fff', animation: timeLeft <= 3 ? 'pulse 0.5s infinite' : 'none' }}>
+              ⏱️ {timeLeft}s
+            </span>
+            <span style={{ color: '#007aff', fontWeight: 800 }}>🔵 청군 구역 ▶</span>
+          </div>
+
+          {/* Rope Track */}
+          <div style={{
+            position: 'relative',
+            height: '40px',
+            background: 'linear-gradient(to right, rgba(255,59,48,0.3) 0%, rgba(0,0,0,0.6) 50%, rgba(0,122,255,0.3) 100%)',
+            borderRadius: '20px',
+            border: '3px solid #555',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.8)'
+          }}>
+            {/* Center Deadzone line */}
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '4px', background: '#ffd700', zIndex: 2 }} />
+
+            {/* Moving Rope */}
+            <div style={{
+              position: 'absolute',
+              top: '4px',
+              bottom: '4px',
+              left: `${100 - ropePosition}%`,
+              transform: 'translateX(-50%)',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: '#ffd700',
+              border: '3px solid #fff',
+              boxShadow: '0 0 20px #ffd700',
+              zIndex: 5,
+              transition: 'left 0.2s ease-out'
+            }} />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-sub)', marginTop: '6px' }}>
+            <span>홍군 넉아웃 (10%)</span>
+            <span>중앙 (50%)</span>
+            <span>청군 넉아웃 (90%)</span>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        {gameState === 'ready' && (
+          <button onClick={startGameLogic} className="btn-primary" style={{ marginTop: '20px', padding: '16px 45px', fontSize: '1.4rem', borderRadius: '50px' }}>
+            <Play size={24} /> 줄다리기 경기 시작! (10초 카운트)
+          </button>
         )}
 
-        {(gameState === 'playing' || gameState === 'finished') && (
-          <div style={{ width: '100%', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '3rem', color: 'var(--danger-color)', marginBottom: '40px' }}>{timeLeft}초</h2>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 50px', marginBottom: '20px' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--danger-color)' }}>홀수 팀 진영</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-color)' }}>짝수 팀 진영</div>
+        {gameState === 'finished' && (
+          <div className="glass-card" style={{ marginTop: '20px', padding: '20px 40px', textAlign: 'center', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)' }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#ffd700' }}>🏆 {winnerTitle}</h3>
+            <p style={{ color: '#fff', fontSize: '1.1rem', marginTop: '8px' }}>
+              승리한 진영의 모든 팀 및 참가자에게 각 +300점이 정산됩니다.
+            </p>
+            <div style={{ marginTop: '15px' }}>
+              <button onClick={startGameLogic} className="btn-secondary" style={{ padding: '12px 28px', border: '1px solid var(--primary-color)' }}>
+                <RotateCcw size={18} /> 🔄 줄다리기 재경기 시작
+              </button>
             </div>
-
-            <div style={{ width: '80%', height: '20px', background: '#555', margin: '0 auto', position: 'relative', borderRadius: '10px' }}>
-              <div style={{ 
-                position: 'absolute', 
-                top: '-20px', 
-                left: `${ropePosition}%`, 
-                width: '60px', 
-                height: '60px', 
-                background: '#ffd700', 
-                borderRadius: '50%',
-                transform: 'translateX(-50%)',
-                boxShadow: '0 0 20px rgba(255,215,0,0.8)'
-              }}></div>
-            </div>
-
-            {gameState === 'finished' && (
-              <h2 style={{ marginTop: '50px', fontSize: '2.5rem', color: 'var(--success-color)' }}>
-                {ropePosition < 50 ? '홀수 팀 진영 승리!' : ropePosition > 50 ? '짝수 팀 진영 승리!' : '무승부!'}
-              </h2>
-            )}
           </div>
         )}
       </div>

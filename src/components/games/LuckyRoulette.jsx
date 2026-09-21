@@ -126,7 +126,7 @@ export const LuckyRoulette = () => {
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (result && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -275,11 +275,15 @@ export const LuckyRoulette = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           <button 
             onClick={handleSettlePoints} 
-            disabled={isSettled}
+            disabled={isSettled || !result}
             className="btn-primary" 
-            style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            style={{ 
+              background: isSettled ? '#555' : !result ? '#333' : 'var(--success-color)', 
+              cursor: isSettled || !result ? 'not-allowed' : 'pointer',
+              opacity: (!result && !isSettled) ? 0.6 : 1
+            }}
           >
-            {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+            {isSettled ? '✅ 정산 완료' : !result ? '⏳ 룰렛 결과 후 정산' : '🏆 포인트 정산하기'}
           </button>
           <button onClick={handleReturnToLobby} className="btn-secondary">
             🏠 로비로 돌아가기

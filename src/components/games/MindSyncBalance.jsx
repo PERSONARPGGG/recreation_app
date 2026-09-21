@@ -89,22 +89,19 @@ export const MindSyncBalance = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
-    updateRoomState({ mindsyncRevealed: true, mindsyncLocked: true, mindsyncTimeLeft: 0 });
+    if (isSettled || !isRevealed) return;
     if (rankedWinners.length > 0) {
       rankedWinners.slice(0, 3).forEach((player, rank) => {
         const points = rank === 0 ? 500 : rank === 1 ? 300 : 150;
         awardPoints(room.mode === 'team' ? player.teamId : player.id, points, room.mode === 'team');
       });
-    } else {
-      participants.forEach(p => awardPoints(room.mode === 'team' ? p.teamId : p.id, 100, room.mode === 'team'));
     }
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (isRevealed && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -135,11 +132,15 @@ export const MindSyncBalance = () => {
               </button>
               <button 
                 onClick={handleSettlePoints} 
-                disabled={isSettled}
+                disabled={isSettled || !isRevealed}
                 className="btn-primary" 
-                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+                style={{ 
+                  background: isSettled ? '#555' : !isRevealed ? '#333' : 'var(--success-color)', 
+                  cursor: isSettled || !isRevealed ? 'not-allowed' : 'pointer',
+                  opacity: (!isRevealed && !isSettled) ? 0.6 : 1
+                }}
               >
-                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+                {isSettled ? '✅ 정산 완료' : !isRevealed ? '⏳ 결과 공개 후 정산' : '🏆 포인트 정산하기'}
               </button>
               <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기

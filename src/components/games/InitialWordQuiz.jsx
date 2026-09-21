@@ -162,7 +162,7 @@ export const InitialWordQuiz = () => {
   }
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || gameState !== 'finished') return;
     if (winners.length > 0) {
       winners.forEach((w, idx) => {
         const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
@@ -178,7 +178,7 @@ export const InitialWordQuiz = () => {
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (gameState === 'finished' && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -194,11 +194,15 @@ export const InitialWordQuiz = () => {
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
-              disabled={isSettled}
+              disabled={isSettled || gameState !== 'finished'}
               className="btn-primary" 
-              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              style={{ 
+                background: isSettled ? '#555' : gameState !== 'finished' ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || gameState !== 'finished' ? 'not-allowed' : 'pointer',
+                opacity: (gameState !== 'finished' && !isSettled) ? 0.6 : 1
+              }}
             >
-              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              {isSettled ? '✅ 정산 완료' : gameState !== 'finished' ? '⏳ 정답 확인 후 정산' : '🏆 포인트 정산하기'}
             </button>
           )}
           <button onClick={handleReturnToLobby} className="btn-secondary">

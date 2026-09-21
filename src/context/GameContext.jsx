@@ -445,9 +445,22 @@ export const GameProvider = ({ children }) => {
         }
         return p;
       });
+      participantsRef.current = updated;
       // Participant broadcasts input to everyone (including host)
       broadcast('PLAYER_SUBMIT', { id: playerId, lastInput: gameData });
       return updated;
+    });
+  };
+
+  // Batch clear all participants' lastInput in a single atomic update & broadcast
+  const resetAllPlayerInputs = () => {
+    setParticipants(prev => {
+      const resetList = prev.map(p => ({ ...p, lastInput: null }));
+      participantsRef.current = resetList;
+      setTimeout(() => {
+        broadcast('SYNC_STATE', { room: roomRef.current, participants: resetList });
+      }, 0);
+      return resetList;
     });
   };
 
@@ -591,6 +604,7 @@ export const GameProvider = ({ children }) => {
         endRound,
         returnToLobby,
         submitPlayerInput,
+        resetAllPlayerInputs,
         awardPoints,
         awardBatchPoints,
         simulateBotGameInputs,

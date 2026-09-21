@@ -241,7 +241,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.4.6 (눈치게임·줄다리기 무한루프/프리징 해결, 초성퀴즈 입력단일잠금, 럭키룰렛 물리엔진 & 가위바위보 공정 1/3 랜덤 슬롯)
+          버전: v1.4.7 (OX퀴즈 이전입력 초기화 해결, 눈치게임 프리징 무한루프 원천제거, 전 게임 조기정산 가드, 가위바위보 라운드별 차등지급 & 완전탈락, 줄다리기 홍청 대항전 정산)
         </div>
       </footer>
     </div>

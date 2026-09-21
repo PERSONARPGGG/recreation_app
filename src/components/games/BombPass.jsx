@@ -65,25 +65,22 @@ export const BombPass = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled) return;
+    if (isSettled || gameState !== 'exploded') return;
     if (bombHolder) {
-      // 폭탄 소지자는 200점 감점, 나머지 생존자는 300점 지급
       awardPoints(bombHolder.id, -200, false);
-      const survivors = participants.filter(p => p.id !== bombHolder.id);
-      survivors.forEach(s => {
-        awardPoints(s.id, 300, false);
-        if (s.teamId) awardPoints(s.teamId, 100, true);
-      });
-    } else {
-      // 폭발 전 임의 정산: 전체 참가자에게 100점 지급
-      participants.forEach(p => awardPoints(p.id, 100, false));
+      if (bombHolder.teamId) awardPoints(bombHolder.teamId, -200, true);
     }
+    const survivors = participants.filter(p => p.id !== bombHolder?.id);
+    survivors.forEach(s => {
+      awardPoints(s.id, 100, false);
+      if (s.teamId) awardPoints(s.teamId, 100, true);
+    });
     setIsSettled(true);
     soundFx.playSuccess();
   };
 
   const handleReturnToLobby = () => {
-    if (!isSettled) {
+    if (gameState === 'exploded' && !isSettled) {
       handleSettlePoints();
     }
     returnToLobby();
@@ -150,11 +147,15 @@ export const BombPass = () => {
           {userRole === 'host' && (
             <button 
               onClick={handleSettlePoints} 
-              disabled={isSettled}
+              disabled={isSettled || gameState !== 'exploded'}
               className="btn-primary" 
-              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              style={{ 
+                background: isSettled ? '#555' : gameState !== 'exploded' ? '#333' : 'var(--success-color)', 
+                cursor: isSettled || gameState !== 'exploded' ? 'not-allowed' : 'pointer',
+                opacity: (gameState !== 'exploded' && !isSettled) ? 0.6 : 1
+              }}
             >
-              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              {isSettled ? '✅ 정산 완료' : gameState !== 'exploded' ? '⏳ 폭발 후 정산 가능' : '🏆 포인트 정산하기'}
             </button>
           )}
           <button onClick={handleReturnToLobby} className="btn-secondary">
