@@ -8,6 +8,7 @@ export const MindSyncBalance = () => {
 
   const [selectedNum, setSelectedNum] = useState(50);
   const [revealed, setRevealed] = useState(false);
+  const [isSettled, setIsSettled] = useState(false);
 
   const handleSelectNumber = (num) => {
     setSelectedNum(num);
@@ -44,6 +45,28 @@ export const MindSyncBalance = () => {
     }, 2000);
   };
 
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    setRevealed(true);
+    if (rankedWinners.length > 0) {
+      rankedWinners.slice(0, 3).forEach((player, rank) => {
+        const points = rank === 0 ? 500 : rank === 1 ? 300 : 150;
+        awardPoints(room.mode === 'team' ? player.teamId : player.id, points, room.mode === 'team');
+      });
+    } else {
+      participants.forEach(p => awardPoints(room.mode === 'team' ? p.teamId : p.id, 100, room.mode === 'team'));
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -67,8 +90,16 @@ export const MindSyncBalance = () => {
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 수치 입력 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
-                로비로 돌아가기
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled}
+                className="btn-primary" 
+                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              >
+                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
+                🏠 로비로 돌아가기
               </button>
             </>
           )}

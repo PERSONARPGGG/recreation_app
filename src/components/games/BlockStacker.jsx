@@ -175,14 +175,26 @@ export const BlockStacker = () => {
     .sort((a, b) => b.lastInput.towerHeight - a.lastInput.towerHeight);
 
   const handleSettlePoints = () => {
-    if (isSettled || rankedParticipants.length === 0) return;
-    rankedParticipants.slice(0, 3).forEach((p, rank) => {
-      const height = p.lastInput.towerHeight;
-      const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1; // 1등 5배, 2등 3배, 3등 1배
-      awardPoints(room.mode === 'team' ? p.teamId : p.id, height * multiplier, room.mode === 'team');
-    });
+    if (isSettled) return;
+    if (rankedParticipants.length > 0) {
+      rankedParticipants.slice(0, 3).forEach((p, rank) => {
+        const height = p.lastInput.towerHeight;
+        const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1;
+        awardPoints(room.mode === 'team' ? p.teamId : p.id, Math.max(100, height * multiplier), room.mode === 'team');
+      });
+    } else {
+      // 기록이 없을 때는 참가자 전체에게 100점 분배
+      participants.forEach(p => awardPoints(room.mode === 'team' ? p.teamId : p.id, 100, room.mode === 'team'));
+    }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   return (
@@ -205,15 +217,18 @@ export const BlockStacker = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
             <>
-              {rankedParticipants.length > 0 && !isSettled && (
-                <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-                  🏆 상위 3팀 일괄 정산하기
-                </button>
-              )}
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 탑 쌓기 결과 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled}
+                className="btn-primary" 
+                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              >
+                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기
               </button>
             </>

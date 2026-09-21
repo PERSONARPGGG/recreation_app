@@ -465,6 +465,44 @@ export const GameProvider = ({ children }) => {
     } catch (e) {}
   };
 
+  // Batch award points to multiple participants or teams in a single state & broadcast cycle
+  const awardBatchPoints = (awards) => {
+    if (!awards || awards.length === 0) return;
+    if (userRoleRef.current === 'participant') {
+      awards.forEach(a => broadcast('SCORE_UPDATE', a));
+      return;
+    }
+
+    setParticipants(prev => {
+      let updated = [...prev];
+      awards.forEach(award => {
+        const { targetId, points, isTeam } = award;
+        updated = updated.map(p => {
+          if (isTeam && p.teamId === targetId) {
+            return { ...p, score: p.score + points };
+          } else if (!isTeam && p.id === targetId) {
+            return { ...p, score: p.score + points };
+          }
+          return p;
+        });
+      });
+
+      setTimeout(() => {
+        broadcast('SYNC_STATE', { room: roomRef.current, participants: updated });
+      }, 0);
+
+      return updated;
+    });
+
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {}
+  };
+
   // Bot input simulator for live mini games
   const simulateBotGameInputs = (gameType, targetValue) => {
     setParticipants(prev => {
@@ -528,6 +566,7 @@ export const GameProvider = ({ children }) => {
         returnToLobby,
         submitPlayerInput,
         awardPoints,
+        awardBatchPoints,
         simulateBotGameInputs,
         toggleFreeze,
         triggerEvent,

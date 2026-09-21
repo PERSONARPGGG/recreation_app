@@ -4,8 +4,9 @@ import { soundFx } from '../../utils/sound';
 import { Moon, Sun, Shield, UserCheck, Skull, Play, RotateCcw, Volume2, HelpCircle } from 'lucide-react';
 
 export const MafiaRefereeModule = () => {
-  const { participants, returnToLobby } = useGame();
+  const { participants, returnToLobby, awardPoints, room, userRole } = useGame();
 
+  const [isSettled, setIsSettled] = useState(false);
   const [mafiaState, setMafiaState] = useState({
     phase: 'setup', // 'setup', 'night', 'day', 'vote'
     step: 0,
@@ -76,6 +77,27 @@ export const MafiaRefereeModule = () => {
     }
   };
 
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    const alivePlayers = mafiaState.players.filter(p => p.alive);
+    if (alivePlayers.length > 0) {
+      alivePlayers.forEach(p => {
+        awardPoints(room?.mode === 'team' ? p.teamId : p.id, 300, room?.mode === 'team');
+      });
+    } else {
+      participants.forEach(p => awardPoints(room?.mode === 'team' ? p.teamId : p.id, 100, room?.mode === 'team'));
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -93,9 +115,21 @@ export const MafiaRefereeModule = () => {
           </div>
         </div>
 
-        <button onClick={returnToLobby} className="btn-secondary">
-          로비로 돌아가기
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+            </button>
+          )}
+          <button onClick={handleReturnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
 
       {/* Main Mafia Console */}

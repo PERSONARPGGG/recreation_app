@@ -4,8 +4,9 @@ import { Eye, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const NunchiGame = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, returnToLobby, room, updateRoomState, awardPoints } = useGame();
   
+  const [isSettled, setIsSettled] = useState(false);
   const gameState = room.nunchiState || 'ready';
   const currentNumber = room.nunchiNumber || 0;
   const eliminated = room.nunchiEliminated || [];
@@ -86,11 +87,48 @@ export const NunchiGame = () => {
     );
   }
 
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    if (passed.length > 0) {
+      passed.forEach(id => {
+        const p = participants.find(part => part.id === id);
+        awardPoints(id, 200, false);
+        if (p?.teamId) awardPoints(p.teamId, 200, true);
+      });
+    } else {
+      // 통과자 없을 경우 참가자 전원 50점
+      participants.forEach(p => awardPoints(p.id, 50, false));
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🙈 아슬아슬 1부터 눈치게임</h2>
-        <button onClick={returnToLobby} className="btn-secondary">로비로 돌아가기</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+            </button>
+          )}
+          <button onClick={handleReturnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

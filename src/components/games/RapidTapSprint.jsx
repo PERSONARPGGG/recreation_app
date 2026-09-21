@@ -89,22 +89,37 @@ export const RapidTapSprint = () => {
   }).sort((a, b) => b.totalTaps - a.totalTaps);
 
   const handleSettlePoints = () => {
-    if (isSettled || !raceFinished) return;
+    if (isSettled) return;
     if (room.mode === 'team') {
-      // Award top 3 teams
-      teamScores.slice(0, 3).forEach((t, idx) => {
-        const points = idx === 0 ? 1000 : idx === 1 ? 500 : 300;
-        awardPoints(t.id, points, true);
-      });
+      // 상위 3팀 정산 (기록 없으면 전 팀 200점)
+      if (teamScores.some(t => t.totalTaps > 0)) {
+        teamScores.slice(0, 3).forEach((t, idx) => {
+          const points = idx === 0 ? 1000 : idx === 1 ? 500 : 300;
+          awardPoints(t.id, points, true);
+        });
+      } else {
+        activeTeams.forEach(t => awardPoints(t.id, 200, true));
+      }
     } else {
-      // Award top 10 players
-      rankedParticipants.slice(0, 10).forEach((p, idx) => {
-        const points = idx === 0 ? 500 : idx < 3 ? 300 : 100;
-        awardPoints(p.id, points, false);
-      });
+      // 개인전 상위 10명 (기록 없으면 참가자 전원 100점)
+      if (rankedParticipants.length > 0) {
+        rankedParticipants.slice(0, 10).forEach((p, idx) => {
+          const points = idx === 0 ? 500 : idx < 3 ? 300 : 100;
+          awardPoints(p.id, points, false);
+        });
+      } else {
+        participants.forEach(p => awardPoints(p.id, 100, false));
+      }
     }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   return (
@@ -127,15 +142,18 @@ export const RapidTapSprint = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
             <>
-              {raceFinished && !isSettled && (
-                <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-                  🏆 일괄 정산하기
-                </button>
-              )}
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 탭 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled}
+                className="btn-primary" 
+                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              >
+                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기
               </button>
             </>

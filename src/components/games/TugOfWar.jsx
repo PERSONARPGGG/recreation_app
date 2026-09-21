@@ -65,7 +65,7 @@ export const TugOfWar = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled || gameState !== 'finished') return;
+    if (isSettled) return;
     if (ropePosition < 50) {
       awardPoints('team-1', 500, true);
       awardPoints('team-3', 500, true);
@@ -74,9 +74,19 @@ export const TugOfWar = () => {
       awardPoints('team-2', 500, true);
       awardPoints('team-4', 500, true);
       awardPoints('team-6', 500, true);
+    } else {
+      // 무승부 또는 경기 전 강제 정산: 참가한 전 팀에 200점 지급
+      activeTeams.forEach(t => awardPoints(t.id, 200, true));
     }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   if (userRole === 'participant') {
@@ -113,12 +123,17 @@ export const TugOfWar = () => {
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>🪢 영차영차! 100인 줄다리기</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          {userRole === 'host' && gameState === 'finished' && !isSettled && (
-            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-              🏆 100인 일괄 정산하기
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={returnToLobby} className="btn-secondary">
+          <button onClick={handleReturnToLobby} className="btn-secondary">
             🏠 로비로 돌아가기
           </button>
         </div>

@@ -58,10 +58,25 @@ export const RockPaperScissors = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled || rpsState === 'ready' || survivors.length === 0) return;
-    survivors.forEach(s => awardPoints(s.id, 500, false));
+    if (isSettled) return;
+    if (survivors.length > 0) {
+      survivors.forEach(s => {
+        awardPoints(s.id, 500, false);
+        if (s.teamId) awardPoints(s.teamId, 500, true);
+      });
+    } else {
+      // 생존자가 없거나 시작 전 정산 시 전체 참가자에게 100점 분배
+      participants.forEach(p => awardPoints(p.id, 100, false));
+    }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   if (userRole === 'participant') {
@@ -110,12 +125,17 @@ export const RockPaperScissors = () => {
           ✊✌️✋ 대규모 가위바위보 서바이벌
         </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          {userRole === 'host' && rpsState !== 'ready' && !isSettled && (
-            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-              🏆 생존자 500점 정산
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={returnToLobby} className="btn-secondary">
+          <button onClick={handleReturnToLobby} className="btn-secondary">
             🏠 로비로 돌아가기
           </button>
         </div>

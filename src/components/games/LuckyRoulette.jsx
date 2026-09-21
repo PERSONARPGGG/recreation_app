@@ -17,10 +17,12 @@ export const LuckyRoulette = () => {
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(activeTeams[0]?.id);
+  const [isSettled, setIsSettled] = useState(false);
 
   const handleSpin = () => {
     setSpinning(true);
     setResult(null);
+    setIsSettled(false);
     soundFx.playTick(); // Ideally a roulette sound
     
     setTimeout(() => {
@@ -36,7 +38,32 @@ export const LuckyRoulette = () => {
       } else {
         awardPoints(selectedTeam, randomItem.effect, true);
       }
+      setIsSettled(true);
     }, 3000); // spin for 3 seconds
+  };
+
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    if (result) {
+      if (result.effect === 'double') {
+        const teamScore = participants.filter(p => p.teamId === selectedTeam).reduce((sum, p) => sum + p.score, 0);
+        awardPoints(selectedTeam, teamScore, true);
+      } else {
+        awardPoints(selectedTeam, result.effect, true);
+      }
+    } else {
+      // 룰렛을 안 돌리고 정산 시 기본 행운 점수 +500점 지급
+      awardPoints(selectedTeam, 500, true);
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   if (userRole === 'participant') {
@@ -56,9 +83,21 @@ export const LuckyRoulette = () => {
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           🎡 럭키 룰렛 대박 뽑기 (Lucky Roulette)
         </h2>
-        <button onClick={returnToLobby} className="btn-secondary">
-          로비로 돌아가기
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+            </button>
+          )}
+          <button onClick={handleReturnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

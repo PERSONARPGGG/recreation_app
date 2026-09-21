@@ -14,6 +14,7 @@ export const StopwatchChallenge = () => {
 
   const [isRunning, setIsRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [isSettled, setIsSettled] = useState(false);
   // Initialize stoppedTime from lastInput to prevent retry on refresh
   const [stoppedTime, setStoppedTime] = useState(hasSubmitted ? myPlayer.lastInput.stopTime : null);
   const startTimeRef = useRef(null);
@@ -88,6 +89,27 @@ export const StopwatchChallenge = () => {
     .filter(p => p.lastInput && p.lastInput.stopTime !== undefined)
     .sort((a, b) => a.lastInput.diffAbs - b.lastInput.diffAbs);
 
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    if (rankedParticipants.length > 0) {
+      rankedParticipants.slice(0, 10).forEach((player, rank) => {
+        const points = rank === 0 ? 500 : rank === 1 ? 300 : rank === 2 ? 200 : 100;
+        awardPoints(room.mode === 'team' ? player.teamId : player.id, points, room.mode === 'team');
+      });
+    } else {
+      participants.forEach(p => awardPoints(room.mode === 'team' ? p.teamId : p.id, 100, room.mode === 'team'));
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
@@ -113,8 +135,16 @@ export const StopwatchChallenge = () => {
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 봇 즉시 측정 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
-                로비로 돌아가기
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled}
+                className="btn-primary" 
+                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              >
+                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
+                🏠 로비로 돌아가기
               </button>
             </>
           )}

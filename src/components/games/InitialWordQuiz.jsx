@@ -20,6 +20,7 @@ export const InitialWordQuiz = () => {
   const currentWord = room.quizCurrentWord || null;
   const winners = room.quizWinners || [];
   
+  const [isSettled, setIsSettled] = useState(false);
   const [myInput, setMyInput] = useState('');
   const [customInitial, setCustomInitial] = useState('');
   const [customAnswer, setCustomAnswer] = useState('');
@@ -102,15 +103,50 @@ export const InitialWordQuiz = () => {
     );
   }
 
+  const handleSettlePoints = () => {
+    if (isSettled) return;
+    if (winners.length > 0) {
+      winners.forEach((w, idx) => {
+        const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
+        awardPoints(w.id, points, false);
+        if (w.teamId) awardPoints(w.teamId, points, true);
+      });
+    } else {
+      // 정답자 없을 시 참가자 전원에게 50점 지급
+      participants.forEach(p => awardPoints(p.id, 50, false));
+    }
+    setIsSettled(true);
+    soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
+  };
+
   return (
     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '600px' }}>
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', fontWeight: 900 }}>
           🅰️ 실시간 초성 텔레파시 (Initial Word Quiz)
         </h2>
-        <button onClick={returnToLobby} className="btn-secondary">
-          로비로 돌아가기
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+            </button>
+          )}
+          <button onClick={handleReturnToLobby} className="btn-secondary">
+            🏠 로비로 돌아가기
+          </button>
+        </div>
       </div>
       
       <div className="glass-panel glass-panel-glow" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

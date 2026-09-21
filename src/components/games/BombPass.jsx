@@ -65,11 +65,28 @@ export const BombPass = () => {
   };
 
   const handleSettlePoints = () => {
-    if (isSettled || gameState !== 'exploded') return;
-    const survivors = participants.filter(p => p.id !== bombHolder?.id);
-    survivors.forEach(s => awardPoints(s.id, 300, false));
+    if (isSettled) return;
+    if (bombHolder) {
+      // 폭탄 소지자는 200점 감점, 나머지 생존자는 300점 지급
+      awardPoints(bombHolder.id, -200, false);
+      const survivors = participants.filter(p => p.id !== bombHolder.id);
+      survivors.forEach(s => {
+        awardPoints(s.id, 300, false);
+        if (s.teamId) awardPoints(s.teamId, 100, true);
+      });
+    } else {
+      // 폭발 전 임의 정산: 전체 참가자에게 100점 지급
+      participants.forEach(p => awardPoints(p.id, 100, false));
+    }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   if (userRole === 'participant') {
@@ -100,12 +117,17 @@ export const BombPass = () => {
           💣 시한폭탄 돌리기 (Bomb Pass)
         </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          {userRole === 'host' && gameState === 'exploded' && !isSettled && (
-            <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-              🏆 생존자 정산하기
+          {userRole === 'host' && (
+            <button 
+              onClick={handleSettlePoints} 
+              disabled={isSettled}
+              className="btn-primary" 
+              style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+            >
+              {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
             </button>
           )}
-          <button onClick={returnToLobby} className="btn-secondary">
+          <button onClick={handleReturnToLobby} className="btn-secondary">
             🏠 로비로 돌아가기
           </button>
         </div>

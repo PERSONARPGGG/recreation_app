@@ -63,12 +63,26 @@ export const SurvivalOxQuiz = () => {
   const survivors = participants.filter(p => p.lastInput?.choice === questionObj.a);
 
   const handleSettlePoints = () => {
-    if (isSettled || !revealed) return;
-    survivors.forEach(s => {
-      awardPoints(s.id, 100, false);
-    });
+    if (isSettled) return;
+    setRevealed(true);
+    if (survivors.length > 0) {
+      survivors.forEach(s => {
+        awardPoints(s.id, 100, false);
+        if (s.teamId) awardPoints(s.teamId, 100, true);
+      });
+    } else {
+      // 정답자가 없거나 시작 전 정산 시 참가자 전원에게 50점 분배
+      participants.forEach(p => awardPoints(p.id, 50, false));
+    }
     setIsSettled(true);
     soundFx.playSuccess();
+  };
+
+  const handleReturnToLobby = () => {
+    if (!isSettled) {
+      handleSettlePoints();
+    }
+    returnToLobby();
   };
 
   return (
@@ -91,15 +105,18 @@ export const SurvivalOxQuiz = () => {
         <div style={{ display: 'flex', gap: '10px' }}>
           {userRole === 'host' && (
             <>
-              {revealed && !isSettled && (
-                <button onClick={handleSettlePoints} className="btn-primary" style={{ background: 'var(--success-color)' }}>
-                  🏆 정답자 일괄 정산하기
-                </button>
-              )}
               <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)' }}>
                 <Zap size={16} /> 100인 투표 시뮬레이션
               </button>
-              <button onClick={returnToLobby} className="btn-secondary">
+              <button 
+                onClick={handleSettlePoints} 
+                disabled={isSettled}
+                className="btn-primary" 
+                style={{ background: isSettled ? '#555' : 'var(--success-color)', cursor: isSettled ? 'default' : 'pointer' }}
+              >
+                {isSettled ? '✅ 정산 완료' : '🏆 포인트 정산하기'}
+              </button>
+              <button onClick={handleReturnToLobby} className="btn-secondary">
                 🏠 로비로 돌아가기
               </button>
             </>
