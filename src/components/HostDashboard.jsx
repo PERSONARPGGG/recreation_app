@@ -123,15 +123,9 @@ export const HostDashboard = () => {
       <div className="glass-panel glass-panel-glow" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div style={{ background: '#fff', padding: '8px', borderRadius: '12px', flexShrink: 0 }}>
-            <QRCodeSVG value={`${window.location.origin}/?code=${room.code}`} size={90} />
-          </div>
           <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ background: 'var(--primary-color)', color: '#000', padding: '3px 10px', borderRadius: '20px', fontWeight: 900, fontSize: '0.75rem', width: 'fit-content' }}>
-                MAIN PROJECTOR HOST
-              </span>
-              <span style={{ color: 'var(--text-sub)', fontSize: '1rem' }}>접속 방 코드: <strong style={{ color: '#fff', fontSize: '1.4rem' }}>{room.code}</strong></span>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)' }}>
+              대기 로비
             </div>
           </div>
         </div>

@@ -647,7 +647,8 @@ export const GameProvider = ({ children }) => {
         kickParticipant,
         shuffleTeams,
         addGlobalTime,
-        updateTeamInfo
+        updateTeamInfo,
+        broadcast
       }}
     >
       {children}

@@ -27,14 +27,15 @@ export const TugOfWar = () => {
   // Helper to determine if a player belongs to the Left side
   const isPlayerOnLeftSide = (p, index = 0) => {
     if (matchupMode === 'direct') {
-      return p.teamId === leftTeamId;
+      return p?.teamId === leftTeamId;
     }
     // Alliance mode: Odd teams or odd index = Left, Even teams or even index = Right
-    if (p.teamId) {
+    if (p?.teamId && typeof p.teamId === 'string') {
       const teamNum = parseInt(p.teamId.replace('team-', ''), 10);
       if (!isNaN(teamNum)) return teamNum % 2 !== 0;
     }
-    const numId = parseInt(p.id.replace(/\D/g, '') || index, 10);
+    const idStr = String(p?.id || index);
+    const numId = parseInt(idStr.replace(/\D/g, '') || index, 10);
     return numId % 2 !== 0;
   };
 
