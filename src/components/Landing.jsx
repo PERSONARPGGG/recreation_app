@@ -76,7 +76,7 @@ export const Landing = () => {
           <Monitor size={100} color="var(--primary-color)" />
           <div className="projector-beam"></div>
         </div>
-        <h2 className="font-heading" style={{ marginTop: '40px', fontSize: '2rem', animation: 'pulse 1s infinite' }}>사회자 시스템 부팅 중...</h2>
+        <h2 className="font-heading" style={{ marginTop: '40px', fontSize: '2rem', animation: 'pulse 1s infinite' }}>?�회???�스??부??�?..</h2>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export const Landing = () => {
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050510' }}>
         <div className="envelope-animation">
           <MailOpen size={120} color="#ffd700" />
-          <h2 style={{ marginTop: '20px', color: '#ffd700' }}>초대장이 열립니다...</h2>
+          <h2 style={{ marginTop: '20px', color: '#ffd700' }}>초�??�이 ?�립?�다...</h2>
         </div>
       </div>
     );
@@ -96,15 +96,15 @@ export const Landing = () => {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <form onSubmit={handleAuthSubmit} className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeInUp 0.5s ease' }}>
-          <h2 className="font-heading text-gradient" style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>초대장 확인</h2>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>초�????�인</h2>
           
           <div>
-            <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>방 코드</label>
+            <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>�?코드</label>
             <input
               type="text"
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-              placeholder="예: REC-1234"
+              placeholder="?? REC-1234"
               required
               style={{
                 width: '100%', padding: '20px', borderRadius: '12px', background: 'rgba(0, 0, 0, 0.4)',
@@ -114,12 +114,12 @@ export const Landing = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>내 닉네임</label>
+            <label style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>???�네??/label>
             <input
               type="text"
               value={inputName}
               onChange={(e) => setInputName(e.target.value)}
-              placeholder="이름을 입력하세요"
+              placeholder="?�름???�력?�세??
               required
               style={{
                 width: '100%', padding: '20px', borderRadius: '12px', background: 'rgba(0, 0, 0, 0.4)',
@@ -129,7 +129,7 @@ export const Landing = () => {
           </div>
 
           <button type="submit" className="btn-primary" style={{ marginTop: '20px', padding: '20px', fontSize: '1.8rem', fontWeight: 900 }}>
-            다음 단계
+            ?�음 ?�계
           </button>
         </form>
       </div>
@@ -140,19 +140,19 @@ export const Landing = () => {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
         <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeInUp 0.5s ease' }}>
-          <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', textAlign: 'center', marginBottom: '4px' }}>입장 준비</h2>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '1.8rem', textAlign: 'center', marginBottom: '4px' }}>?�장 준�?/h2>
           
           {room.status === 'setup' ? (
             <div style={{ textAlign: 'center', padding: '30px 20px' }}>
               <Monitor size={60} color="var(--primary-color)" style={{ marginBottom: '20px', animation: 'pulse 2s infinite' }} />
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>진행자가 방을 설정 중입니다</h3>
-              <p style={{ color: 'var(--text-sub)' }}>설정이 완료될 때까지 잠시 대기해 주세요...</p>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>진행?��? 방을 ?�정 중입?�다</h3>
+              <p style={{ color: 'var(--text-sub)' }}>?�정???�료???�까지 ?�시 ?�기해 주세??..</p>
             </div>
           ) : (
             <form onSubmit={handleJoinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {room.mode === 'team' && (
                 <div>
-                  <label style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>소속 팀을 선택하세요 ({activeTeams.length}개 팀)</label>
+                  <label style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-sub)', display: 'block', marginBottom: '10px' }}>?�속 ?�???�택?�세??({activeTeams.length}�??�)</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                     {activeTeams.map(t => (
                       <button
@@ -177,13 +177,13 @@ export const Landing = () => {
               {room.mode === 'solo' && (
                 <div style={{ textAlign: 'center', padding: '16px' }}>
                   <User size={50} color="var(--primary-color)" style={{ marginBottom: '12px' }} />
-                  <h3 style={{ fontSize: '1.3rem' }}>개인전 모드입니다</h3>
-                  <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>준비되셨다면 입장하기 버튼을 눌러주세요!</p>
+                  <h3 style={{ fontSize: '1.3rem' }}>개인??모드?�니??/h3>
+                  <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>준비되?�다�??�장?�기 버튼???�러주세??</p>
                 </div>
               )}
 
               <button type="submit" className="btn-primary" style={{ marginTop: '10px', padding: '16px', fontSize: '1.4rem', fontWeight: 900 }}>
-                🚀 방 입장하기
+                ?? �??�장?�기
               </button>
             </form>
           )}
@@ -197,7 +197,7 @@ export const Landing = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
       
       <h1 className="font-heading text-gradient" style={{ fontSize: '3rem', marginBottom: '10px' }}>RECREATION MASTER 100</h1>
-      <p style={{ fontSize: '1.2rem', color: 'var(--text-sub)', marginBottom: '60px' }}>세상에서 가장 즐거운 100인 대규모 레크레이션 플랫폼</p>
+      <p style={{ fontSize: '1.2rem', color: 'var(--text-sub)', marginBottom: '60px' }}>?�상?�서 가??즐거??100???�규모 ?�크?�이???�랫??/p>
 
       {/* Mode Selector Card Grid */}
       <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -214,8 +214,8 @@ export const Landing = () => {
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
           <Monitor size={80} color="var(--primary-color)" style={{ marginBottom: '30px' }} />
-          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px' }}>사회자/호스트</h2>
-          <div className="btn-primary" style={{ fontSize: '1.2rem' }}>새 방 만들기</div>
+          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px' }}>?�회???�스??/h2>
+          <div className="btn-primary" style={{ fontSize: '1.2rem' }}>??�?만들�?/div>
         </button>
 
         {/* Guest Mode Button */}
@@ -230,8 +230,8 @@ export const Landing = () => {
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
           <Smartphone size={80} color="#ffd700" style={{ marginBottom: '30px' }} />
-          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px', color: '#ffd700' }}>참가자</h2>
-          <div style={{ background: '#ffd700', color: '#000', padding: '15px 30px', fontSize: '1.2rem', borderRadius: '12px', fontWeight: 800 }}>초대장 열기</div>
+          <h2 className="font-heading" style={{ fontSize: '2.2rem', marginBottom: '15px', color: '#ffd700' }}>참�???/h2>
+          <div style={{ background: '#ffd700', color: '#000', padding: '15px 30px', fontSize: '1.2rem', borderRadius: '12px', fontWeight: 800 }}>초�????�기</div>
         </button>
 
       </div>
@@ -242,9 +242,9 @@ export const Landing = () => {
         fontSize: '0.82rem',
         color: 'var(--text-sub)'
       }}>
-        <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
+        <div>RECREATION MASTER 100 ??100???�규모 ?�이�??�크?�이??게임 ?�진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.5.0 (호스트 대시보드 간소화, 팀/테마 최적화 및 실시간 수정 기능)
+          버전: v1.5.1 (?�스???�?�보??간소?? ?�/?�마 최적??�??�시�??�정 기능)
         </div>
       </footer>
     </div>

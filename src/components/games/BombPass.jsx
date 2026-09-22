@@ -4,7 +4,7 @@ import { Flame, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
 export const BombPass = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, awardBatchPoints, returnToLobby, room, updateRoomState } = useGame();
   
   const gameState = room.bombState || 'ready';
   const timeLeft = room.bombTimeLeft || 0;
@@ -18,9 +18,9 @@ export const BombPass = () => {
         if (room.bombTimeLeft <= 1) {
           updateRoomState({ bombState: 'exploded', bombTimeLeft: 0 });
           soundFx.playError();
-          if (room.bombHolder) {
-            awardPoints(room.bombHolder.id, -100, false);
-          }
+            if (room.bombHolder) {
+              awardBatchPoints([{ targetId: room.bombHolder.id, points: -50, isTeam: false }]);
+            }
         } else {
           updateRoomState({ bombTimeLeft: room.bombTimeLeft - 1 });
         }
@@ -49,7 +49,10 @@ export const BombPass = () => {
   }, [participants, userRole, gameState, room.bombHolder]);
 
   const startGame = () => {
-    const explosionTime = Math.floor(Math.random() * 20) + 15; // 15 to 35 seconds
+    // Determine explosion time based on host config (default 20, random fuzzing +/- 5)
+    const baseTime = room.bombTimeConfig || 20;
+    const explosionTime = Math.floor(Math.random() * 10) - 5 + baseTime; 
+
     let initialHolder = null;
     if (participants.length > 0) {
       initialHolder = participants[Math.floor(Math.random() * participants.length)];
@@ -66,15 +69,17 @@ export const BombPass = () => {
 
   const handleSettlePoints = () => {
     if (isSettled || gameState !== 'exploded') return;
+    const awards = [];
     if (bombHolder) {
-      awardPoints(bombHolder.id, -200, false);
-      if (bombHolder.teamId) awardPoints(bombHolder.teamId, -200, true);
+      awards.push({ targetId: bombHolder.id, points: -50, isTeam: false });
+      if (bombHolder.teamId && room.mode === 'team') awards.push({ targetId: bombHolder.teamId, points: -50, isTeam: true });
     }
     const survivors = participants.filter(p => p.id !== bombHolder?.id);
     survivors.forEach(s => {
-      awardPoints(s.id, 100, false);
-      if (s.teamId) awardPoints(s.teamId, 100, true);
+      awards.push({ targetId: s.id, points: 50, isTeam: false });
+      if (s.teamId && room.mode === 'team') awards.push({ targetId: s.teamId, points: 50, isTeam: true });
     });
+    awardBatchPoints(awards);
     setIsSettled(true);
     soundFx.playSuccess();
   };
@@ -176,6 +181,17 @@ export const BombPass = () => {
           <div style={{ textAlign: 'center' }}>
             <Flame size={60} color="var(--danger-color)" style={{ marginBottom: '14px' }} />
             <h3 style={{ fontSize: '1.4rem', marginBottom: '14px' }}>무작위 시간에 폭탄이 터집니다!</h3>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <label style={{ color: 'var(--text-sub)' }}>평균 터지는 시간(초):</label>
+              <input 
+                type="number" 
+                value={room.bombTimeConfig || 20} 
+                onChange={e => updateRoomState({ bombTimeConfig: Math.max(5, parseInt(e.target.value) || 20) })}
+                style={{ width: '60px', padding: '6px', borderRadius: '8px', border: '1px solid var(--primary-color)', background: 'rgba(0,0,0,0.5)', color: '#fff' }}
+              />
+            </div>
+
             <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.1rem', padding: '12px 28px' }}>
               <Play size={18} /> 폭탄 타이머 시작
             </button>

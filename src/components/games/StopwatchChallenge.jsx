@@ -4,10 +4,10 @@ import { soundFx } from '../../utils/sound';
 import { Timer, Award, Play, RotateCcw, EyeOff, Trophy, Zap, AlertCircle } from 'lucide-react';
 
 export const StopwatchChallenge = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, startRound, startGame } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, startRound, startGame, updateRoomState } = useGame();
 
-  const TARGET_TIME = 10.000; // 10.000s
-  const HIDE_TIME = 5.000;    // Hide display after 5s
+  const TARGET_TIME = room.targetTime || 10.000;
+  const HIDE_TIME = TARGET_TIME / 2; // Hide at halfway
 
   const myPlayer = participants.find(p => p.id === myPlayerId);
   const hasSubmitted = !!myPlayer?.lastInput?.stopTime;
@@ -92,10 +92,15 @@ export const StopwatchChallenge = () => {
   const handleSettlePoints = () => {
     if (isSettled || rankedParticipants.length === 0) return;
     if (rankedParticipants.length > 0) {
-      rankedParticipants.slice(0, 10).forEach((player, rank) => {
-        const points = rank === 0 ? 500 : rank === 1 ? 300 : rank === 2 ? 200 : 100;
-        awardPoints(room.mode === 'team' ? player.teamId : player.id, points, room.mode === 'team');
+      const awards = rankedParticipants.slice(0, 10).map((player, rank) => {
+        const points = rank === 0 ? 100 : rank === 1 ? 80 : rank === 2 ? 60 : 30;
+        return {
+          targetId: room.mode === 'team' ? player.teamId : player.id,
+          points,
+          isTeam: room.mode === 'team'
+        };
       });
+      awardBatchPoints(awards);
     }
     setIsSettled(true);
     soundFx.playSuccess();
@@ -162,9 +167,21 @@ export const StopwatchChallenge = () => {
         {/* Stopwatch Controller Box */}
         <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '12px 10px' : '20px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)', marginBottom: '4px', fontWeight: 700 }}>
-            목표 시간: <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}초</strong> (5초 후 타이머 숨김)
-          </div>
+          {userRole === 'host' && room.gameState === 'ready' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <label style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>목표 초(s) 설정:</label>
+              <input 
+                type="number" 
+                value={room.targetTime || 10} 
+                onChange={(e) => updateRoomState({ targetTime: parseFloat(e.target.value) || 10 })}
+                style={{ width: '70px', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--primary-color)', background: 'rgba(0,0,0,0.5)', color: '#fff' }}
+              />
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-sub)', marginBottom: '4px', fontWeight: 700 }}>
+              목표 시간: <strong style={{ color: 'var(--primary-color)' }}>{TARGET_TIME.toFixed(3)}초</strong> ({HIDE_TIME}초 후 타이머 숨김)
+            </div>
+          )}
 
           {/* Large Digital Timer Display */}
           <div style={{

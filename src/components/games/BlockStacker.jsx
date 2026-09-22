@@ -251,11 +251,16 @@ export const BlockStacker = () => {
 
   const handleSettlePoints = () => {
     if (isSettled || blockstackState !== 'finished' || rankedParticipants.length === 0) return;
-    rankedParticipants.slice(0, 3).forEach((p, rank) => {
+    const awards = rankedParticipants.slice(0, 3).map((p, rank) => {
       const height = p.lastInput.towerHeight;
       const multiplier = rank === 0 ? 5 : rank === 1 ? 3 : 1;
-      awardPoints(room.mode === 'team' ? p.teamId : p.id, Math.max(100, height * multiplier), room.mode === 'team');
+      return {
+        targetId: room.mode === 'team' ? p.teamId : p.id,
+        points: Math.max(50, height * multiplier * 2),
+        isTeam: room.mode === 'team'
+      };
     });
+    awardBatchPoints(awards);
     setIsSettled(true);
     soundFx.playSuccess();
   };
@@ -322,7 +327,7 @@ export const BlockStacker = () => {
                 cursor: localGameOver ? 'not-allowed' : 'pointer'
               }}
             >
-              {localGameOver ? '💥 타워 붕괴 (기록 완료)' : '⚡ 블록 떨어뜨리기 (터치!)'}
+              {localGameOver ? '💥 타워 붕괴 (기록 완료)' : '⚡ 쌓기! (터치)'}
             </button>
           </div>
         )}

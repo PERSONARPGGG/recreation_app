@@ -11,6 +11,10 @@ export const NunchiGame = () => {
   const currentNumber = room.nunchiNumber || 0;
   const eliminated = room.nunchiEliminated || [];
   const passed = room.nunchiPassed || [];
+  
+  const tabooNumber = room.nunchiTabooNumber || 0;
+  const timeoutSec = room.nunchiTimeout || 0;
+  const lastCallTime = room.nunchiLastCallTime || Date.now();
 
   // Track the last number processed for each player to prevent infinite loop re-processing
   const processedPlayerInputsRef = useRef(new Map());
@@ -24,6 +28,22 @@ export const NunchiGame = () => {
   // Host evaluates incoming participant inputs safely without looping
   useEffect(() => {
     if (userRole !== 'host' || gameState !== 'playing') return;
+
+    // Timeout logic
+    if (timeoutSec > 0 && currentNumber < participants.length) {
+      if (Date.now() - lastCallTime > timeoutSec * 1000) {
+        // Eliminate everyone who hasn't passed!
+        const nextElim = [...eliminated];
+        participants.forEach(p => {
+          if (!passed.includes(p.id) && !nextElim.some(e => e.id === p.id)) {
+            nextElim.push({ id: p.id, name: p.name, reason: '시간 초과 전멸' });
+          }
+        });
+        updateRoomState({ nunchiEliminated: nextElim });
+        soundFx.playError();
+        return; // wait for next state
+      }
+    }
 
     // Find players who submitted a new input that hasn't been evaluated yet
     const newSubmissions = [];
@@ -66,7 +86,13 @@ export const NunchiGame = () => {
     });
 
     newSubmissions.forEach(sub => {
-      if (counts[sub.num] > 1) {
+      if (tabooNumber > 0 && sub.num === tabooNumber) {
+        // Taboo number!
+        if (!nextEliminated.some(e => e.id === sub.id)) {
+          nextEliminated.push({ id: sub.id, name: sub.name, reason: `금기 숫자(${tabooNumber}) 아웃!` });
+        }
+        soundFx.playError();
+      } else if (counts[sub.num] > 1) {
         // Clash elimination
         if (!nextEliminated.some(e => e.id === sub.id)) {
           nextEliminated.push({ id: sub.id, name: sub.name, reason: `${sub.num} 동시 외침` });
@@ -93,6 +119,7 @@ export const NunchiGame = () => {
       nunchiNumber: nextNumber,
       nunchiPassed: nextPassed,
       nunchiEliminated: nextEliminated,
+      nunchiLastCallTime: Date.now()
     });
   }, [participants, userRole, gameState, currentNumber, eliminated, passed]);
 
@@ -122,15 +149,17 @@ export const NunchiGame = () => {
 
   const handleSettlePoints = () => {
     if (isSettled || !hasGameActivity) return;
+    const awards = [];
     if (passed.length > 0) {
       passed.forEach(id => {
         const p = participants.find(part => part.id === id);
-        awardPoints(id, 200, false);
-        if (p?.teamId) awardPoints(p.teamId, 200, true);
+        awards.push({ targetId: id, points: 50, isTeam: false });
+        if (p?.teamId && room.mode === 'team') awards.push({ targetId: p.teamId, points: 50, isTeam: true });
       });
     } else {
-      participants.forEach(p => awardPoints(p.id, 50, false));
+      participants.forEach(p => awards.push({ targetId: p.id, points: 20, isTeam: false }));
     }
+    awardBatchPoints(awards);
     setIsSettled(true);
     soundFx.playSuccess();
   };
@@ -233,6 +262,28 @@ export const NunchiGame = () => {
             <Eye size={60} color="var(--primary-color)" style={{ marginBottom: '14px' }} />
             <h3 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>아슬아슬 눈치게임</h3>
             <p style={{ color: 'var(--text-sub)', marginBottom: '20px', fontSize: '0.95rem' }}>참가자들과 겹치지 않게 순서대로 1부터 숫자를 부르는 심리 스릴 게임!</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ color: 'var(--text-sub)' }}>금기 숫자 (0은 사용안함):</label>
+                <input 
+                  type="number" 
+                  value={room.nunchiTabooNumber || 0} 
+                  onChange={e => updateRoomState({ nunchiTabooNumber: parseInt(e.target.value) || 0 })}
+                  style={{ width: '60px', padding: '6px', borderRadius: '8px', border: '1px solid var(--danger-color)', background: 'rgba(0,0,0,0.5)', color: '#fff' }}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ color: 'var(--text-sub)' }}>제한 시간 (초, 0은 사용안함):</label>
+                <input 
+                  type="number" 
+                  value={room.nunchiTimeout || 0} 
+                  onChange={e => updateRoomState({ nunchiTimeout: parseInt(e.target.value) || 0 })}
+                  style={{ width: '60px', padding: '6px', borderRadius: '8px', border: '1px solid #ffd700', background: 'rgba(0,0,0,0.5)', color: '#fff' }}
+                />
+              </div>
+            </div>
+
             <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.2rem', padding: '14px 36px', borderRadius: '50px' }}>
               <Play size={20} /> 게임 시작하기
             </button>

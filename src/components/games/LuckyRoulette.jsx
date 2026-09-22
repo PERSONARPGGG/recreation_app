@@ -18,7 +18,8 @@ const SLICE_DEG = 360 / NUM_SLICES;
 export const LuckyRoulette = () => {
   const { userRole, activeTeams, awardPoints, returnToLobby, participants, room, updateRoomState } = useGame();
   
-  const [selectedTeam, setSelectedTeam] = useState(activeTeams[0]?.id || 'A');
+  const defaultTarget = room.mode === 'team' ? (activeTeams[0]?.id || 'A') : (participants[0]?.id);
+  const [selectedTarget, setSelectedTarget] = useState(defaultTarget);
   const [isSettled, setIsSettled] = useState(false);
   const [localRotation, setLocalRotation] = useState(0);
   const [isSpinningLocal, setIsSpinningLocal] = useState(false);
@@ -26,7 +27,7 @@ export const LuckyRoulette = () => {
   const rouletteRotation = room.rouletteRotation || 0;
   const rouletteState = room.rouletteState || 'idle'; // 'idle' | 'spinning' | 'finished'
   const result = room.rouletteResult || null;
-  const currentTargetTeam = room.rouletteSelectedTeam || selectedTeam;
+  const currentTargetTeam = room.rouletteSelectedTeam || selectedTarget;
 
   const tickIntervalRef = useRef(null);
 
@@ -85,7 +86,7 @@ export const LuckyRoulette = () => {
       rouletteState: 'spinning',
       rouletteRotation: targetRotation,
       rouletteResult: null,
-      rouletteSelectedTeam: selectedTeam,
+      rouletteSelectedTeam: selectedTarget,
     });
 
     // Stop and finalize after 3.6s
@@ -97,12 +98,15 @@ export const LuckyRoulette = () => {
       });
 
       // Apply points to chosen team
-      const teamId = selectedTeam;
+      const targetId = selectedTarget;
+      const isTeam = room.mode === 'team';
       if (winItem.effect === 'double') {
-        const teamScore = participants.filter(p => p.teamId === teamId).reduce((sum, p) => sum + p.score, 0);
-        awardPoints(teamId, Math.max(teamScore, 300), true);
+        const targetScore = isTeam 
+          ? participants.filter(p => p.teamId === targetId).reduce((sum, p) => sum + p.score, 0)
+          : participants.find(p => p.id === targetId)?.score || 0;
+        awardPoints(targetId, Math.max(targetScore, 300), isTeam);
       } else if (winItem.effect !== 0) {
-        awardPoints(teamId, winItem.effect, true);
+        awardPoints(targetId, winItem.effect, isTeam);
       }
       setIsSettled(true);
     }, 3600);
@@ -110,16 +114,19 @@ export const LuckyRoulette = () => {
 
   const handleSettlePoints = () => {
     if (isSettled) return;
-    const teamId = currentTargetTeam || selectedTeam;
+    const targetId = currentTargetTeam || selectedTarget;
+    const isTeam = room.mode === 'team';
     if (result) {
       if (result.effect === 'double') {
-        const teamScore = participants.filter(p => p.teamId === teamId).reduce((sum, p) => sum + p.score, 0);
-        awardPoints(teamId, Math.max(teamScore, 300), true);
+        const targetScore = isTeam 
+          ? participants.filter(p => p.teamId === targetId).reduce((sum, p) => sum + p.score, 0)
+          : participants.find(p => p.id === targetId)?.score || 0;
+        awardPoints(targetId, Math.max(targetScore, 300), isTeam);
       } else {
-        awardPoints(teamId, result.effect, true);
+        awardPoints(targetId, result.effect, isTeam);
       }
     } else {
-      awardPoints(teamId, 500, true);
+      awardPoints(targetId, 500, isTeam);
     }
     setIsSettled(true);
     soundFx.playSuccess();
@@ -229,7 +236,12 @@ export const LuckyRoulette = () => {
     );
   };
 
-  const targetTeamObj = activeTeams.find(t => t.id === currentTargetTeam);
+  const targetObj = room.mode === 'team' 
+    ? activeTeams.find(t => t.id === currentTargetTeam)
+    : participants.find(p => p.id === currentTargetTeam);
+  
+  const targetName = room.mode === 'team' ? (targetObj?.name || '팀') : (targetObj?.name || '참가자');
+  const targetColor = room.mode === 'team' ? (targetObj?.color || '#ffd700') : '#00f3ff';
 
   // Participant View
   if (userRole === 'participant') {
@@ -250,8 +262,8 @@ export const LuckyRoulette = () => {
           <div className="glass-card" style={{ padding: '12px 16px', maxWidth: '340px', width: '100%', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.1)', borderRadius: '12px' }}>
             <div style={{ fontSize: '2rem' }}>{result.icon}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', marginTop: '4px' }}>{result.label}</div>
-            <div style={{ fontSize: '1rem', color: targetTeamObj?.color || '#ffd700', marginTop: '4px', fontWeight: 700 }}>
-              대상: [{targetTeamObj?.name || '팀'}]
+            <div style={{ fontSize: '1rem', color: targetColor, marginTop: '4px', fontWeight: 700 }}>
+              대상: [{targetName}]
             </div>
           </div>
         )}
@@ -290,15 +302,17 @@ export const LuckyRoulette = () => {
         
         {/* Team Selector */}
         <div style={{ marginBottom: '24px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <label style={{ fontSize: '1.2rem', fontWeight: 700 }}>🎯 행운의 대상 팀:</label>
+          <label style={{ fontSize: '1.2rem', fontWeight: 700 }}>🎯 행운의 대상:</label>
           <select 
-            value={selectedTeam} 
-            onChange={e => setSelectedTeam(e.target.value)}
+            value={selectedTarget} 
+            onChange={e => setSelectedTarget(e.target.value)}
             disabled={rouletteState === 'spinning'}
             style={{ padding: '10px 16px', borderRadius: '10px', fontSize: '1.1rem', background: 'rgba(0,0,0,0.4)', color: '#fff', border: '2px solid var(--primary-color)' }}
           >
-            {activeTeams.map(t => (
+            {room.mode === 'team' ? activeTeams.map(t => (
               <option key={t.id} value={t.id} style={{ background: '#222' }}>{t.name}</option>
+            )) : participants.map(p => (
+              <option key={p.id} value={p.id} style={{ background: '#222' }}>{p.name}</option>
             ))}
           </select>
         </div>
@@ -321,8 +335,8 @@ export const LuckyRoulette = () => {
               <div className="glass-card" style={{ padding: '16px 30px', textAlign: 'center', border: '2px solid #ffd700', background: 'rgba(255, 215, 0, 0.12)' }}>
                 <div style={{ fontSize: '2rem' }}>{result.icon}</div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff' }}>{result.label}</div>
-                <div style={{ fontSize: '1.1rem', color: targetTeamObj?.color || '#ffd700', fontWeight: 800, marginTop: '4px' }}>
-                  적용 대상: {targetTeamObj?.name}
+                <div style={{ fontSize: '1.1rem', color: targetColor, fontWeight: 800, marginTop: '4px' }}>
+                  적용 대상: {targetName}
                 </div>
               </div>
             )}

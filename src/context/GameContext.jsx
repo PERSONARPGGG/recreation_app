@@ -225,9 +225,9 @@ export const GameProvider = ({ children }) => {
         id: `bot-${i}`,
         name: `${BOT_NICKNAMES[nameIndex]} #${i}`,
         isBot: true,
-        teamId: room.mode === 'team' ? teamObj?.id : null,
-        teamName: room.mode === 'team' ? teamObj?.name : '개인',
-        teamColor: room.mode === 'team' ? teamObj?.color : '#00f3ff',
+        teamId: teamObj?.id,
+        teamName: teamObj?.name,
+        teamColor: teamObj?.color,
         score: Math.floor(Math.random() * 50),
         lastInput: null
       });
@@ -239,9 +239,9 @@ export const GameProvider = ({ children }) => {
       id: myPlayerId,
       name: myPlayerName,
       isBot: false,
-      teamId: room.mode === 'team' ? myTeam?.id : null,
-      teamName: room.mode === 'team' ? myTeam?.name : '개인',
-      teamColor: room.mode === 'team' ? myTeam?.color : '#00f3ff',
+      teamId: myTeam?.id,
+      teamName: myTeam?.name,
+      teamColor: myTeam?.color,
       score: 100,
       lastInput: null
     };
@@ -267,9 +267,9 @@ export const GameProvider = ({ children }) => {
       id: forceId || `player-${Date.now()}`,
       name,
       isBot: false,
-      teamId: room.mode === 'team' ? teamObj?.id : null,
-      teamName: room.mode === 'team' ? teamObj?.name : '개인',
-      teamColor: room.mode === 'team' ? teamObj?.color : '#00f3ff',
+      teamId: teamObj?.id,
+      teamName: teamObj?.name,
+      teamColor: teamObj?.color,
       score: 0,
       lastInput: null
     };
@@ -438,6 +438,14 @@ export const GameProvider = ({ children }) => {
     setParticipants(prev => {
       const updated = prev.filter(p => p.id !== playerId);
       broadcast('SYNC_STATE', { room, participants: updated });
+      return updated;
+    });
+  };
+
+  const resetAllScores = () => {
+    setParticipants(prev => {
+      const updated = prev.map(p => ({ ...p, score: 0 }));
+      broadcast('SYNC_STATE', { room: roomRef.current, participants: updated });
       return updated;
     });
   };
@@ -645,6 +653,7 @@ export const GameProvider = ({ children }) => {
         setGlobalAnnouncement,
         triggerSpotlight,
         kickParticipant,
+        resetAllScores,
         shuffleTeams,
         addGlobalTime,
         updateTeamInfo,

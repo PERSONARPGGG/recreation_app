@@ -19,7 +19,9 @@ export const HostDashboard = () => {
     startGame,
     confirmRoomSetup,
     broadcast,
-    updateTeamInfo
+    updateTeamInfo,
+    resetAllScores,
+    shuffleTeams
   } = useGame();
 
   // Render current active game if in playing state
@@ -69,7 +71,7 @@ export const HostDashboard = () => {
                 >-</button>
                 <span style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary-color)' }}>{room.teamCount}</span>
                 <button 
-                  onClick={() => setRoom({ ...room, teamCount: Math.min(10, room.teamCount + 1) })}
+                  onClick={() => setRoom({ ...room, teamCount: Math.min(6, room.teamCount + 1) })}
                   className="btn-secondary" style={{ width: '50px', height: '50px', fontSize: '1.5rem', padding: 0 }}
                 >+</button>
               </div>
@@ -123,9 +125,23 @@ export const HostDashboard = () => {
       <div className="glass-panel glass-panel-glow" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-sub)' }}>
               대기 로비
+            </div>
+            {/* Utility Buttons */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button onClick={resetAllScores} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--danger-color)' }}>
+                🔄 전체 점수 리셋
+              </button>
+              {room.mode === 'team' && (
+                <button onClick={shuffleTeams} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--primary-color)' }}>
+                  🎲 팀 랜덤 셔플
+                </button>
+              )}
+              <button onClick={clearBots} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid #ffd700' }}>
+                🧹 더미/봇 일괄 퇴장
+              </button>
             </div>
           </div>
         </div>

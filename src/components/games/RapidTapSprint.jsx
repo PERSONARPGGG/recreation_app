@@ -67,9 +67,21 @@ export const RapidTapSprint = () => {
     if (!isRacing) return;
     const nextTap = tapCount + 1;
     setTapCount(nextTap);
-    submitPlayerInput(myPlayerId, { tapCount: nextTap });
     soundFx.playTick(600 + (nextTap % 10) * 30);
   };
+
+  // Sync tapCount to Host every 250ms to prevent freezing
+  useEffect(() => {
+    if (userRole === 'participant' && isRacing) {
+      const syncInterval = setInterval(() => {
+        submitPlayerInput(myPlayerId, { tapCount });
+      }, 250);
+      return () => {
+        clearInterval(syncInterval);
+        submitPlayerInput(myPlayerId, { tapCount }); // final sync
+      };
+    }
+  }, [userRole, isRacing, tapCount, submitPlayerInput, myPlayerId]);
 
   const handleSimulateBots = () => {
     simulateBotGameInputs('sprint');
@@ -90,23 +102,25 @@ export const RapidTapSprint = () => {
 
   const handleSettlePoints = () => {
     if (isSettled || rankedParticipants.length === 0) return;
+    const awards = [];
     if (room.mode === 'team') {
       // 상위 3팀 정산
       if (teamScores.some(t => t.totalTaps > 0)) {
         teamScores.slice(0, 3).forEach((t, idx) => {
-          const points = idx === 0 ? 1000 : idx === 1 ? 500 : 300;
-          awardPoints(t.id, points, true);
+          const points = idx === 0 ? 100 : idx === 1 ? 80 : 50;
+          awards.push({ targetId: t.id, points, isTeam: true });
         });
       }
     } else {
       // 개인전 상위 10명
       if (rankedParticipants.length > 0) {
         rankedParticipants.slice(0, 10).forEach((p, idx) => {
-          const points = idx === 0 ? 500 : idx < 3 ? 300 : 100;
-          awardPoints(p.id, points, false);
+          const points = idx === 0 ? 100 : idx < 3 ? 80 : 50;
+          awards.push({ targetId: p.id, points, isTeam: false });
         });
       }
     }
+    awardBatchPoints(awards);
     setIsSettled(true);
     soundFx.playSuccess();
   };

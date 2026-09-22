@@ -6,9 +6,10 @@ import { soundFx } from '../../utils/sound';
 const GAME_DURATION = 10;
 
 export const TugOfWar = () => {
-  const { userRole, activeTeams, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, awardPoints, returnToLobby, room, updateRoomState, simulateBotGameInputs } = useGame();
+  const { userRole, activeTeams, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, awardBatchPoints, returnToLobby, room, updateRoomState, simulateBotGameInputs } = useGame();
   
   const [isSettled, setIsSettled] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
 
   const gameState = room.tugState || 'ready'; // 'ready' | 'playing' | 'finished'
   const timeLeft = room.tugTimeLeft !== undefined ? room.tugTimeLeft : GAME_DURATION;
@@ -117,11 +118,23 @@ export const TugOfWar = () => {
 
   const handlePull = () => {
     if (gameState !== 'playing') return;
-    const myPlayer = participants.find(p => p.id === myPlayerId);
-    const currentTaps = myPlayer?.lastInput?.taps || 0;
-    submitPlayerInput(myPlayerId, { taps: currentTaps + 1, lastTapTime: Date.now() });
-    soundFx.playTick(500 + ((currentTaps % 10) * 40));
+    const nextTap = tapCount + 1;
+    setTapCount(nextTap);
+    soundFx.playTick(500 + ((nextTap % 10) * 40));
   };
+
+  // Sync tapCount to Host every 250ms to prevent freezing
+  useEffect(() => {
+    if (userRole === 'participant' && gameState === 'playing') {
+      const syncInterval = setInterval(() => {
+        submitPlayerInput(myPlayerId, { taps: tapCount, lastTapTime: Date.now() });
+      }, 250);
+      return () => {
+        clearInterval(syncInterval);
+        submitPlayerInput(myPlayerId, { taps: tapCount, lastTapTime: Date.now() });
+      };
+    }
+  }, [userRole, gameState, tapCount, submitPlayerInput, myPlayerId]);
 
   // Determine winner
   const winnerSide = ropePosition < 50 ? 'left' : ropePosition > 50 ? 'right' : 'draw';
@@ -132,14 +145,16 @@ export const TugOfWar = () => {
   const handleSettlePoints = () => {
     if (isSettled || gameState !== 'finished') return;
 
+    const awards = [];
     participants.forEach((p, idx) => {
       const isLeft = isPlayerOnLeftSide(p, idx);
       const isWin = (winnerSide === 'left' && isLeft) || (winnerSide === 'right' && !isLeft);
-      const points = isWin ? 300 : winnerSide === 'draw' ? 150 : 50;
+      const points = isWin ? 100 : winnerSide === 'draw' ? 50 : 20;
 
-      awardPoints(p.id, points, false);
-      if (p.teamId) awardPoints(p.teamId, points, true);
+      awards.push({ targetId: p.id, points, isTeam: false });
+      if (p.teamId && room.mode === 'team') awards.push({ targetId: p.teamId, points, isTeam: true });
     });
+    awardBatchPoints(awards);
 
     setIsSettled(true);
     soundFx.playSuccess();
