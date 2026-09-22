@@ -18,7 +18,8 @@ export const HostDashboard = () => {
     clearBots,
     startGame,
     confirmRoomSetup,
-    broadcast
+    broadcast,
+    updateTeamInfo
   } = useGame();
 
   // Render current active game if in playing state
@@ -110,7 +111,8 @@ export const HostDashboard = () => {
   // Calculate team scores for lobby view
   const teamRankings = activeTeams.map(t => {
     const teamMembers = participants.filter(p => p.teamId === t.id);
-    const totalScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
+    const baseScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
+    const totalScore = baseScore + (t.scoreOffset || 0);
     return { ...t, memberCount: teamMembers.length, totalScore };
   }).sort((a, b) => b.totalScore - a.totalScore);
 
@@ -125,19 +127,11 @@ export const HostDashboard = () => {
             <QRCodeSVG value={`${window.location.origin}/?code=${room.code}`} size={90} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ background: 'var(--primary-color)', color: '#000', padding: '3px 10px', borderRadius: '20px', fontWeight: 900, fontSize: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ background: 'var(--primary-color)', color: '#000', padding: '3px 10px', borderRadius: '20px', fontWeight: 900, fontSize: '0.75rem', width: 'fit-content' }}>
                 MAIN PROJECTOR HOST
               </span>
-              <span style={{ color: 'var(--text-sub)', fontSize: '0.82rem' }}>접속 방 코드: <strong style={{ color: '#fff', fontSize: '1.05rem' }}>{room.code}</strong></span>
-            </div>
-
-            <h1 className="font-heading text-gradient" style={{ fontSize: '1.6rem', fontWeight: 900, marginTop: '4px', marginBottom: '4px' }}>
-              {room.title}
-            </h1>
-            
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-sub)' }}>
-              스마트폰 카메라로 QR을 스캔하여 즉시 입장할 수 있습니다.
+              <span style={{ color: 'var(--text-sub)', fontSize: '1rem' }}>접속 방 코드: <strong style={{ color: '#fff', fontSize: '1.4rem' }}>{room.code}</strong></span>
             </div>
           </div>
         </div>
@@ -148,6 +142,7 @@ export const HostDashboard = () => {
           <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
             <button
               onClick={() => {
+                clearBots();
                 setRoom({ ...room, mode: 'team' });
                 broadcast('CONFIG_CHANGE');
               }}
@@ -158,6 +153,7 @@ export const HostDashboard = () => {
             </button>
             <button
               onClick={() => {
+                clearBots();
                 setRoom({ ...room, mode: 'solo' });
                 broadcast('CONFIG_CHANGE');
               }}
@@ -200,7 +196,21 @@ export const HostDashboard = () => {
                 padding: '12px 16px',
                 borderColor: team.color,
                 background: `linear-gradient(135deg, ${team.color}15 0%, rgba(0,0,0,0.4) 100%)`,
-                position: 'relative'
+                position: 'relative',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                const newName = prompt(`새로운 팀 이름을 입력하세요:`, team.name);
+                if (newName === null) return;
+                const newScoreStr = prompt(`새로운 점수를 입력하세요:`, team.totalScore);
+                if (newScoreStr === null) return;
+                const newScore = parseInt(newScoreStr, 10);
+                if (!isNaN(newScore)) {
+                  // This function will be added to GameContext
+                  if (typeof updateTeamInfo === 'function') {
+                    updateTeamInfo(team.id, newName.trim() || team.name, newScore);
+                  }
+                }
               }}
             >
               {idx === 0 && (
@@ -222,7 +232,7 @@ export const HostDashboard = () => {
       {/* Active Users Lobby List - Clean Grouping in Team Mode */}
       <div className="glass-panel" style={{ padding: '16px 20px' }}>
         <h2 className="font-heading" style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Users size={18} color="var(--primary-color)" /> 현재 접속 중인 참가자 ({participants.length}명)
+          <Users size={18} color="var(--primary-color)" /> 참가자 ({participants.length}명)
         </h2>
         {participants.length === 0 ? (
           <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-sub)', fontSize: '0.9rem' }}>
@@ -263,7 +273,7 @@ export const HostDashboard = () => {
 
       {/* Game Selector Arcade Grid */}
       <h2 className="font-heading" style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '10px' }}>
-        🎮 메인 레크레이션 게임 모드
+        🎮 게임 리스트
       </h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>

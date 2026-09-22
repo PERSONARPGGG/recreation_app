@@ -1,39 +1,47 @@
 // Theme Management Utility (Male, Female, Neutral)
 
 export const THEMES = {
-  MALE: 'male',       // ♂ Cyberpunk Blue Neon
-  FEMALE: 'female',   // ♀ Glamour Magenta Pink
-  NEUTRAL: 'neutral'  // ☯ Emerald Luxe Gold
+  BLUE: 'blue',
+  PINK: 'pink',
+  GREEN: 'green',
+  YELLOW: 'yellow'
 };
 
 export const THEME_DETAILS = {
-  male: {
-    id: 'male',
-    name: '♂ 남성 전용 (Cyber Blue)',
+  blue: {
+    id: 'blue',
+    name: '블루 오션',
+    icon: '🌊',
+    color: '#007aff',
+    badgeClass: 'badge-blue'
+  },
+  pink: {
+    id: 'pink',
+    name: '핑크 블라썸',
+    icon: '🌸',
+    color: '#ff2d55',
+    badgeClass: 'badge-pink'
+  },
+  green: {
+    id: 'green',
+    name: '그린 포레스트',
+    icon: '🌲',
+    color: '#34c759',
+    badgeClass: 'badge-green'
+  },
+  yellow: {
+    id: 'yellow',
+    name: '옐로우 스파크',
     icon: '⚡',
-    color: '#00f3ff',
-    badgeClass: 'badge-male'
-  },
-  female: {
-    id: 'female',
-    name: '♀ 여성 전용 (Glam Magenta)',
-    icon: '✨',
-    color: '#ff007a',
-    badgeClass: 'badge-female'
-  },
-  neutral: {
-    id: 'neutral',
-    name: '☯ 중성 럭셔리 (Emerald Gold)',
-    icon: '👑',
-    color: '#ffd700',
-    badgeClass: 'badge-neutral'
+    color: '#ffcc00',
+    badgeClass: 'badge-yellow'
   }
 };
 
 export function applyTheme(themeId) {
   const root = document.documentElement;
-  if (themeId === THEMES.MALE) {
-    root.removeAttribute('data-theme'); // default in index.css is male
+  if (themeId === THEMES.BLUE) {
+    root.removeAttribute('data-theme'); // default in index.css is blue
   } else {
     root.setAttribute('data-theme', themeId);
   }

@@ -128,3 +128,14 @@ A recreational game web application.
 ### v1.3.2
 * **Joining Flow Refactor:** Split the participant joining flow into two stages. Participants now connect and verify the room state before being presented with team selection, preventing cases where participants select obsolete teams while the host is still in the setup phase.
 * **Participant Mobile UI Optimization:** Compacted the "Joined Dashboard" in the participant's waiting screen to reduce unnecessary scrolling. Prominently positioned the actual game/waiting status at the top of the mobile screen. Reduced excess vertical padding across all mobile mini-game views.
+
+### v1.4.0 - v1.4.9
+* **Game Enhancements & Bug Fixes:** Fixed infinite loops/freezes in Nunchi Game, Timer stall in TugOfWar, Input lock in Initial Word Quiz. Added strict elimination to RPS, team vs team matchups in TugOfWar, and physics animations to Lucky Roulette.
+* **UI/UX Zero-Scroll & Theme Optimization:** Mobile and Host dashboard zero-scroll layout to minimize scrolling. Improved theme selector.
+* **Anti-Cheat & Unified Settlement:** Added sessionStorage-based anti-cheat, post-timer input exploits fix, and an always-visible point settlement button across all 12 games.
+
+### v1.5.0
+* **Host Dashboard Optimization:** Removed unnecessary TMI text from the host header (e.g., QR instructions) to streamline the UI. Changed "메인 레크레이션 게임 모드" to "게임 리스트" and "현재 접속 중인 참가자" to "참가자(X명)".
+* **Team Settings Simplification:** Reduced max team limit from 10 to 6 for better mobile and host UI. Simplified default team names (e.g., Red, Blue, Green, Yellow) and enabled the host to manually edit team names and scores directly from the dashboard.
+* **Themes Overhaul:** Revamped the themes into 4 distinct colors: Blue, Pink, Green, and Yellow.
+* **Logic Fixes:** Re-evaluated and fixed the mode toggle (Team ↔ Solo) transition logic to properly clear participant statuses without sync issues.

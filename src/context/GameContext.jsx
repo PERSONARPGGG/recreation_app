@@ -21,6 +21,7 @@ export const GameProvider = ({ children }) => {
     activeEvent: null,
     announcement: null,
     spotlightPlayer: null,
+    teamOverrides: {}
   });
 
   const [participants, setParticipants] = useState([]);
@@ -181,8 +182,32 @@ export const GameProvider = ({ children }) => {
     setTheme(newTheme);
   };
 
-  // Get active teams based on count
-  const activeTeams = TEAM_PRESETS.slice(0, room.teamCount);
+  // Get active teams based on count (Max 6)
+  const activeTeams = TEAM_PRESETS.slice(0, Math.min(6, room.teamCount)).map(t => ({
+    ...t,
+    name: room.teamOverrides?.[t.id]?.name || t.name,
+    scoreOffset: room.teamOverrides?.[t.id]?.scoreOffset || 0
+  }));
+
+  const updateTeamInfo = (teamId, newName, targetTotalScore) => {
+    setRoom(prev => {
+      const teamMembers = participantsRef.current.filter(p => p.teamId === teamId);
+      const baseScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
+      const scoreOffset = targetTotalScore - baseScore;
+      
+      const updatedOverrides = {
+        ...prev.teamOverrides,
+        [teamId]: {
+          name: newName,
+          scoreOffset
+        }
+      };
+      
+      const newRoom = { ...prev, teamOverrides: updatedOverrides };
+      broadcast('SYNC_STATE', { room: newRoom, participants: participantsRef.current });
+      return newRoom;
+    });
+  };
 
   // 100-Bot Simulation Engine
   const populateBots = (count = 100) => {
@@ -620,7 +645,8 @@ export const GameProvider = ({ children }) => {
         triggerSpotlight,
         kickParticipant,
         shuffleTeams,
-        addGlobalTime
+        removeBot,
+        updateTeamInfo
       }}
     >
       {children}
