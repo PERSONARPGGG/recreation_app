@@ -136,7 +136,7 @@ export const Header = ({ isCompact = false }) => {
           <button
             onClick={cycleTheme}
             className="btn-secondary"
-            title={`테마 전환 (현재: ${THEME_DETAILS[theme].name} - 클릭 시 전환)`}
+            title={`테마 전환 (현재: ${THEME_DETAILS[theme]?.name || THEME_DETAILS['blue'].name} - 클릭 시 전환)`}
             style={{
               padding: isCompact ? '4px 8px' : '6px 12px',
               borderRadius: '10px',
@@ -149,8 +149,8 @@ export const Header = ({ isCompact = false }) => {
               whiteSpace: 'nowrap'
             }}
           >
-            <span>{THEME_DETAILS[theme].icon}</span>
-            <span style={{ fontSize: '0.72rem' }}>{THEME_DETAILS[theme].name}</span>
+            <span>{THEME_DETAILS[theme]?.icon || THEME_DETAILS['blue'].icon}</span>
+            <span style={{ fontSize: '0.72rem' }}>{THEME_DETAILS[theme]?.name || THEME_DETAILS['blue'].name}</span>
           </button>
 
           {/* Sound Toggle */}

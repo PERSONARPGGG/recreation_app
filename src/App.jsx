@@ -34,7 +34,7 @@ const MainAppContent = () => {
         }}>
           <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
           <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-            버전: v1.4.9 (테마/팀 폼 최적화, 제로 스크롤 상단 배치, 10팀 프리셋 & 사회자 대규모 데이터 유입 안정화)
+            버전: v1.5.0 (호스트 대시보드 간소화, 팀/테마 최적화 및 실시간 수정 기능)
           </div>
         </footer>
       )}

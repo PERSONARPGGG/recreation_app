@@ -7,7 +7,7 @@ import { soundFx } from '../utils/sound';
 const GameContext = createContext();
 
 export const GameProvider = ({ children }) => {
-  const [theme, setTheme] = useState(THEMES.MALE);
+  const [theme, setTheme] = useState(THEMES.BLUE);
   const [userRole, setUserRole] = useState(null); // null, 'host', or 'participant'
   const [room, setRoom] = useState({
     code: '',
