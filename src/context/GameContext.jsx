@@ -182,8 +182,9 @@ export const GameProvider = ({ children }) => {
     setTheme(newTheme);
   };
 
-  // Get active teams based on count (Max 6)
-  const activeTeams = TEAM_PRESETS.slice(0, Math.min(6, room.teamCount)).map(t => ({
+  // Get active teams based on count (Max 6, Min 1 to prevent empty array errors)
+  const safeTeamCount = Math.min(6, Math.max(1, Number(room.teamCount) || 4));
+  const activeTeams = TEAM_PRESETS.slice(0, safeTeamCount).map(t => ({
     ...t,
     name: room.teamOverrides?.[t.id]?.name || t.name,
     scoreOffset: room.teamOverrides?.[t.id]?.scoreOffset || 0
@@ -219,28 +220,28 @@ export const GameProvider = ({ children }) => {
       const nameIndex = (i - 1) % BOT_NICKNAMES.length;
       // In team mode, group bots sequentially by team so teams are not scrambled
       const teamIndex = room.mode === 'team' ? Math.floor((i - 1) / botsPerTeam) % teamCount : 0;
-      const teamObj = activeTeams[teamIndex] || activeTeams[0];
+      const teamObj = activeTeams[teamIndex] || activeTeams[0] || TEAM_PRESETS[0];
       newBots.push({
         id: `bot-${i}`,
         name: `${BOT_NICKNAMES[nameIndex]} #${i}`,
         isBot: true,
-        teamId: room.mode === 'team' ? teamObj.id : null,
-        teamName: room.mode === 'team' ? teamObj.name : '개인',
-        teamColor: room.mode === 'team' ? teamObj.color : '#00f3ff',
+        teamId: room.mode === 'team' ? teamObj?.id : null,
+        teamName: room.mode === 'team' ? teamObj?.name : '개인',
+        teamColor: room.mode === 'team' ? teamObj?.color : '#00f3ff',
         score: Math.floor(Math.random() * 50),
         lastInput: null
       });
     }
 
     // Add host/my player
-    const myTeam = activeTeams.find(t => t.id === myTeamId) || activeTeams[0];
+    const myTeam = activeTeams.find(t => t.id === myTeamId) || activeTeams[0] || TEAM_PRESETS[0];
     const me = {
       id: myPlayerId,
       name: myPlayerName,
       isBot: false,
-      teamId: room.mode === 'team' ? myTeam.id : null,
-      teamName: room.mode === 'team' ? myTeam.name : '개인',
-      teamColor: room.mode === 'team' ? myTeam.color : '#00f3ff',
+      teamId: room.mode === 'team' ? myTeam?.id : null,
+      teamName: room.mode === 'team' ? myTeam?.name : '개인',
+      teamColor: room.mode === 'team' ? myTeam?.color : '#00f3ff',
       score: 100,
       lastInput: null
     };
@@ -261,14 +262,14 @@ export const GameProvider = ({ children }) => {
 
   // Join as real participant
   const joinAsPlayer = (name, selectedTeamId, forceId = null) => {
-    const teamObj = activeTeams.find(t => t.id === selectedTeamId) || activeTeams[0];
+    const teamObj = activeTeams.find(t => t.id === selectedTeamId) || activeTeams[0] || TEAM_PRESETS[0];
     const newPlayer = {
       id: forceId || `player-${Date.now()}`,
       name,
       isBot: false,
-      teamId: room.mode === 'team' ? teamObj.id : null,
-      teamName: room.mode === 'team' ? teamObj.name : '개인',
-      teamColor: room.mode === 'team' ? teamObj.color : '#00f3ff',
+      teamId: room.mode === 'team' ? teamObj?.id : null,
+      teamName: room.mode === 'team' ? teamObj?.name : '개인',
+      teamColor: room.mode === 'team' ? teamObj?.color : '#00f3ff',
       score: 0,
       lastInput: null
     };
@@ -446,12 +447,12 @@ export const GameProvider = ({ children }) => {
     setParticipants(prev => {
       const updated = [...prev].map((p, i) => {
         if (p.id === myPlayerId) return p; // Don't shuffle host
-        const teamObj = activeTeams[i % activeTeams.length];
+        const teamObj = activeTeams[i % Math.max(1, activeTeams.length)] || TEAM_PRESETS[0];
         return {
           ...p,
-          teamId: teamObj.id,
-          teamName: teamObj.name,
-          teamColor: teamObj.color
+          teamId: teamObj?.id,
+          teamName: teamObj?.name,
+          teamColor: teamObj?.color
         };
       });
       // Randomize array order
