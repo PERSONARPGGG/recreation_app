@@ -35,7 +35,7 @@ export const NunchiGame = () => {
     if (userRole !== 'host' || gameState !== 'playing') return;
 
     // Timeout logic
-    if (timeoutSec > 0 && currentNumber < participants.length) {
+    if (timeoutSec > 0 && currentNumber < participants.length && passed.length + eliminated.length < participants.length) {
       if (Date.now() - lastCallTime > timeoutSec * 1000) {
         // Eliminate everyone who hasn't passed!
         const nextElim = [...eliminated];

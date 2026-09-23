@@ -19,6 +19,7 @@ export const RapidTapSprint = () => {
   
   const [tapCount, setTapCount] = useState(hasSubmitted ? myPlayer.lastInput.tapCount : 0);
   const [isSettled, setIsSettled] = useState(false);
+  const [clientRacing, setClientRacing] = useState(false);
 
   const tapCountRef = useRef(tapCount);
   const lastSyncedTapCountRef = useRef(tapCount);
@@ -52,7 +53,7 @@ export const RapidTapSprint = () => {
   }, [userRole, room.gameState]);
 
   const timeLeft = room.sprintTimeLeft !== undefined ? room.sprintTimeLeft : GAME_DURATION;
-  const isRacing = room.gameState === 'playing' && timeLeft > 0;
+  const isRacing = room.gameState === 'playing' && timeLeft > 0 && clientRacing;
 
   useEffect(() => {
     if (room.gameState === 'playing' && room.sprintTimeLeft > 0 && room.sprintTimeLeft < GAME_DURATION) {
@@ -66,6 +67,14 @@ export const RapidTapSprint = () => {
     if (room.gameState === 'ready') {
       setTapCount(0);
       setIsSettled(false);
+      setClientRacing(false);
+    } else if (room.gameState === 'playing') {
+      setClientRacing(true);
+      // Fallback: forcefully stop racing after 10.5 seconds on client
+      const timer = setTimeout(() => {
+        setClientRacing(false);
+      }, 10500);
+      return () => clearTimeout(timer);
     }
   }, [room.gameState]);
 

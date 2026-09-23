@@ -65,6 +65,7 @@ export const StopwatchChallenge = () => {
 
   const handleStop = () => {
     if (!isRunning) return;
+    if (room.gameState !== 'playing') return;
     cancelAnimationFrame(animFrameRef.current);
     const finalNow = performance.now();
     const finalElapsed = +((finalNow - startTimeRef.current) / 1000).toFixed(3);
