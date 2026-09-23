@@ -34,12 +34,21 @@ export const Landing = () => {
     }
   }, []);
 
-  const handleHostClick = () => {
+  const handleHostClick = async () => {
     const pwd = window.prompt('사회자 방을 만들려면 비밀번호를 입력하세요.');
-    if (pwd !== '7501') {
+    if (!pwd) return;
+    
+    // 비밀번호 해싱 처리 (클라이언트에 원문 노출 방지)
+    const msgBuffer = new TextEncoder().encode(pwd);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    if (hashHex !== 'a5dae85d4d8658bd850ff6fe88244039da669084d93d064521d36fbb38f04e0f') {
       alert('비밀번호가 틀렸습니다.');
       return;
     }
+    
     setView('host_loading');
     soundFx.playTick();
     setTimeout(() => {
