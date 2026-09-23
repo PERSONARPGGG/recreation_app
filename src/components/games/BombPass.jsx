@@ -10,6 +10,7 @@ import { soundFx } from '../../utils/sound';
  */
 export const BombPass = () => {
   const { userRole, participants, myPlayerId, submitPlayerInput, awardBatchPoints, returnToLobby, room, updateRoomState } = useGame();
+  const bombTimeRef = useRef(room.bombTimeLeft || 10);
   
   const gameState = room.bombState || 'ready';
   const timeLeft = room.bombTimeLeft || 0;
