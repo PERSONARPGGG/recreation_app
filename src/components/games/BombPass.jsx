@@ -140,7 +140,7 @@ export const BombPass = () => {
           <div style={{ padding: '16px 10px' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '8px' }}>💥💥💥</div>
             <h3 style={{ color: 'var(--danger-color)', fontSize: '1.8rem', fontWeight: 900, margin: 0 }}>콰광!! 내 손에서 폭발했습니다!!</h3>
-            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>아쉽게도 폭탄을 제때 넘기지 못했습니다. (-200점)</p>
+            <p style={{ color: 'var(--text-sub)', marginTop: '8px', fontSize: '0.95rem' }}>아쉽게도 폭탄을 제때 넘기지 못했습니다. (-50점)</p>
           </div>
         ) : isExplodedSurvivor ? (
           <div style={{ padding: '16px 10px' }}>

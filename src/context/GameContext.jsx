@@ -325,8 +325,11 @@ export const GameProvider = ({ children }) => {
   };
 
   const clearBots = () => {
-    setParticipants([]);
-    broadcast('SYNC_STATE', { room, participants: [] });
+    setParticipants(prev => {
+      const updated = prev.filter(p => !p.id.startsWith('bot_'));
+      broadcast('SYNC_STATE', { room, participants: updated });
+      return updated;
+    });
   };
 
   const requestSync = () => {

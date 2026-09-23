@@ -354,10 +354,10 @@ export const RockPaperScissors = () => {
               라운드를 승리할 때마다 차등 보너스 점수가 즉시 지급됩니다!
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '25px', flexWrap: 'wrap' }}>
-              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>1R: +100점</span>
-              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>2R: +200점</span>
-              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>3R: +300점</span>
-              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>4R+: +400점~</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>1R: +20점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>2R: +50점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>3R: +100점</span>
+              <span className="badge" style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>4R+: +100점~</span>
             </div>
             <button onClick={startGame} className="btn-primary" style={{ fontSize: '1.3rem', padding: '16px 40px', borderRadius: '50px' }}>
               <Play size={22} /> 서바이벌 시작하기 (참가자 {participants.length}명)

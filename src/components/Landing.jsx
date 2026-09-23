@@ -265,7 +265,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.7.0 (최종 마스터 패치: LBTO 퀴즈, 강퇴 UI 개선, 점수 밸런스 등)
+          버전: v1.7.1 (핫픽스: 디버깅 및 UI/UX 총괄 최적화)
         </div>
       </footer>
     </div>

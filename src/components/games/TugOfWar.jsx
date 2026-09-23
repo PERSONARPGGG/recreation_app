@@ -280,7 +280,7 @@ export const TugOfWar = () => {
               {winnerTitle}
             </div>
             <p style={{ color: 'var(--text-sub)', marginTop: '6px', fontSize: '0.85rem', margin: 0 }}>
-              승리 팀 전원 +300점 지급 완료!
+              승리 팀 전원 +100점 지급 완료!
             </p>
           </div>
         )}
@@ -411,7 +411,7 @@ export const TugOfWar = () => {
           <div className="glass-card" style={{ marginTop: '20px', padding: '20px 40px', textAlign: 'center', border: '2px solid #ffd700', background: 'rgba(255,215,0,0.1)' }}>
             <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#ffd700' }}>🏆 {winnerTitle}</h3>
             <p style={{ color: '#fff', fontSize: '1.1rem', marginTop: '8px' }}>
-              승리한 진영의 모든 팀 및 참가자에게 각 +300점이 정산됩니다.
+              승리한 진영의 모든 팀 및 참가자에게 각 +100점이 정산됩니다.
             </p>
             <div style={{ marginTop: '15px' }}>
               <button onClick={startGameLogic} className="btn-secondary" style={{ padding: '12px 28px', border: '1px solid var(--primary-color)' }}>
