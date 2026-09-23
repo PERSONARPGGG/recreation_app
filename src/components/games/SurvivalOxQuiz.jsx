@@ -21,7 +21,7 @@ export const SurvivalOxQuiz = () => {
 
 
   const [showSettings, setShowSettings] = useState(false);
-  const customQuestions = room.oxQuestions || OX_QUESTION_BANK;
+  const customQuestions = room.oxQuestions || [{"q":"태양계의 중심은 지구이다.","a":"X","exp":"태양계의 중심은 태양입니다 (지동설)."},{"q":"대한민국의 헌법 제1조 1항은 '대한민국은 민주공화국이다' 이다.","a":"O","exp":"대한민국 헌법 1조 1항입니다."},{"q":"세계에서 가장 긴 강은 아마존 강이다.","a":"X","exp":"가장 긴 강은 나일 강입니다."},{"q":"빛의 속도는 소리의 속도보다 빠르다.","a":"O","exp":"빛은 초속 30만km, 소리는 초속 340m로 빛이 훨씬 빠릅니다."},{"q":"인간의 뇌는 평생 10%만 사용된다.","a":"X","exp":"이는 흔한 착각이며, 인간은 뇌의 거의 모든 부분을 사용합니다."},{"q":"금붕어의 기억력은 3초이다.","a":"X","exp":"실제 연구에 따르면 금붕어의 기억력은 수개월에 달합니다."},{"q":"북극곰의 털은 사실 투명하다.","a":"O","exp":"털은 투명한 튜브 구조로 되어 있어 햇빛을 반사하여 희게 보입니다."},{"q":"낙타의 혹은 물로 채워져 있다.","a":"X","exp":"낙타의 혹은 지방으로 채워져 있어 에너지를 비축합니다."},{"q":"토마토는 채소에 속한다.","a":"O","exp":"식물학적으로는 과일이지만, 농업/법적으로는 채소류로 분류됩니다."},{"q":"인류 최초로 달에 착륙한 사람은 닐 암스트롱이다.","a":"O","exp":"1969년 아폴로 11호를 타고 최초로 착륙했습니다."}];
   
   // Game End Condition
   const isGameFinished = room.oxQIndex >= customQuestions.length;
@@ -84,8 +84,8 @@ export const SurvivalOxQuiz = () => {
     if (isSettled || !revealed) return;
     if (survivors.length > 0) {
       survivors.forEach(s => {
-        awardPoints(s.id, 100, false);
-        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, 100, true);
+        const pt = room.isLBTOMode ? 1 : 100; awardPoints(s.id, pt, false);
+        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, pt, true);
       });
     } else {
       participants.forEach(p => awardPoints(p.id, 50, false));
@@ -155,7 +155,7 @@ export const SurvivalOxQuiz = () => {
                     <button 
                       onClick={() => {
                         const newQ = customQuestions.filter((_, i) => i !== idx);
-                        updateRoomState({ oxQuestions: newQ.length ? newQ : OX_QUESTION_BANK });
+                        updateRoomState({ oxQuestions: newQ.length ? newQ : [{"q":"태양계의 중심은 지구이다.","a":"X","exp":"태양계의 중심은 태양입니다 (지동설)."},{"q":"대한민국의 헌법 제1조 1항은 '대한민국은 민주공화국이다' 이다.","a":"O","exp":"대한민국 헌법 1조 1항입니다."},{"q":"세계에서 가장 긴 강은 아마존 강이다.","a":"X","exp":"가장 긴 강은 나일 강입니다."},{"q":"빛의 속도는 소리의 속도보다 빠르다.","a":"O","exp":"빛은 초속 30만km, 소리는 초속 340m로 빛이 훨씬 빠릅니다."},{"q":"인간의 뇌는 평생 10%만 사용된다.","a":"X","exp":"이는 흔한 착각이며, 인간은 뇌의 거의 모든 부분을 사용합니다."},{"q":"금붕어의 기억력은 3초이다.","a":"X","exp":"실제 연구에 따르면 금붕어의 기억력은 수개월에 달합니다."},{"q":"북극곰의 털은 사실 투명하다.","a":"O","exp":"털은 투명한 튜브 구조로 되어 있어 햇빛을 반사하여 희게 보입니다."},{"q":"낙타의 혹은 물로 채워져 있다.","a":"X","exp":"낙타의 혹은 지방으로 채워져 있어 에너지를 비축합니다."},{"q":"토마토는 채소에 속한다.","a":"O","exp":"식물학적으로는 과일이지만, 농업/법적으로는 채소류로 분류됩니다."},{"q":"인류 최초로 달에 착륙한 사람은 닐 암스트롱이다.","a":"O","exp":"1969년 아폴로 11호를 타고 최초로 착륙했습니다."}] });
                       }}
                       style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '4px' }}
                     >

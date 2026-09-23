@@ -12,6 +12,7 @@ import { generateReports } from '../utils/reportGenerator';
 export const HostControls = () => {
   const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime, awardPoints, participants, activeTeams } = useGame();
   const [isOpen, setIsOpen] = useState(false);
+  const [showKickModal, setShowKickModal] = useState(false);
 
   /**
    * 컨트롤 패널의 각 버튼 클릭 시 실행될 액션 핸들러
@@ -39,13 +40,34 @@ export const HostControls = () => {
       case 'REPORT':
         generateReports(room, participants, activeTeams);
         break;
-      // KICK, BGM are placeholders/unimplemented but won't crash now.
+      case 'KICK': setShowKickModal(true); break;
       default: break;
     }
   };
 
   if (!isOpen) {
+    if (showKickModal) {
     return (
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-panel" style={{ width: '90%', maxWidth: '400px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <h3 style={{ color: 'var(--danger-color)', margin: 0 }}>참가자 강제 퇴장</h3>
+            <button onClick={() => setShowKickModal(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={24} /></button>
+          </div>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>누구를 강제 퇴장시키겠습니까?</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '50vh', overflowY: 'auto' }}>
+            {participants.length === 0 ? <p style={{ color: '#888' }}>접속자가 없습니다.</p> : participants.map(p => (
+              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '10px 16px', borderRadius: '8px' }}>
+                <span style={{ fontWeight: 'bold' }}>{p.name}</span>
+                <button onClick={() => { if(window.confirm(p.name + '님을 퇴장시키겠습니까?')){ kickParticipant(p.id); } }} className="btn-secondary" style={{ border: '1px solid var(--danger-color)', color: 'var(--danger-color)', padding: '4px 12px' }}>강퇴</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
       <button 
         onClick={() => setIsOpen(true)}
         style={{

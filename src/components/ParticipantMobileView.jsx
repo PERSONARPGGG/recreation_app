@@ -21,6 +21,12 @@ export const ParticipantMobileView = () => {
   } = useGame();
 
   const [isReady, setIsReady] = React.useState(false);
+  const [isFull, setIsFull] = React.useState(false);
+  React.useEffect(() => {
+    const onFullscreenChange = () => setIsFull(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -129,7 +135,7 @@ export const ParticipantMobileView = () => {
   }
 
   return (
-    <div style={{ width: '100%', height: '100dvh', overflow: 'hidden', padding: '16px' }}>
+    <div style={{ width: '100%', height: '100dvh', overflow: 'hidden', padding: '12px' }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
       
       {/* Compact Mobile Header Banner */}
