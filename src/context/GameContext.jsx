@@ -371,11 +371,11 @@ export const GameProvider = ({ children }) => {
   };
 
   const startGame = (gameId) => {
-    let count = 3;
+    let count = 5;
     const countRoom = { ...room, activeGame: gameId || room.activeGame, status: 'countdown', countdown: count };
     setRoom(countRoom);
     broadcast('SYNC_STATE', { room: countRoom, participants });
-    soundFx.playTick(); // tick for 3
+    soundFx.playTick(); // tick for 5
     
     const interval = setInterval(() => {
       count -= 1;

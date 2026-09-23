@@ -9,7 +9,7 @@ import { soundFx } from '../utils/sound';
  * 강제 얼음(Freeze), 팀 셔플, 공지사항 전송 등의 돌발 이벤트를 제어합니다.
  */
 export const HostControls = () => {
-  const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime } = useGame();
+  const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime, awardPoints } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
   /**
@@ -25,7 +25,17 @@ export const HostControls = () => {
       case 'SHUFFLE': shuffleTeams(); break;
       case 'ANNOUNCE': setGlobalAnnouncement('잠시 후 새로운 게임이 시작됩니다!'); break;
       case 'TIMER': addGlobalTime(); break;
-      // KICK, SCORE, BGM, REPORT are placeholders/unimplemented but won't crash now.
+      case 'SCORE': 
+        const targetId = prompt('점수를 수정할 팀 ID(t1, t2...) 또는 참가자 ID를 입력하세요:');
+        if (targetId) {
+          const score = parseInt(prompt('얼마를 더할까요? (차감하려면 음수 입력)'), 10);
+          if (!isNaN(score)) {
+            const isTeam = targetId.startsWith('t');
+            awardPoints(targetId, score, isTeam);
+          }
+        }
+        break;
+      // KICK, BGM, REPORT are placeholders/unimplemented but won't crash now.
       default: break;
     }
   };

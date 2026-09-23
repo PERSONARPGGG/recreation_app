@@ -62,12 +62,11 @@ export const HostDashboard = () => {
           
           <div className="glass-card" style={{ textAlign: 'left', marginBottom: '40px', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
             <h3 style={{ color: '#3b82f6', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
-              🎙️ 사회자 진행 가이드
+              🎙️ 사회자 진행 가이드 (핵심 요약)
             </h3>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#e2e8f0', margin: 0 }}>
-              "자, 이번 게임은 <strong style={{color: '#fff'}}>{activeGameMeta?.title}</strong> 입니다!"<br/>
-              "참가자 여러분, 모바일 화면을 주목해 주시기 바랍니다. 규칙은 간단합니다: {activeGameMeta?.desc}"<br/>
-              "모두 준비 되셨나요? 그럼 게임을 시작하겠습니다!"
+              "이번 게임은 <strong style={{color: '#fff'}}>{activeGameMeta?.title}</strong> 입니다!"<br/>
+              "설명을 읽고 [이해했어요] 버튼을 눌러주세요. 전원 준비가 완료되면 시작하겠습니다!"
             </p>
           </div>
 
@@ -85,7 +84,7 @@ export const HostDashboard = () => {
                 onClick={() => startGame(room.activeGame)} 
                 style={{ padding: '16px 40px', fontSize: '1.4rem' }}
               >
-                <Play size={24} /> 3초 후 시작하기
+                <Play size={24} /> 5초 후 게임 시작
               </button>
             </div>
           ) : (

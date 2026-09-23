@@ -20,6 +20,15 @@ export const ParticipantMobileView = () => {
     myTeamId
   } = useGame();
 
+  const [isReady, setIsReady] = React.useState(false);
+
+  // 리셋: 방의 상태가 'preview'로 막 진입했을 때 isReady를 false로 초기화
+  React.useEffect(() => {
+    if (room.status === 'preview') {
+      setIsReady(false);
+    }
+  }, [room.status, room.activeGame]);
+
   // Find my player object
   const me = participants.find(p => p.id === myPlayerId) || {
     name: myPlayerName || '참가자',
@@ -38,14 +47,33 @@ export const ParticipantMobileView = () => {
           <h2 className="font-heading text-gradient" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{activeGameMeta?.title}</h2>
           
           {room.status === 'preview' ? (
-            <div style={{ padding: '20px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-color)', marginBottom: '8px' }}>
-                진행자의 설명을 잘 들어주세요!
+            !isReady ? (
+              <div style={{ padding: '20px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-color)', marginBottom: '12px' }}>
+                  게임 규칙 안내
+                </div>
+                <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', margin: '0 0 20px 0' }}>
+                  {activeGameMeta?.desc}
+                </p>
+                <button 
+                  className="btn-primary" 
+                  style={{ width: '100%' }}
+                  onClick={() => setIsReady(true)}
+                >
+                  <PlayCircle size={20} /> 이해했어요 (준비 완료)
+                </button>
               </div>
-              <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', margin: 0 }}>
-                설명이 끝나면 곧 게임이 시작됩니다. 스마트폰을 양손으로 잡고 대기해 주세요.
-              </p>
-            </div>
+            ) : (
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ animation: 'spin 3s linear infinite', fontSize: '2rem', marginBottom: '10px' }}>⏳</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-color)' }}>
+                  준비 완료!
+                </div>
+                <div style={{ fontSize: '0.95rem', color: 'var(--text-sub)', marginTop: '8px' }}>
+                  진행자가 게임을 시작할 때까지 대기해 주세요.
+                </div>
+              </div>
+            )
           ) : (
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ fontSize: '1.1rem', color: 'var(--text-sub)' }}>게임이 시작됩니다!</div>
