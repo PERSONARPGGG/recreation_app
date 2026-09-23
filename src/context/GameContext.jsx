@@ -6,9 +6,15 @@ import { soundFx } from '../utils/sound';
 
 const GameContext = createContext();
 
+/**
+ * 앱 전체의 상태(방 정보, 참가자 목록, 점수 등)를 관리하고 동기화하는 최상위 전역 Provider입니다.
+ * 호스트와 참가자 간의 실시간 통신 로직(Supabase 또는 BroadcastChannel)이 여기에 집중되어 있습니다.
+ */
 export const GameProvider = ({ children }) => {
   const [theme, setTheme] = useState(THEMES.BLUE);
-  const [userRole, setUserRole] = useState(null); // null, 'host', or 'participant'
+  const [userRole, setUserRole] = useState(null); // null(시작 전), 'host'(사회자), or 'participant'(일반 참가자)
+  
+  // 방의 전체 상태(게임 모드, 진행 상태, 알림 등)를 관리하는 객체
   const [room, setRoom] = useState({
     code: '',
     title: '🎉 100인 대격돌 명랑 레크레이션',
@@ -42,9 +48,9 @@ export const GameProvider = ({ children }) => {
     myPlayerIdRef.current = myPlayerId;
   }, [room, participants, userRole, myPlayerId]);
 
-  // Sync channel (Supabase or BroadcastChannel fallback)
+  // 동기화 채널 객체 (Supabase Realtime Channel 또는 로컬 브라우저용 BroadcastChannel)
   const [channel, setChannel] = useState(null);
-  const [isRealtime, setIsRealtime] = useState(false);
+  const [isRealtime, setIsRealtime] = useState(false); // Supabase 연결 여부
 
   useEffect(() => {
     applyTheme(theme);
@@ -210,7 +216,10 @@ export const GameProvider = ({ children }) => {
     });
   };
 
-  // 100-Bot Simulation Engine
+  /**
+   * 100인 테스트용 봇(가짜 유저)을 생성합니다.
+   * 개발 및 시연 시 혼자서 다수의 참가자가 있는 환경을 시뮬레이션할 때 사용합니다.
+   */
   const populateBots = (count = 100) => {
     const newBots = [];
     const teamCount = activeTeams.length || 1;
@@ -351,7 +360,10 @@ export const GameProvider = ({ children }) => {
     return cleaned;
   };
 
-  // Update Game State
+  /**
+   * 특정 미니 게임을 시작합니다.
+   * 기존 게임의 잔여 데이터를 정리(clean)하고 게임 상태를 초기화합니다.
+   */
   const startGame = (gameId) => {
     const cleaned = cleanTransientGameStates(room);
     const nextRoom = { ...cleaned, activeGame: gameId, status: 'playing', gameState: 'ready' };
@@ -504,7 +516,10 @@ export const GameProvider = ({ children }) => {
     });
   };
 
-  // Add points to participant or team
+  /**
+   * 참가자 또는 특정 팀에게 점수를 부여합니다.
+   * 폭죽 효과(confetti)를 발생시킵니다.
+   */
   const awardPoints = (playerIdOrTeamId, points, isTeam = false) => {
     // If we are participant, send score update request to host
     if (userRoleRef.current === 'participant') {

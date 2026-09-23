@@ -1,5 +1,14 @@
-// Application Constants & Game Metadata Registry
+/**
+ * Application Constants & Game Metadata Registry
+ * 앱 전반에 걸쳐 사용되는 고정값(상수)과 게임 메타데이터를 관리하는 파일입니다.
+ * 팀 색상, 봇 닉네임, 제공되는 게임 목록 등을 이 곳에서 수정하여 쉽게 커스텀할 수 있습니다.
+ */
 
+/**
+ * 참가자 팀 분류를 위한 프리셋 데이터.
+ * 팀 이름, 색상(HEX), UI 적용을 위한 CSS 클래스를 포함합니다.
+ * @type {Array<{id: string, name: string, color: string, bgClass: string}>}
+ */
 export const TEAM_PRESETS = [
   { id: 'team-1', name: 'Red', color: '#ff3b30', bgClass: 'team-red' },
   { id: 'team-2', name: 'Blue', color: '#007aff', bgClass: 'team-blue' },
@@ -9,12 +18,28 @@ export const TEAM_PRESETS = [
   { id: 'team-6', name: 'Orange', color: '#ff9500', bgClass: 'team-orange' },
 ];
 
+/**
+ * 봇(가짜 유저) 추가 기능 사용 시 랜덤으로 부여될 닉네임 목록입니다.
+ * @type {string[]}
+ */
 export const BOT_NICKNAMES = [
   '흥겨운사자', '빛나는토끼', '불꽃독수리', '무적의드래곤', '빛의매', '춤추는고양이',
   '바람의늑대', '열정의곰', '슈퍼판다', '질주하는표범', '초음속펭귄', '번개다람쥐',
   '승리의호랑이', '골든치타', '행운의코알라', '스피드돌고래', '최강의샤크', '환상의유니콘'
 ];
 
+/**
+ * 미니 게임들의 설정 정보 및 UI 표시 데이터를 담고 있는 배열입니다.
+ * 새로운 게임을 추가하려면 컴포넌트를 만든 후 이 배열에 항목을 추가하면 됩니다.
+ * 
+ * id: 게임 컴포넌트를 매핑하기 위한 고유 식별자
+ * title: 사용자에게 보여질 게임 이름
+ * desc: 게임 규칙 및 설명
+ * icon: 게임 아이콘(이모지)
+ * tag: 성향/장르 태그
+ * 
+ * @type {Array<{id: string, title: string, desc: string, icon: string, tag: string}>}
+ */
 export const GAMES_METADATA = [
   {
     id: 'stopwatch',
