@@ -109,7 +109,7 @@ export const LuckyRoulette = () => {
         const targetScore = isTeam 
           ? participants.filter(p => p.teamId === targetId).reduce((sum, p) => sum + p.score, 0)
           : participants.find(p => p.id === targetId)?.score || 0;
-        awardPoints(targetId, Math.max(targetScore, 300), isTeam);
+        awardPoints(targetId, Math.max(targetScore, 100), isTeam);
       } else if (winItem.effect !== 0) {
         awardPoints(targetId, winItem.effect, isTeam);
       }
@@ -126,12 +126,12 @@ export const LuckyRoulette = () => {
         const targetScore = isTeam 
           ? participants.filter(p => p.teamId === targetId).reduce((sum, p) => sum + p.score, 0)
           : participants.find(p => p.id === targetId)?.score || 0;
-        awardPoints(targetId, Math.max(targetScore, 300), isTeam);
+        awardPoints(targetId, Math.max(targetScore, 100), isTeam);
       } else {
         awardPoints(targetId, result.effect, isTeam);
       }
     } else {
-      awardPoints(targetId, 500, isTeam);
+      awardPoints(targetId, 100, isTeam);
     }
     setIsSettled(true);
     soundFx.playSuccess();

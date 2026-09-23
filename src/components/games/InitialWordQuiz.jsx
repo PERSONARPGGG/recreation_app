@@ -54,7 +54,7 @@ export const InitialWordQuiz = () => {
         
         // Award points
         topWinners.forEach((w, idx) => {
-          const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
+          const points = idx === 0 ? 100 : idx === 1 ? 80 : 50;
           awardPoints(w.id, points, false);
           if (w.teamId && room.mode === 'team') awardPoints(w.teamId, points, true);
         });
@@ -176,7 +176,7 @@ export const InitialWordQuiz = () => {
     if (isSettled || gameState !== 'finished') return;
     if (winners.length > 0) {
       winners.forEach((w, idx) => {
-        const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
+        const points = idx === 0 ? 100 : idx === 1 ? 80 : 50;
         awardPoints(w.id, points, false);
         if (w.teamId && room.mode === 'team') awardPoints(w.teamId, points, true);
       });

@@ -24,7 +24,7 @@ export const Header = ({ isCompact = false }) => {
 
   return (
     <header className="glass-panel" style={{ padding: isCompact ? '4px 10px' : '12px 20px', marginBottom: isCompact ? '6px' : '16px', borderRadius: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
         
         {/* Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '6px' : '12px' }}>
@@ -59,12 +59,12 @@ export const Header = ({ isCompact = false }) => {
         </div>
 
         {/* Dynamic Controls Group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '6px' : '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isCompact ? '4px' : '8px', flexWrap: 'wrap' }}>
           
           {/* Participant Count Badge */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.07)',
-            padding: isCompact ? '4px 8px' : '6px 12px',
+            padding: isCompact ? '4px 6px' : '6px 10px',
             borderRadius: '20px',
             border: '1px solid var(--card-border)',
             fontSize: isCompact ? '0.75rem' : '0.82rem',

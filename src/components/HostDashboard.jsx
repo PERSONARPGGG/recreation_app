@@ -190,7 +190,7 @@ export const HostDashboard = () => {
   }).sort((a, b) => b.totalScore - a.totalScore);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '120px' }}>
       
       {/* Host Banner & Room Control Bar */}
       <div className="glass-panel glass-panel-glow" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -210,6 +210,7 @@ export const HostDashboard = () => {
                   🎲 팀 랜덤 셔플
                 </button>
               )}
+              <button onClick={() => { if(window.confirm('정말 방을 종료하시겠습니까? 모든 참가자가 튕깁니다.')) setRoom({...room, status: 'destroyed'}); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--danger-color)', background: 'rgba(255,0,0,0.1)' }}>🛑 방 전체 종료</button>
               <button onClick={clearBots} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid #ffd700' }}>
                 🧹 더미/봇 일괄 퇴장
               </button>
@@ -344,7 +345,10 @@ export const HostDashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '6px' }}>
             {participants.map(p => (
               <div key={p.id} className="glass-card" style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                  <button onClick={() => { if(window.confirm('강제 퇴장시키겠습니까?')) kickParticipant(p.id); }} style={{ background: 'var(--danger-color)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.7rem', padding: 0 }}>X</button>
+                </div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--primary-color)' }}>{p.score}점</span>
               </div>
             ))}

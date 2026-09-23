@@ -79,7 +79,12 @@ export const Landing = () => {
 
   const handleJoinSubmit = (e) => {
     e.preventDefault();
-    joinAsPlayer(inputName, selectedTeam);
+    const badWords = ['씨발', '시발', '병신', '존나', '새끼', '개새끼', '지랄', '미친', '좆', '창녀', '애미', '느금마'];
+      if (badWords.some(word => inputName.includes(word))) {
+        alert('닉네임에 부적절한 단어가 포함되어 있습니다.');
+        return;
+      }
+      joinAsPlayer(inputName, selectedTeam);
     setUserRole('participant');
     soundFx.playSuccess();
   };

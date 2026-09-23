@@ -158,8 +158,8 @@ export const RockPaperScissors = () => {
     // Final settlement bonus for survivors
     if (survivors.length > 0) {
       survivors.forEach(s => {
-        awardPoints(s.id, 300, false);
-        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, 300, true);
+        awardPoints(s.id, 100, false);
+        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, 100, true);
       });
     }
     setIsSettled(true);

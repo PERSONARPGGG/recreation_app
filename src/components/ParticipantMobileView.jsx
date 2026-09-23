@@ -22,6 +22,33 @@ export const ParticipantMobileView = () => {
 
   const [isReady, setIsReady] = React.useState(false);
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(e => console.log(e));
+    } else {
+      document.exitFullscreen().catch(e => console.log(e));
+    }
+  };
+
+  // Kick logic & Room destroy logic
+  React.useEffect(() => {
+    if (room.status === 'destroyed') {
+      alert('방이 종료되었습니다.');
+      localStorage.clear();
+      window.location.reload();
+    }
+  }, [room.status]);
+
+  React.useEffect(() => {
+    const meExists = participants.find(p => p.id === myPlayerId);
+    if (!meExists && participants.length > 0 && isReady) {
+      alert('방에서 추방되었습니다.');
+      localStorage.clear();
+      window.location.reload();
+    }
+  }, [participants, myPlayerId, isReady]);
+
+
   // 리셋: 방의 상태가 'preview'로 막 진입했을 때 isReady를 false로 초기화
   React.useEffect(() => {
     if (room.status === 'preview') {
