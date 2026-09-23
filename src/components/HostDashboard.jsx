@@ -210,7 +210,7 @@ export const HostDashboard = () => {
                   🎲 팀 랜덤 셔플
                 </button>
               )}
-              <button onClick={() => { if(window.confirm('정말 방을 종료하시겠습니까? 모든 참가자가 튕깁니다.')) setRoom({...room, status: 'destroyed'}); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--danger-color)', background: 'rgba(255,0,0,0.1)' }}>🛑 방 전체 종료</button>
+              <button onClick={() => { if(window.confirm('정말 방을 종료하시겠습니까? 모든 참가자가 튕깁니다.')) destroyRoom(); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--danger-color)', background: 'rgba(255,0,0,0.1)' }}>🛑 방 전체 종료</button>
               <button onClick={clearBots} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid #ffd700' }}>
                 🧹 더미/봇 일괄 퇴장
               </button>

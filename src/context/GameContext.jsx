@@ -758,7 +758,7 @@ export const GameProvider = ({ children }) => {
         myPlayerName,
         myTeamId,
         populateBots,
-        clearBots,
+        clearBots, destroyRoom,
         createRoom,
         confirmRoomSetup,
         requestSync,

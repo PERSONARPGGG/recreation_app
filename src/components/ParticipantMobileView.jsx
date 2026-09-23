@@ -46,6 +46,27 @@ export const ParticipantMobileView = () => {
   }, [room.status]);
 
   React.useEffect(() => {
+    if (!roomChannel) return;
+    const handleEvents = (payload) => {
+      if (payload.event === 'KICK_PLAYER' && payload.payload.targetId === myPlayerId) {
+        alert('방에서 강제 퇴장되었습니다.');
+        localStorage.clear();
+        window.location.reload();
+      }
+      if (payload.event === 'DESTROY_ROOM') {
+        alert('방이 종료되었습니다.');
+        localStorage.clear();
+        window.location.reload();
+      }
+    };
+    roomChannel.on('broadcast', { event: 'KICK_PLAYER' }, handleEvents);
+    roomChannel.on('broadcast', { event: 'DESTROY_ROOM' }, handleEvents);
+    return () => {
+      // Supabase unsubscribe handle logic if needed, simplified here
+    };
+  }, [roomChannel, myPlayerId]);
+
+  React.useEffect(() => {
     const meExists = participants.find(p => p.id === myPlayerId);
     if (!meExists && participants.length > 0 && isReady) {
       alert('방에서 추방되었습니다.');
