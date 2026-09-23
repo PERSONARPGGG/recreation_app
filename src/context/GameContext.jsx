@@ -557,6 +557,19 @@ export const GameProvider = ({ children }) => {
     }, 7000);
   };
 
+  const destroyRoom = () => {
+    broadcast('DESTROY_ROOM', {});
+    updateRoomState({ status: 'destroyed' });
+    setParticipants([]);
+    setRoom({
+      mode: 'solo',
+      status: 'ready',
+      teamCount: 4,
+      round: 1,
+      targetScore: 1000
+    });
+  };
+
   const kickParticipant = (playerId) => {
     setParticipants(prev => {
       const updated = prev.filter(p => p.id !== playerId);
