@@ -15,6 +15,12 @@ export const TugOfWar = () => {
   
   const [isSettled, setIsSettled] = useState(false);
   const [tapCount, setTapCount] = useState(0);
+  const tapCountRef = useRef(tapCount);
+  const lastSyncedTapCountRef = useRef(tapCount);
+  
+  useEffect(() => {
+    tapCountRef.current = tapCount;
+  }, [tapCount]);
 
   const gameState = room.tugState || 'ready'; // 'ready' | 'playing' | 'finished'
   const timeLeft = room.tugTimeLeft !== undefined ? room.tugTimeLeft : GAME_DURATION;
@@ -132,14 +138,19 @@ export const TugOfWar = () => {
   useEffect(() => {
     if (userRole === 'participant' && gameState === 'playing') {
       const syncInterval = setInterval(() => {
-        submitPlayerInput(myPlayerId, { taps: tapCount, lastTapTime: Date.now() });
-      }, 250);
+        if (tapCountRef.current !== lastSyncedTapCountRef.current) {
+          submitPlayerInput(myPlayerId, { taps: tapCountRef.current, lastTapTime: Date.now() });
+          lastSyncedTapCountRef.current = tapCountRef.current;
+        }
+      }, 500);
       return () => {
         clearInterval(syncInterval);
-        submitPlayerInput(myPlayerId, { taps: tapCount, lastTapTime: Date.now() });
+        if (tapCountRef.current !== lastSyncedTapCountRef.current) {
+          submitPlayerInput(myPlayerId, { taps: tapCountRef.current, lastTapTime: Date.now() });
+        }
       };
     }
-  }, [userRole, gameState, tapCount, submitPlayerInput, myPlayerId]);
+  }, [userRole, gameState, submitPlayerInput, myPlayerId]);
 
   // Determine winner
   const winnerSide = ropePosition < 50 ? 'left' : ropePosition > 50 ? 'right' : 'draw';

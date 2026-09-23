@@ -9,56 +9,65 @@ import { Flame, Play, RotateCcw, Zap, Trophy, Flag } from 'lucide-react';
  * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
  */
 export const RapidTapSprint = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame, updateRoomState } = useGame();
 
   const GAME_DURATION = 10; // 10 seconds race
   
   const myPlayer = participants.find(p => p.id === myPlayerId);
   const hasSubmitted = !!myPlayer?.lastInput?.tapCount;
 
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [isRacing, setIsRacing] = useState(false);
+  
   const [tapCount, setTapCount] = useState(hasSubmitted ? myPlayer.lastInput.tapCount : 0);
-  const [raceFinished, setRaceFinished] = useState(hasSubmitted);
   const [isSettled, setIsSettled] = useState(false);
 
-  const timerRef = useRef(null);
-
-  const startRace = () => {
-    setIsRacing(true);
-    setRaceFinished(false);
-    setIsSettled(false);
-    setTapCount(0);
-    setTimeLeft(GAME_DURATION);
-    soundFx.playCountdown(true);
-
-    let currentSeconds = GAME_DURATION;
-    timerRef.current = setInterval(() => {
-      currentSeconds -= 1;
-      setTimeLeft(currentSeconds);
-      soundFx.playCountdown(false);
-
-      if (currentSeconds <= 0) {
-        clearInterval(timerRef.current);
-        setIsRacing(false);
-        setRaceFinished(true);
-        soundFx.playSuccess();
-      }
-    }, 1000);
-  };
+  const tapCountRef = useRef(tapCount);
+  const lastSyncedTapCountRef = useRef(tapCount);
+  const sprintTimeRef = useRef(GAME_DURATION);
 
   useEffect(() => {
-    if (room.gameState === 'playing' && !isRacing && !raceFinished && !hasSubmitted) {
-      startRace();
-    } else if (room.gameState === 'ready') {
-      setIsRacing(false);
-      setRaceFinished(false);
-      setIsSettled(false);
-      setTapCount(0);
-      setTimeLeft(GAME_DURATION);
-      clearInterval(timerRef.current);
+    tapCountRef.current = tapCount;
+  }, [tapCount]);
+
+  useEffect(() => {
+    let interval;
+    if (userRole === 'host' && room.gameState === 'playing') {
+      sprintTimeRef.current = GAME_DURATION;
+      updateRoomState({ sprintTimeLeft: GAME_DURATION });
+      soundFx.playCountdown(true);
+      
+      interval = setInterval(() => {
+        sprintTimeRef.current -= 1;
+        if (sprintTimeRef.current <= 0) {
+          updateRoomState({ sprintTimeLeft: 0, gameState: 'finished' });
+          soundFx.playSuccess();
+          clearInterval(interval);
+        } else {
+          updateRoomState({ sprintTimeLeft: sprintTimeRef.current });
+        }
+      }, 1000);
+    } else if (userRole === 'host' && room.gameState === 'ready') {
+      updateRoomState({ sprintTimeLeft: GAME_DURATION });
     }
-  }, [room.gameState, hasSubmitted]);
+    return () => { if (interval) clearInterval(interval); };
+  }, [userRole, room.gameState]);
+
+  const timeLeft = room.sprintTimeLeft !== undefined ? room.sprintTimeLeft : GAME_DURATION;
+  const isRacing = room.gameState === 'playing' && timeLeft > 0;
+
+  useEffect(() => {
+    if (room.gameState === 'playing' && room.sprintTimeLeft > 0 && room.sprintTimeLeft < GAME_DURATION) {
+      soundFx.playCountdown(false);
+    } else if (room.gameState === 'finished' && userRole === 'participant') {
+      soundFx.playSuccess();
+    }
+  }, [room.sprintTimeLeft, room.gameState, userRole]);
+
+  useEffect(() => {
+    if (room.gameState === 'ready') {
+      setTapCount(0);
+      setIsSettled(false);
+    }
+  }, [room.gameState]);
 
   const handleHostStart = () => {
     startRound();
@@ -245,7 +254,7 @@ export const RapidTapSprint = () => {
                   🔥 터치! (연타!)
                 </button>
               )}
-              {raceFinished && (
+              {(room.gameState === 'finished') && (
                 <div style={{ padding: '16px', color: 'var(--success-color)', fontSize: '1.2rem', fontWeight: 800, marginTop: '10px' }}>
                   🏁 레이스 종료! 최종 기록: {tapCount}회
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Flame, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
@@ -19,20 +19,23 @@ export const BombPass = () => {
   // Host simulation for bomb passing
   useEffect(() => {
     if (userRole === 'host' && gameState === 'playing') {
+      bombTimeRef.current = room.bombTimeLeft || 10;
       const interval = setInterval(() => {
-        if (room.bombTimeLeft <= 1) {
+        bombTimeRef.current -= 1;
+        if (bombTimeRef.current <= 0) {
           updateRoomState({ bombState: 'exploded', bombTimeLeft: 0 });
           soundFx.playError();
-            if (room.bombHolder) {
-              awardBatchPoints([{ targetId: room.bombHolder.id, points: -50, isTeam: false }]);
-            }
+          if (room.bombHolder) {
+            awardBatchPoints([{ targetId: room.bombHolder.id, points: -50, isTeam: false }]);
+          }
+          clearInterval(interval);
         } else {
-          updateRoomState({ bombTimeLeft: room.bombTimeLeft - 1 });
+          updateRoomState({ bombTimeLeft: bombTimeRef.current });
         }
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [userRole, gameState, room.bombTimeLeft]);
+  }, [userRole, gameState]);
 
   // Read player input to pass bomb
   useEffect(() => {

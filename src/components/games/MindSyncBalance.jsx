@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
 import { soundFx } from '../../utils/sound';
 import { Scale, Zap, Eye, Trophy, RefreshCw } from 'lucide-react';
@@ -18,6 +18,7 @@ export const MindSyncBalance = () => {
   const myPlayer = participants.find(p => p.id === myPlayerId);
   const [selectedNum, setSelectedNum] = useState(myPlayer?.lastInput?.choiceNum ?? 50);
   const [isSettled, setIsSettled] = useState(false);
+  const mindsyncTimeRef = useRef(timeLeft);
 
   // Sync selectedNum if participant has already submitted
   useEffect(() => {
@@ -30,17 +31,20 @@ export const MindSyncBalance = () => {
   useEffect(() => {
     let timer;
     if (userRole === 'host' && timeLeft !== null && timeLeft > 0 && !isLocked) {
+      mindsyncTimeRef.current = timeLeft;
       timer = setInterval(() => {
-        if (room.mindsyncTimeLeft <= 1) {
+        mindsyncTimeRef.current -= 1;
+        if (mindsyncTimeRef.current <= 0) {
           updateRoomState({ mindsyncTimeLeft: 0, mindsyncLocked: true });
           soundFx.playSuccess();
+          clearInterval(timer);
         } else {
-          updateRoomState({ mindsyncTimeLeft: room.mindsyncTimeLeft - 1 });
+          updateRoomState({ mindsyncTimeLeft: mindsyncTimeRef.current });
         }
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [userRole, timeLeft, isLocked, room.mindsyncTimeLeft, updateRoomState]);
+  }, [userRole, isLocked]); // Only re-run if isLocked changes, ignoring timeLeft tick changes
 
   const handleSelectNumber = (num) => {
     if (isLocked) return;

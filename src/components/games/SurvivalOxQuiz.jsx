@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { soundFx } from '../../utils/sound';
-import { HelpCircle, CheckCircle, XCircle, Zap, Eye, Award, RotateCcw } from 'lucide-react';
+import { HelpCircle, CheckCircle, XCircle, Zap, Eye, Award, RotateCcw, Settings, Trash2, Plus, Edit2, Save } from 'lucide-react';
 
 const OX_QUESTION_BANK = [
   { q: "대한민국의 세종대왕은 훈민정음을 창제할 때 눈 질환을 앓고 있었다?", a: "O", exp: "정답은 O! 세종대왕은 오랜 연구와 독서로 지독한 안질을 겪으셨습니다." },
@@ -19,6 +19,13 @@ const OX_QUESTION_BANK = [
 export const SurvivalOxQuiz = () => {
   const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
+
+  const [showSettings, setShowSettings] = useState(false);
+  const customQuestions = room.oxQuestions || OX_QUESTION_BANK;
+  
+  // Game End Condition
+  const isGameFinished = room.oxQIndex >= customQuestions.length;
+
   const currentQIndex = room.oxQIndex || 0;
   const revealed = !!room.oxRevealed;
   const [isSettled, setIsSettled] = useState(false);
@@ -28,7 +35,7 @@ export const SurvivalOxQuiz = () => {
   const myChoice = (myPlayer?.lastInput?.qIndex === currentQIndex) ? myPlayer.lastInput.choice : null;
   const hasChosen = !!myChoice;
 
-  const questionObj = OX_QUESTION_BANK[currentQIndex] || OX_QUESTION_BANK[0];
+  const questionObj = customQuestions[currentQIndex] || customQuestions[0];
 
   const handleSelectAnswer = (choice) => {
     if (revealed || hasChosen) return; // Disallow picking after reveal or once chosen
@@ -48,8 +55,12 @@ export const SurvivalOxQuiz = () => {
   const handleNextQuestion = () => {
     // Clear all player inputs atomically across all participants
     resetAllPlayerInputs();
-    const nextIdx = (currentQIndex + 1) % OX_QUESTION_BANK.length;
-    updateRoomState({ oxQIndex: nextIdx, oxRevealed: false });
+    const nextIdx = currentQIndex + 1;
+    if (nextIdx >= customQuestions.length) {
+      updateRoomState({ oxQIndex: nextIdx, oxRevealed: true, oxFinished: true });
+    } else {
+      updateRoomState({ oxQIndex: nextIdx, oxRevealed: false });
+    }
     setIsSettled(false);
     soundFx.playTick();
   };
@@ -92,6 +103,83 @@ export const SurvivalOxQuiz = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: userRole === 'participant' ? '6px' : '12px' }}>
+
+      {showSettings && userRole === 'host' && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><Settings /> OX 문제 설정</h2>
+              <button onClick={() => setShowSettings(false)} className="btn-secondary" style={{ padding: '6px 12px' }}><XCircle size={18} /> 닫기</button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+              {customQuestions.map((q, idx) => (
+                <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                    <span style={{ fontWeight: 900, color: 'var(--primary-color)' }}>Q{idx + 1}</span>
+                    <input 
+                      type="text" 
+                      value={q.q} 
+                      onChange={(e) => {
+                        const newQ = [...customQuestions];
+                        newQ[idx].q = e.target.value;
+                        updateRoomState({ oxQuestions: newQ });
+                      }}
+                      style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <select
+                      value={q.a}
+                      onChange={(e) => {
+                        const newQ = [...customQuestions];
+                        newQ[idx].a = e.target.value;
+                        updateRoomState({ oxQuestions: newQ });
+                      }}
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px', borderRadius: '6px' }}
+                    >
+                      <option value="O">정답: O</option>
+                      <option value="X">정답: X</option>
+                    </select>
+                    <input 
+                      type="text" 
+                      placeholder="해설 (예: 정답은 O입니다!)"
+                      value={q.exp} 
+                      onChange={(e) => {
+                        const newQ = [...customQuestions];
+                        newQ[idx].exp = e.target.value;
+                        updateRoomState({ oxQuestions: newQ });
+                      }}
+                      style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 12px', borderRadius: '6px' }}
+                    />
+                    <button 
+                      onClick={() => {
+                        const newQ = customQuestions.filter((_, i) => i !== idx);
+                        updateRoomState({ oxQuestions: newQ.length ? newQ : OX_QUESTION_BANK });
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <button 
+              onClick={() => {
+                const newQ = [...customQuestions, { q: '새로운 문제입니다.', a: 'O', exp: '해설을 입력하세요.' }];
+                updateRoomState({ oxQuestions: newQ });
+              }}
+              className="btn-primary"
+              style={{ width: '100%', padding: '12px', display: 'flex', justifyContent: 'center', gap: '8px' }}
+            >
+              <Plus size={18} /> 문제 추가하기
+            </button>
+          </div>
+        </div>
+      )}
+
       
       {/* Header Toolbar */}
       {userRole === 'host' ? (
@@ -106,6 +194,9 @@ export const SurvivalOxQuiz = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={() => setShowSettings(true)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              <Settings size={14} /> 문제 설정
+            </button>
             <button onClick={handleSimulateBots} className="btn-secondary" style={{ border: '1px solid var(--primary-color)', padding: '6px 12px', fontSize: '0.85rem' }}>
               <Zap size={14} /> 100인 투표 시뮬레이션
             </button>
@@ -138,8 +229,23 @@ export const SurvivalOxQuiz = () => {
         </div>
       )}
 
-      {/* Main Quiz Area */}
+      
+      {/* Game Finished Screen */}
+      {isGameFinished ? (
+        <div className="glass-panel glass-panel-glow" style={{ padding: '32px 20px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2rem', color: 'var(--primary-color)', marginBottom: '16px' }}>🎉 퀴즈 종료! 🎉</h2>
+          <p style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '24px' }}>모든 준비된 OX 퀴즈 문제가 끝났습니다.</p>
+          {userRole === 'host' && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button onClick={() => { resetAllPlayerInputs(); updateRoomState({ oxQIndex: 0, oxRevealed: false, oxFinished: false }); }} className="btn-secondary">
+                <RotateCcw size={16} /> 처음부터 다시하기
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="glass-panel glass-panel-glow" style={{ padding: userRole === 'participant' ? '12px 10px' : '24px 20px', textAlign: 'center' }}>
+
         
         <div style={{ fontSize: '0.8rem', color: 'var(--primary-color)', fontWeight: 800, letterSpacing: '1px', marginBottom: '4px' }}>
           제 {currentQIndex + 1} 번 퀴즈
@@ -237,7 +343,7 @@ export const SurvivalOxQuiz = () => {
               </button>
             ) : (
               <button onClick={handleNextQuestion} className="btn-secondary" style={{ fontSize: '1rem', padding: '10px 24px' }}>
-                <RotateCcw size={16} /> 다음 퀴즈 진행
+                <RotateCcw size={16} /> {currentQIndex + 1 >= customQuestions.length ? "게임 종료" : "다음 퀴즈 진행"}
               </button>
             )}
           </div>
@@ -268,7 +374,8 @@ export const SurvivalOxQuiz = () => {
           </div>
         )}
 
-      </div>
+            </div>
+      )}
     </div>
   );
 };
