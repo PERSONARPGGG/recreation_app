@@ -1,4 +1,6 @@
-:root {
+import fs from 'fs';
+
+const newCss = `:root {
   /* Premium Dark Theme */
   --bg-color: #0f1115;
   --bg-gradient: radial-gradient(circle at top right, rgba(29, 35, 50, 0.8) 0%, #0f1115 100%);
@@ -228,3 +230,7 @@ html, body {
   20% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); opacity: 0; }
 }
+`;
+
+fs.writeFileSync('src/index.css', newCss, 'utf8');
+console.log('CSS updated successfully');

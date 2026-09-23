@@ -364,14 +364,44 @@ export const GameProvider = ({ children }) => {
    * 특정 미니 게임을 시작합니다.
    * 기존 게임의 잔여 데이터를 정리(clean)하고 게임 상태를 초기화합니다.
    */
-  const startGame = (gameId) => {
-    const cleaned = cleanTransientGameStates(room);
-    const nextRoom = { ...cleaned, activeGame: gameId, status: 'playing', gameState: 'ready' };
+  const previewGame = (gameId) => {
+    const nextRoom = { ...room, activeGame: gameId, status: 'preview', countdown: null };
     setRoom(nextRoom);
-    // Reset inputs for all participants
-    const resetParticipants = participants.map(p => ({ ...p, lastInput: null }));
-    setParticipants(resetParticipants);
-    broadcast('SYNC_STATE', { room: nextRoom, participants: resetParticipants });
+    broadcast('SYNC_STATE', { room: nextRoom, participants });
+  };
+
+  const startGame = (gameId) => {
+    let count = 3;
+    const countRoom = { ...room, activeGame: gameId || room.activeGame, status: 'countdown', countdown: count };
+    setRoom(countRoom);
+    broadcast('SYNC_STATE', { room: countRoom, participants });
+    soundFx.playTick(); // tick for 3
+    
+    const interval = setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        soundFx.playTick(); // tick for 2, 1
+        setRoom(prev => {
+          const next = { ...prev, countdown: count };
+          broadcast('SYNC_STATE', { room: next, participants });
+          return next;
+        });
+      } else {
+        clearInterval(interval);
+        soundFx.playSuccess(); // go!
+        setRoom(prev => {
+          const cleaned = cleanTransientGameStates(prev);
+          const next = { ...cleaned, activeGame: gameId || prev.activeGame, status: 'playing', gameState: 'ready', countdown: null };
+          
+          // Reset inputs for all participants
+          const resetParticipants = participants.map(p => ({ ...p, lastInput: null }));
+          setParticipants(resetParticipants);
+          
+          broadcast('SYNC_STATE', { room: next, participants: resetParticipants });
+          return next;
+        });
+      }
+    }, 1000);
   };
 
   const startRound = () => {
@@ -653,6 +683,7 @@ export const GameProvider = ({ children }) => {
         requestSync,
         joinAsPlayer,
         rejoinFromSession,
+        previewGame,
         startGame,
         updateRoomState,
         startRound,

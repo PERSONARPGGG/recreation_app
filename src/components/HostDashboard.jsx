@@ -42,6 +42,68 @@ export const HostDashboard = () => {
     );
   }
 
+  // --------------------------------------------------------
+  // 게임 미리보기(설명) 및 카운트다운 화면
+  // --------------------------------------------------------
+  if (room.status === 'preview' || room.status === 'countdown') {
+    const activeGameMeta = GAMES_METADATA.find(g => g.id === room.activeGame);
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass-panel" style={{ padding: '40px', maxWidth: '800px', width: '100%', textAlign: 'center', animation: 'fadeIn 0.5s ease' }}>
+          <span style={{ fontSize: '5rem', display: 'inline-block', marginBottom: '20px', animation: 'bounce-subtle 2s infinite' }}>
+            {activeGameMeta?.icon}
+          </span>
+          <h1 className="font-heading text-gradient" style={{ fontSize: '3.5rem', margin: '0 0 10px 0' }}>
+            {activeGameMeta?.title}
+          </h1>
+          <p style={{ fontSize: '1.2rem', color: 'var(--text-sub)', marginBottom: '30px' }}>
+            {activeGameMeta?.desc}
+          </p>
+          
+          <div className="glass-card" style={{ textAlign: 'left', marginBottom: '40px', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+            <h3 style={{ color: '#3b82f6', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
+              🎙️ 사회자 진행 가이드
+            </h3>
+            <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#e2e8f0', margin: 0 }}>
+              "자, 이번 게임은 <strong style={{color: '#fff'}}>{activeGameMeta?.title}</strong> 입니다!"<br/>
+              "참가자 여러분, 모바일 화면을 주목해 주시기 바랍니다. 규칙은 간단합니다: {activeGameMeta?.desc}"<br/>
+              "모두 준비 되셨나요? 그럼 게임을 시작하겠습니다!"
+            </p>
+          </div>
+
+          {room.status === 'preview' ? (
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => setRoom({ ...room, status: 'lobby', activeGame: null })} 
+                style={{ padding: '16px 30px', fontSize: '1.2rem' }}
+              >
+                취소 (로비로)
+              </button>
+              <button 
+                className="btn-primary animate-pulse-glow" 
+                onClick={() => startGame(room.activeGame)} 
+                style={{ padding: '16px 40px', fontSize: '1.4rem' }}
+              >
+                <Play size={24} /> 3초 후 시작하기
+              </button>
+            </div>
+          ) : (
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-sub)' }}>게임이 곧 시작됩니다!</div>
+              <div style={{ 
+                fontSize: '4rem', fontWeight: 900, color: 'var(--primary-color)', 
+                animation: 'pulse-glow 1s infinite'
+              }}>
+                {room.countdown}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (room.status === 'setup') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>

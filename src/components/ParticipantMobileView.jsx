@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { soundFx } from '../utils/sound';
 import { GameRenderer } from './games/GameRenderer';
-import { Smartphone, User } from 'lucide-react';
+import { Smartphone, User, PlayCircle } from 'lucide-react';
+import { GAMES_METADATA } from '../utils/constants';
 
 /**
  * ParticipantMobileView 컴포넌트
@@ -27,13 +28,54 @@ export const ParticipantMobileView = () => {
     teamColor: activeTeams.find(t => t.id === myTeamId)?.color || '#00f3ff'
   };
 
+  // 미리보기(preview) 또는 카운트다운(countdown) 상태
+  if (room.status === 'preview' || room.status === 'countdown') {
+    const activeGameMeta = GAMES_METADATA.find(g => g.id === room.activeGame);
+    return (
+      <div style={{ height: '100dvh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass-panel" style={{ padding: '30px 20px', width: '100%', maxWidth: '400px', textAlign: 'center', animation: 'fadeInUp 0.5s ease' }}>
+          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '15px' }}>{activeGameMeta?.icon}</span>
+          <h2 className="font-heading text-gradient" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{activeGameMeta?.title}</h2>
+          
+          {room.status === 'preview' ? (
+            <div style={{ padding: '20px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-color)', marginBottom: '8px' }}>
+                진행자의 설명을 잘 들어주세요!
+              </div>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', margin: 0 }}>
+                설명이 끝나면 곧 게임이 시작됩니다. 스마트폰을 양손으로 잡고 대기해 주세요.
+              </p>
+            </div>
+          ) : (
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '1.1rem', color: 'var(--text-sub)' }}>게임이 시작됩니다!</div>
+              <div style={{ 
+                fontSize: '5rem', fontWeight: 900, color: 'var(--danger-color)', 
+                animation: 'pulse-glow 1s infinite'
+              }}>
+                {room.countdown}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // 현재 상태가 'playing' (게임 중)이면 로비 화면을 숨기고 실제 미니 게임 화면으로 전환합니다.
   if (room.status === 'playing') {
-    return <GameRenderer activeGame={room.activeGame} />;
+    return (
+      <div style={{ width: '100%', height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <GameRenderer activeGame={room.activeGame} />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ width: '100%', height: '100dvh', overflow: 'hidden', padding: '16px' }}>
+      <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
       
       {/* Compact Mobile Header Banner */}
       <div className="glass-panel" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -84,6 +126,7 @@ export const ParticipantMobileView = () => {
         </div>
       </div>
 
+      </div>
     </div>
   );
 };
