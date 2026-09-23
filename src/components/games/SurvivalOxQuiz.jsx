@@ -11,6 +11,11 @@ const OX_QUESTION_BANK = [
   { q: "세계에서 가장 빠른 동물은 치타이다?", a: "X", exp: "정답은 X! 순간 최고 속도가 380km/h에 달하는 송골매가 가장 빠릅니다." }
 ];
 
+/**
+ * SurvivalOxQuiz 컴포넌트
+ * 레크레이션 참여자들이 플레이하는 개별 게임 로직과 UI가 포함되어 있습니다.
+ * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
+ */
 export const SurvivalOxQuiz = () => {
   const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 

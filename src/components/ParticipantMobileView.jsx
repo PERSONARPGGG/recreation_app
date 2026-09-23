@@ -4,6 +4,11 @@ import { soundFx } from '../utils/sound';
 import { GameRenderer } from './games/GameRenderer';
 import { Smartphone, User } from 'lucide-react';
 
+/**
+ * ParticipantMobileView 컴포넌트
+ * 참가자가 모바일 브라우저로 접속했을 때 보여지는 화면입니다.
+ * 게임 대기 중일 때는 내 정보와 점수를 표시하고, 게임이 시작되면 GameRenderer를 띄워 모바일 컨트롤러 역할을 수행합니다.
+ */
 export const ParticipantMobileView = () => {
   const {
     room,
@@ -22,7 +27,7 @@ export const ParticipantMobileView = () => {
     teamColor: activeTeams.find(t => t.id === myTeamId)?.color || '#00f3ff'
   };
 
-  // Render current active game if in playing state
+  // 현재 상태가 'playing' (게임 중)이면 로비 화면을 숨기고 실제 미니 게임 화면으로 전환합니다.
   if (room.status === 'playing') {
     return <GameRenderer activeGame={room.activeGame} />;
   }

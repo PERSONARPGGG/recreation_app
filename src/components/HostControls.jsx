@@ -3,10 +3,19 @@ import { useGame } from '../context/GameContext';
 import { ShieldAlert, UserMinus, Gift, PlusSquare, Shuffle, Target, Megaphone, Timer, Music, Download, X } from 'lucide-react';
 import { soundFx } from '../utils/sound';
 
+/**
+ * HostControls 컴포넌트
+ * 게임 진행 중 사회자가 언제든지 팝업하여 사용할 수 있는 마스터 컨트롤 패널입니다.
+ * 강제 얼음(Freeze), 팀 셔플, 공지사항 전송 등의 돌발 이벤트를 제어합니다.
+ */
 export const HostControls = () => {
   const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
+  /**
+   * 컨트롤 패널의 각 버튼 클릭 시 실행될 액션 핸들러
+   * GameContext의 훅들을 호출하여 앱 전체의 상태를 변경(동기화)시킵니다.
+   */
   const handleAction = (actionType) => {
     soundFx.playTick();
     switch (actionType) {

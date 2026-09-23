@@ -8,6 +8,11 @@ import { ParticipantMiniBoard } from './ParticipantMiniBoard';
 import { Zap, RefreshCw, Play, QrCode, Users } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
+/**
+ * HostDashboard 컴포넌트
+ * 사회자(호스트) 전용 화면으로, 대기실(로비) 및 방 개설 설정, 참가자 관리, 미니게임 선택 기능을 제공합니다.
+ * room.status에 따라 'setup'(설정 화면), 'lobby'(대기 화면), 'playing'(게임 진행 화면) 뷰를 렌더링합니다.
+ */
 export const HostDashboard = () => {
   const {
     room,
@@ -110,7 +115,12 @@ export const HostDashboard = () => {
     );
   }
 
-  // Calculate team scores for lobby view
+  // --------------------------------------------------------
+  // 3. 로비(Lobby) 화면
+  // 방이 개설된 후 참가자들의 입장을 기다리며 팀/점수를 관리하는 메인 대기실입니다.
+  // --------------------------------------------------------
+
+  // 현재 로비에 표시하기 위한 팀별 랭킹(총점 기준 내림차순 정렬) 계산
   const teamRankings = activeTeams.map(t => {
     const teamMembers = participants.filter(p => p.teamId === t.id);
     const baseScore = teamMembers.reduce((sum, p) => sum + p.score, 0);
@@ -281,7 +291,10 @@ export const HostDashboard = () => {
         )}
       </div>
 
-      {/* Game Selector Arcade Grid */}
+      {/* --------------------------------------------------------
+          미니게임 선택 아케이드 그리드 영역
+          GAMES_METADATA를 순회하며 게임 시작 버튼을 렌더링합니다.
+         -------------------------------------------------------- */}
       <h2 className="font-heading" style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '10px' }}>
         🎮 게임 리스트
       </h2>

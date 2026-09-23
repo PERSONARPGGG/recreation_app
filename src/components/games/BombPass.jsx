@@ -3,6 +3,11 @@ import { useGame } from '../../context/GameContext';
 import { Flame, Play } from 'lucide-react';
 import { soundFx } from '../../utils/sound';
 
+/**
+ * BombPass 컴포넌트
+ * 레크레이션 참여자들이 플레이하는 개별 게임 로직과 UI가 포함되어 있습니다.
+ * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
+ */
 export const BombPass = () => {
   const { userRole, participants, myPlayerId, submitPlayerInput, awardBatchPoints, returnToLobby, room, updateRoomState } = useGame();
   

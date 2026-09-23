@@ -2,6 +2,10 @@ import React from 'react';
 import { useGame } from '../context/GameContext';
 import { Users } from 'lucide-react';
 
+/**
+ * ParticipantMiniBoard 컴포넌트
+ * 호스트 대시보드의 하단이나 미니게임 진행 중에 참가자들의 실시간 현황(접속자 수, 점수 등)을 작게 요약해서 보여주는 보드입니다.
+ */
 export const ParticipantMiniBoard = () => {
   const { participants, activeTeams, room } = useGame();
   const [collapsed, setCollapsed] = React.useState(false);
@@ -28,6 +32,10 @@ export const ParticipantMiniBoard = () => {
         </button>
       </div>
       
+      {/* 
+        팀 모드일 경우: 팀별로 묶어서 점수를 합산해 보여주고,
+        개인 모드일 경우: 개인별 이름과 점수를 나열합니다.
+      */}
       {!collapsed && (
         room.mode === 'team' ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '4px' }}>

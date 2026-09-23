@@ -14,6 +14,11 @@ const WORD_LIST = [
   { initial: 'ㅅㅁㅌㅍ', answer: '스마트폰' },
 ];
 
+/**
+ * InitialWordQuiz 컴포넌트
+ * 레크레이션 참여자들이 플레이하는 개별 게임 로직과 UI가 포함되어 있습니다.
+ * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
+ */
 export const InitialWordQuiz = () => {
   const { userRole, participants, myPlayerId, submitPlayerInput, awardPoints, returnToLobby, room, updateRoomState } = useGame();
   const gameState = room.quizState || 'ready';
