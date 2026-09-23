@@ -9,7 +9,7 @@ import { Timer, Award, Play, RotateCcw, EyeOff, Trophy, Zap, AlertCircle } from 
  * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
  */
 export const StopwatchChallenge = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, startRound, startGame, updateRoomState } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardBatchPoints, awardPoints, room, simulateBotGameInputs, returnToLobby, startRound, startGame, updateRoomState } = useGame();
 
   const TARGET_TIME = room.targetTime || 10.000;
   const HIDE_TIME = TARGET_TIME / 2; // Hide at halfway
