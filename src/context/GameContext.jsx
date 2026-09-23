@@ -40,7 +40,7 @@ export const GameProvider = ({ children }) => {
   const participantsRef = React.useRef(participants);
   const userRoleRef = React.useRef(userRole);
   const myPlayerIdRef = React.useRef(myPlayerId);
-  const activeTeamsRef = React.useRef(activeTeams);
+  const activeTeamsRef = React.useRef([]);
 
   useEffect(() => {
     roomRef.current = room;
