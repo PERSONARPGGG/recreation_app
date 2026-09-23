@@ -42,6 +42,14 @@ export const GameProvider = ({ children }) => {
   const myPlayerIdRef = React.useRef(myPlayerId);
   const activeTeamsRef = React.useRef([]);
 
+  // Get active teams based on count (Max 6, Min 1 to prevent empty array errors)
+  const safeTeamCount = Math.min(6, Math.max(1, Number(room.teamCount) || 4));
+  const activeTeams = TEAM_PRESETS.slice(0, safeTeamCount).map(t => ({
+    ...t,
+    name: room.teamOverrides?.[t.id]?.name || t.name,
+    scoreOffset: room.teamOverrides?.[t.id]?.scoreOffset || 0
+  }));
+
   useEffect(() => {
     roomRef.current = room;
     participantsRef.current = participants;
@@ -250,13 +258,7 @@ export const GameProvider = ({ children }) => {
     setTheme(newTheme);
   };
 
-  // Get active teams based on count (Max 6, Min 1 to prevent empty array errors)
-  const safeTeamCount = Math.min(6, Math.max(1, Number(room.teamCount) || 4));
-  const activeTeams = TEAM_PRESETS.slice(0, safeTeamCount).map(t => ({
-    ...t,
-    name: room.teamOverrides?.[t.id]?.name || t.name,
-    scoreOffset: room.teamOverrides?.[t.id]?.scoreOffset || 0
-  }));
+  // Moved activeTeams to the top to fix Temporal Dead Zone ReferenceError
 
   const updateTeamInfo = (teamId, newName, targetTotalScore) => {
     setRoom(prev => {
