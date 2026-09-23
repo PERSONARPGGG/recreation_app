@@ -26,7 +26,9 @@ export const HostDashboard = () => {
     broadcast,
     updateTeamInfo,
     resetAllScores,
-    shuffleTeams
+    shuffleTeams,
+    destroyRoom,
+    kickParticipant
   } = useGame();
 
   // Render current active game if in playing state
