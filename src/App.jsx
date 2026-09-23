@@ -32,9 +32,9 @@ const MainAppContent = () => {
           fontSize: '0.82rem',
           color: 'var(--text-sub)'
         }}>
-          <div>RECREATION MASTER 100 ??100???�규모 ?�이�??�크?�이??게임 ?�진 &copy; 2026</div>
+          <div>RECREATION MASTER 100 ??100???�규모 ?�이�??�크?�이??게임 ?�진 &copy; 2026</div>
           <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-            버전: v1.5.1 (?�스???�?�보??간소?? ?�/?�마 최적??�??�시�??�정 기능)
+            버전: v1.7.0 (최종 마스터 패치: LBTO 퀴즈, 강퇴 UI 개선, 점수 밸런스 등)
           </div>
         </footer>
       )}
