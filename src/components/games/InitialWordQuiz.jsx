@@ -56,7 +56,7 @@ export const InitialWordQuiz = () => {
         topWinners.forEach((w, idx) => {
           const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
           awardPoints(w.id, points, false);
-          if (w.teamId) awardPoints(w.teamId, points, true);
+          if (w.teamId && room.mode === 'team') awardPoints(w.teamId, points, true);
         });
       }
     }
@@ -178,7 +178,7 @@ export const InitialWordQuiz = () => {
       winners.forEach((w, idx) => {
         const points = idx === 0 ? 300 : idx === 1 ? 200 : 100;
         awardPoints(w.id, points, false);
-        if (w.teamId) awardPoints(w.teamId, points, true);
+        if (w.teamId && room.mode === 'team') awardPoints(w.teamId, points, true);
       });
     } else {
       // 정답자 없을 시 참가자 전원에게 50점 지급

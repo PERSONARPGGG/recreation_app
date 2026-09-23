@@ -85,7 +85,7 @@ export const SurvivalOxQuiz = () => {
     if (survivors.length > 0) {
       survivors.forEach(s => {
         awardPoints(s.id, 100, false);
-        if (s.teamId) awardPoints(s.teamId, 100, true);
+        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, 100, true);
       });
     } else {
       participants.forEach(p => awardPoints(p.id, 50, false));

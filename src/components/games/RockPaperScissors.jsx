@@ -120,7 +120,7 @@ export const RockPaperScissors = () => {
           newSurvivors.push(s);
           // Award round points to this survivor immediately!
           awardPoints(s.id, currentPoints, false);
-          if (s.teamId) awardPoints(s.teamId, currentPoints, true);
+          if (s.teamId && room.mode === 'team') awardPoints(s.teamId, currentPoints, true);
         } else {
           newlyEliminated.push({ ...s, roundEliminated: round, choice: playerChoice || '미제출' });
         }
@@ -159,7 +159,7 @@ export const RockPaperScissors = () => {
     if (survivors.length > 0) {
       survivors.forEach(s => {
         awardPoints(s.id, 300, false);
-        if (s.teamId) awardPoints(s.teamId, 300, true);
+        if (s.teamId && room.mode === 'team') awardPoints(s.teamId, 300, true);
       });
     }
     setIsSettled(true);
