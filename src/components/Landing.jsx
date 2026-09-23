@@ -258,7 +258,7 @@ export const Landing = () => {
       }}>
         <div>RECREATION MASTER 100 — 100인 대규모 라이브 레크레이션 게임 엔진 &copy; 2026</div>
         <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-          버전: v1.6.3 (강력한 안티치트 꼼수 방지 시스템 및 테마 복구)
+          버전: v1.6.4 (엑셀 및 AI 분석용 텍스트 결과 리포트 추출 기능 추가)
         </div>
       </footer>
     </div>

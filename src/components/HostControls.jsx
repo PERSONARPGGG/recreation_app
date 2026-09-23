@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { ShieldAlert, UserMinus, Gift, PlusSquare, Shuffle, Target, Megaphone, Timer, Music, Download, X } from 'lucide-react';
 import { soundFx } from '../utils/sound';
+import { generateReports } from '../utils/reportGenerator';
 
 /**
  * HostControls 컴포넌트
@@ -9,7 +10,7 @@ import { soundFx } from '../utils/sound';
  * 강제 얼음(Freeze), 팀 셔플, 공지사항 전송 등의 돌발 이벤트를 제어합니다.
  */
 export const HostControls = () => {
-  const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime, awardPoints } = useGame();
+  const { room, toggleFreeze, triggerEvent, triggerSpotlight, shuffleTeams, setGlobalAnnouncement, kickParticipant, addGlobalTime, awardPoints, participants, activeTeams } = useGame();
   const [isOpen, setIsOpen] = useState(false);
 
   /**
@@ -35,7 +36,10 @@ export const HostControls = () => {
           }
         }
         break;
-      // KICK, BGM, REPORT are placeholders/unimplemented but won't crash now.
+      case 'REPORT':
+        generateReports(room, participants, activeTeams);
+        break;
+      // KICK, BGM are placeholders/unimplemented but won't crash now.
       default: break;
     }
   };
