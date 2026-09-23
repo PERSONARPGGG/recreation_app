@@ -40,13 +40,15 @@ export const GameProvider = ({ children }) => {
   const participantsRef = React.useRef(participants);
   const userRoleRef = React.useRef(userRole);
   const myPlayerIdRef = React.useRef(myPlayerId);
+  const activeTeamsRef = React.useRef(activeTeams);
 
   useEffect(() => {
     roomRef.current = room;
     participantsRef.current = participants;
     userRoleRef.current = userRole;
     myPlayerIdRef.current = myPlayerId;
-  }, [room, participants, userRole, myPlayerId]);
+    activeTeamsRef.current = activeTeams;
+  }, [room, participants, userRole, myPlayerId, activeTeams]);
 
   // 동기화 채널 객체 (Supabase Realtime Channel 또는 로컬 브라우저용 BroadcastChannel)
   const [channel, setChannel] = useState(null);
@@ -71,6 +73,29 @@ export const GameProvider = ({ children }) => {
             if (userRoleRef.current !== 'host') {
               setRoom(payload.room);
               setParticipants(payload.participants);
+
+              // Auto-heal missing participant: if participant isn't in host's list, resend JOIN
+              if (userRoleRef.current === 'participant' && myPlayerIdRef.current) {
+                const amIInList = payload.participants.some(p => p.id === myPlayerIdRef.current);
+                if (!amIInList) {
+                  const savedName = localStorage.getItem('rec_myPlayerName');
+                  const savedTeamId = localStorage.getItem('rec_myTeamId');
+                  if (savedName && savedTeamId) {
+                    const teamObj = activeTeamsRef.current.find(t => t.id === savedTeamId) || activeTeamsRef.current[0];
+                    const healPlayer = {
+                      id: myPlayerIdRef.current,
+                      name: savedName,
+                      isBot: false,
+                      teamId: teamObj?.id,
+                      teamName: teamObj?.name,
+                      teamColor: teamObj?.color,
+                      score: 0,
+                      lastInput: null
+                    };
+                    roomChannel.send({ type: 'broadcast', event: 'PLAYER_JOIN', payload: healPlayer });
+                  }
+                }
+              }
             }
           })
           .on('broadcast', { event: 'PLAYER_JOIN' }, ({ payload }) => {
@@ -128,6 +153,28 @@ export const GameProvider = ({ children }) => {
             if (userRoleRef.current !== 'host') {
               setRoom(payload.room);
               setParticipants(payload.participants);
+
+              if (userRoleRef.current === 'participant' && myPlayerIdRef.current) {
+                const amIInList = payload.participants.some(p => p.id === myPlayerIdRef.current);
+                if (!amIInList) {
+                  const savedName = localStorage.getItem('rec_myPlayerName');
+                  const savedTeamId = localStorage.getItem('rec_myTeamId');
+                  if (savedName && savedTeamId) {
+                    const teamObj = activeTeamsRef.current.find(t => t.id === savedTeamId) || activeTeamsRef.current[0];
+                    const healPlayer = {
+                      id: myPlayerIdRef.current,
+                      name: savedName,
+                      isBot: false,
+                      teamId: teamObj?.id,
+                      teamName: teamObj?.name,
+                      teamColor: teamObj?.color,
+                      score: 0,
+                      lastInput: null
+                    };
+                    bc.postMessage({ type: 'PLAYER_JOIN', payload: healPlayer });
+                  }
+                }
+              }
             }
           } else if (type === 'PLAYER_JOIN') {
             setParticipants(prev => {
@@ -285,7 +332,7 @@ export const GameProvider = ({ children }) => {
   };
 
   // Join as real participant
-  const joinAsPlayer = (name, selectedTeamId, forceId = null) => {
+  const joinAsPlayer = (name, selectedTeamId, forceId = null, joinRoomCode = null) => {
     const teamObj = activeTeams.find(t => t.id === selectedTeamId) || activeTeams[0] || TEAM_PRESETS[0];
     const newPlayer = {
       id: forceId || `player-${Date.now()}`,
@@ -306,6 +353,11 @@ export const GameProvider = ({ children }) => {
     localStorage.setItem('rec_myPlayerId', newPlayer.id);
     localStorage.setItem('rec_myPlayerName', name);
     localStorage.setItem('rec_myTeamId', teamObj.id);
+    if (joinRoomCode) {
+      localStorage.setItem('rec_roomCode', joinRoomCode);
+    } else if (room.code) {
+      localStorage.setItem('rec_roomCode', room.code);
+    }
 
     setParticipants(prev => {
       const filtered = prev.filter(p => p.id !== newPlayer.id);
@@ -315,13 +367,22 @@ export const GameProvider = ({ children }) => {
     });
   };
 
-  const rejoinFromSession = () => {
+  const rejoinFromSession = (currentUrlCode) => {
     const savedId = localStorage.getItem('rec_myPlayerId');
     const savedName = localStorage.getItem('rec_myPlayerName');
     const savedTeamId = localStorage.getItem('rec_myTeamId');
+    const savedRoomCode = localStorage.getItem('rec_roomCode');
+
+    if (currentUrlCode && savedRoomCode && currentUrlCode.toUpperCase() !== savedRoomCode.toUpperCase()) {
+      localStorage.removeItem('rec_myPlayerId');
+      localStorage.removeItem('rec_myPlayerName');
+      localStorage.removeItem('rec_myTeamId');
+      localStorage.removeItem('rec_roomCode');
+      return false;
+    }
 
     if (savedId && savedName) {
-      joinAsPlayer(savedName, savedTeamId, savedId);
+      joinAsPlayer(savedName, savedTeamId, savedId, currentUrlCode);
       setUserRole('participant');
       return true;
     }

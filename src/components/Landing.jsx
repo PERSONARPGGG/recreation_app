@@ -20,13 +20,14 @@ export const Landing = () => {
   }, [activeTeams, selectedTeam]);
 
   React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const codeParam = params.get('code');
+
     // Attempt to auto-rejoin to prevent team switching exploit
-    if (rejoinFromSession()) {
+    if (rejoinFromSession(codeParam)) {
       return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const codeParam = params.get('code');
     if (codeParam) {
       setInputCode(codeParam.toUpperCase());
       setView('guest_form');
