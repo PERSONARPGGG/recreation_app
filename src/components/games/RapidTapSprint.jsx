@@ -9,7 +9,7 @@ import { Flame, Play, RotateCcw, Zap, Trophy, Flag } from 'lucide-react';
  * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
  */
 export const RapidTapSprint = () => {
-  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame } = useGame();
+  const { userRole, participants, submitPlayerInput, myPlayerId, awardPoints, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, activeTeams, startRound, startGame } = useGame();
 
   const GAME_DURATION = 10; // 10 seconds race
   

@@ -9,7 +9,7 @@ import { soundFx } from '../../utils/sound';
  * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
  */
 export const NunchiGame = () => {
-  const { userRole, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, returnToLobby, room, updateRoomState, awardPoints } = useGame();
+  const { userRole, participants, myPlayerId, submitPlayerInput, resetAllPlayerInputs, returnToLobby, room, updateRoomState, awardPoints, awardBatchPoints } = useGame();
   
   const [isSettled, setIsSettled] = useState(false);
   const gameState = room.nunchiState || 'ready';

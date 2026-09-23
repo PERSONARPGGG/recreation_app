@@ -11,7 +11,7 @@ const GAME_DURATION = 10;
  * Host(사회자) 화면과 Participant(참가자) 모바일 화면을 조건부로 렌더링합니다.
  */
 export const BlockStacker = () => {
-  const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
+  const { userRole, participants, submitPlayerInput, resetAllPlayerInputs, myPlayerId, awardPoints, awardBatchPoints, room, simulateBotGameInputs, returnToLobby, updateRoomState } = useGame();
 
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0); // Height of tower
