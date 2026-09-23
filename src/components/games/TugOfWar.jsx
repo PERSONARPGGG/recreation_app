@@ -147,10 +147,12 @@ export const TugOfWar = () => {
         clearInterval(syncInterval);
         if (tapCountRef.current !== lastSyncedTapCountRef.current) {
           submitPlayerInput(myPlayerId, { taps: tapCountRef.current, lastTapTime: Date.now() });
+          lastSyncedTapCountRef.current = tapCountRef.current;
         }
       };
     }
-  }, [userRole, gameState, submitPlayerInput, myPlayerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole, gameState, myPlayerId]);
 
   // Determine winner
   const winnerSide = ropePosition < 50 ? 'left' : ropePosition > 50 ? 'right' : 'draw';

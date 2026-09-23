@@ -97,10 +97,12 @@ export const RapidTapSprint = () => {
         clearInterval(syncInterval);
         if (tapCountRef.current !== lastSyncedTapCountRef.current) {
           submitPlayerInput(myPlayerId, { tapCount: tapCountRef.current });
+          lastSyncedTapCountRef.current = tapCountRef.current;
         }
       };
     }
-  }, [userRole, isRacing, submitPlayerInput, myPlayerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole, isRacing, myPlayerId]);
 
   const handleSimulateBots = () => {
     simulateBotGameInputs('sprint');
