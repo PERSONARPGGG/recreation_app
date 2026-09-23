@@ -90,10 +90,18 @@ export const GameProvider = ({ children }) => {
             }
           })
           .on('broadcast', { event: 'PLAYER_SUBMIT' }, ({ payload }) => {
+            // Anti-Cheat: 물리적 한계치 초과 패킷 무시 (오토클리커/매크로 방어)
+            if (payload.lastInput) {
+              if (payload.lastInput.tapCount > 300) return; 
+              if (payload.lastInput.taps > 300) return; 
+              if (payload.lastInput.score > 200) return;
+            }
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
           })
           .on('broadcast', { event: 'SCORE_UPDATE' }, ({ payload }) => {
             if (userRoleRef.current === 'host') {
+               // Anti-Cheat: 1회당 획득 가능한 비정상적인 점수(100점 초과) 요청 차단
+               if (payload.points > 100 || payload.points < -100) return;
                awardPoints(payload.targetId, payload.points, payload.isTeam);
             }
           })
@@ -135,9 +143,16 @@ export const GameProvider = ({ children }) => {
               bc.postMessage({ type: 'SYNC_STATE', payload: { room: roomRef.current, participants: participantsRef.current } });
             }
           } else if (type === 'PLAYER_SUBMIT') {
+            // Anti-Cheat: 물리적 한계치 초과 패킷 무시
+            if (payload.lastInput) {
+              if (payload.lastInput.tapCount > 300) return;
+              if (payload.lastInput.taps > 300) return;
+              if (payload.lastInput.score > 200) return;
+            }
             setParticipants(prev => prev.map(p => p.id === payload.id ? { ...p, lastInput: payload.lastInput } : p));
           } else if (type === 'SCORE_UPDATE') {
             if (userRoleRef.current === 'host') {
+               if (payload.points > 100 || payload.points < -100) return;
                awardPoints(payload.targetId, payload.points, payload.isTeam);
             }
           } else if (type === 'CONFIG_CHANGE') {
@@ -287,10 +302,10 @@ export const GameProvider = ({ children }) => {
     setMyPlayerName(name);
     setMyTeamId(newPlayer.teamId);
 
-    // Save to session to prevent team switching on refresh
-    sessionStorage.setItem('rec_myPlayerId', newPlayer.id);
-    sessionStorage.setItem('rec_myPlayerName', name);
-    sessionStorage.setItem('rec_myTeamId', teamObj.id);
+    // Anti-Cheat: Save to localStorage to prevent multi-boxing (multiple tabs joining)
+    localStorage.setItem('rec_myPlayerId', newPlayer.id);
+    localStorage.setItem('rec_myPlayerName', name);
+    localStorage.setItem('rec_myTeamId', teamObj.id);
 
     setParticipants(prev => {
       const filtered = prev.filter(p => p.id !== newPlayer.id);
@@ -301,9 +316,9 @@ export const GameProvider = ({ children }) => {
   };
 
   const rejoinFromSession = () => {
-    const savedId = sessionStorage.getItem('rec_myPlayerId');
-    const savedName = sessionStorage.getItem('rec_myPlayerName');
-    const savedTeamId = sessionStorage.getItem('rec_myTeamId');
+    const savedId = localStorage.getItem('rec_myPlayerId');
+    const savedName = localStorage.getItem('rec_myPlayerName');
+    const savedTeamId = localStorage.getItem('rec_myTeamId');
 
     if (savedId && savedName) {
       joinAsPlayer(savedName, savedTeamId, savedId);

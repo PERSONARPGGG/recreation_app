@@ -35,6 +35,27 @@
   --button-text: #ffffff;
 }
 
+[data-theme="pink"] {
+  --primary-color: #ec4899;
+  --primary-glow: rgba(236, 72, 153, 0.4);
+  --secondary-color: #f43f5e;
+  --button-gradient: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+}
+
+[data-theme="green"] {
+  --primary-color: #10b981;
+  --primary-glow: rgba(16, 185, 129, 0.4);
+  --secondary-color: #059669;
+  --button-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+[data-theme="yellow"] {
+  --primary-color: #f59e0b;
+  --primary-glow: rgba(245, 158, 11, 0.4);
+  --secondary-color: #d97706;
+  --button-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
