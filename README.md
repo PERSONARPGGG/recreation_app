@@ -139,3 +139,17 @@ A recreational game web application.
 * **Team Settings Simplification:** Reduced max team limit from 10 to 6 for better mobile and host UI. Simplified default team names (e.g., Red, Blue, Green, Yellow) and enabled the host to manually edit team names and scores directly from the dashboard.
 * **Themes Overhaul:** Revamped the themes into 4 distinct colors: Blue, Pink, Green, and Yellow.
 * **Logic Fixes:** Re-evaluated and fixed the mode toggle (Team ↔ Solo) transition logic to properly clear participant statuses without sync issues.
+
+### v1.6.0 - v1.6.4
+* **Host Controller Updates:** Added forced kick function (`KICK_PLAYER`) and Destroy Room (`DESTROY_ROOM`) functions.
+* **Point Rebalancing:** Adjusted max possible points to 100 for all games.
+* **LBTO Theme Addition:** Added LBTO Quiz questions mapping and settings.
+
+### v1.7.0 - v1.7.2
+* **Footer Cleanup & Team Bugs:** Removed footer on participant mobile screens. Fixed bug where solo mode showed team text.
+* **Game Logic:** Fixed OX Quiz point logic (removed 50 pity points). Fixed Tug Of War points mismatch.
+
+### v1.7.3
+* **Critical Stability & Network Optimization:** Fixed massive bug where `destroyRoom` was exported from GameContext without being declared, crashing the app on initialization.
+* **Anti-Freeze Logic:** Fixed `RapidTapSprint` participant timer freezing at 1 second. Fixed `NunchiGame` infinite loops on timeouts. Fixed `BombPass` duplicate explode triggers.
+* **Caching Fix:** Updated `vercel.json` with UTF-8 `no-cache` directives to fix aggressive Vercel/Browser caching of broken builds.
