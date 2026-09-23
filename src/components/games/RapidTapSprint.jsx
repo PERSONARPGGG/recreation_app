@@ -84,18 +84,23 @@ export const RapidTapSprint = () => {
     soundFx.playTick(600 + (nextTap % 10) * 30);
   };
 
-  // Sync tapCount to Host every 250ms to prevent freezing
+  // Participant syncs tapCount optimally (every 500ms, only if changed)
   useEffect(() => {
     if (userRole === 'participant' && isRacing) {
       const syncInterval = setInterval(() => {
-        submitPlayerInput(myPlayerId, { tapCount });
-      }, 250);
+        if (tapCountRef.current !== lastSyncedTapCountRef.current) {
+          submitPlayerInput(myPlayerId, { tapCount: tapCountRef.current });
+          lastSyncedTapCountRef.current = tapCountRef.current;
+        }
+      }, 500);
       return () => {
         clearInterval(syncInterval);
-        submitPlayerInput(myPlayerId, { tapCount }); // final sync
+        if (tapCountRef.current !== lastSyncedTapCountRef.current) {
+          submitPlayerInput(myPlayerId, { tapCount: tapCountRef.current });
+        }
       };
     }
-  }, [userRole, isRacing, tapCount, submitPlayerInput, myPlayerId]);
+  }, [userRole, isRacing, submitPlayerInput, myPlayerId]);
 
   const handleSimulateBots = () => {
     simulateBotGameInputs('sprint');
