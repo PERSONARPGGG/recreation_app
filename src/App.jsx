@@ -34,7 +34,7 @@ const MainAppContent = () => {
         }}>
           <div>RECREATION MASTER 100 ??100???�규모 ?�이�??�크?�이??게임 ?�진 &copy; 2026</div>
           <div style={{ marginTop: '8px', color: 'var(--primary-color)', fontWeight: 800 }}>
-            버전: v1.7.3 (전면 네트워크 최적화 및 프리징 픽스)
+            버전: v1.7.4 (최종 무결성 검증 및 런타임 크래시 완전 해결)
           </div>
         </footer>
       )}
