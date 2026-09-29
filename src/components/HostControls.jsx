@@ -27,7 +27,7 @@ export const HostControls = () => {
       case 'SHUFFLE': shuffleTeams(); break;
       case 'ANNOUNCE': setGlobalAnnouncement('잠시 후 새로운 게임이 시작됩니다!'); break;
       case 'TIMER': addGlobalTime(); break;
-      case 'SCORE': 
+      case 'SCORE': {
         const targetId = prompt('점수를 수정할 팀 ID(t1, t2...) 또는 참가자 ID를 입력하세요:');
         if (targetId) {
           const score = parseInt(prompt('얼마를 더할까요? (차감하려면 음수 입력)'), 10);
@@ -37,6 +37,7 @@ export const HostControls = () => {
           }
         }
         break;
+      }
       case 'REPORT':
         generateReports(room, participants, activeTeams);
         break;
